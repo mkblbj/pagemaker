@@ -1,0 +1,9 @@
+# IDEs
+.vscode/
+.cursor/
+xnotes/
+.cursor/
+.cursorignore
+.cursorindexingignore
+
+#
