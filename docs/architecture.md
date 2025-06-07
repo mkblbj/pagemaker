@@ -131,3 +131,7 @@ API将以`/api/v1/`为前缀。认证将通过HTTP Header中的Bearer Token（JW
     * **开发环境:** Django后端需配置CORS（使用`django-cors-headers`），允许来自Vercel前端域名的跨域请求。
     * **生产环境:** 推荐为内网服务器生成并使用**自签名SSL/TLS证书**，以在内网中实现HTTPS加密通信，保障认证令牌等敏感信息的传输安全。
 * **Secrets管理:** 所有敏感信息（如数据库密码、乐天API密钥、JWT密钥）必须通过环境变量注入，绝不能硬编码在代码中。
+* **代码注释与文档(Code Comments & Documentation):** 
+    * **原则:** 代码注释应解释 “为什么 (Why)” 这么做，而不是简单地复述 “做什么 (What)”。对于复杂的业务逻辑、算法或非常规的解决方案，必须添加注释。
+    * **格式:** 所有公开的函数、类和模块应遵循其语言的标准文档字符串格式（例如，Python的Docstrings, TypeScript的JSDoc/TSDoc）。
+    * **READMEs:** 每个主要的后端应用（`users`, `pages`, `media`）和前端的复杂功能目录（`features/*`）都应包含一个简单的`README.md`文件，说明该模块的核心职责和用途。
