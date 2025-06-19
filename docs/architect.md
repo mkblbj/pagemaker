@@ -102,7 +102,7 @@ graph TD
     ```typescript
     interface PageModule {
       id: string; // 模块实例的唯一ID
-      type: 'title' | 'text' | 'image' | 'separator' | 'keyValue' | 'multiColumn' | 'video'; // 模块类型
+      type: 'title' | 'text' | 'image' | 'separator' | 'keyValue' | 'multiColumn'; // 模块类型
       [key: string]: any; // 其他配置属性
     }
 
