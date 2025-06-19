@@ -1,0 +1,43 @@
+{
+  "name": "pagemaker-cms",
+  "version": "0.1.0",
+  "description": "Pagemaker CMS - 乐天店铺页面可视化编辑器",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --recursive run dev",
+    "build": "pnpm --recursive run build",
+    "test": "pnpm --recursive run test",
+    "lint": "pnpm --recursive run lint",
+    "format": "pnpm --recursive run format",
+    "clean": "pnpm --recursive run clean",
+    "install-all": "pnpm install --frozen-lockfile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "~5.0.0",
+    "prettier": "^3.0.0",
+    "eslint": "^8.0.0"
+  },
+  "keywords": [
+    "cms",
+    "pagemaker",
+    "rakuten",
+    "visual-editor",
+    "monorepo"
+  ],
+  "license": "MIT",
+  "author": "Pagemaker Team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/pagemaker-cms.git"
+  }
+} 

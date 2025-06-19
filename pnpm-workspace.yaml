@@ -1,0 +1,13 @@
+packages:
+  # 应用程序
+  - 'apps/*'
+  # 共享包
+  - 'packages/*'
+
+# 忽略模式
+ignore:
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/.next/**'
+  - '**/coverage/**' 

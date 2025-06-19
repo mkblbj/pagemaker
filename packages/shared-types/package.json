@@ -1,0 +1,30 @@
+{
+  "name": "@pagemaker/shared-types",
+  "version": "0.1.0",
+  "description": "Shared TypeScript types for Pagemaker CMS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "echo 'No tests for types package'",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src/**/*.ts"
+  },
+  "devDependencies": {
+    "typescript": "~5.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "shared",
+    "pagemaker"
+  ],
+  "license": "MIT"
+} 
