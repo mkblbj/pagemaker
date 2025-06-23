@@ -1,12 +1,79 @@
-#环境
+# 环境变量和配置
 .env
+.env.local
+.env.*.local
+
+# Python虚拟环境
 venv/
+env/
+ENV/
+.venv/
+.ENV/
 
-#数据库
+# 数据库文件
 db.sqlite3
+db.sqlite3-journal
+*.db
 
-#日志
+# 日志文件
 logs/
+*.log
 
-#临时文件
+# Python缓存和编译文件
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 测试覆盖率
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDE和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 用户上传的媒体文件和静态文件收集
+# 注意：这里不能使用 media/ 因为会忽略 media Django应用
+media_files/
+staticfiles/
+static_collected/
+
+# 本地开发文件
+local_settings.py
+.env.development
+.env.production
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
