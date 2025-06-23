@@ -1,49 +1,54 @@
 // Pagemaker CMS 共享类型定义
 // 根据编码规范，前后端共享的数据结构必须在此定义
 
-// 基础类型
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// 用户相关类型
-export interface User extends BaseEntity {
-  username: string;
-  email: string;
-  isActive: boolean;
-}
-
-// 页面模板相关类型
-export interface PageTemplate extends BaseEntity {
-  title: string;
-  description?: string;
-  content: Record<string, any>; // JSON 结构存储页面内容
-  isPublished: boolean;
-  owner: string; // User ID
-}
-
-// API 响应类型
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errors?: Record<string, string[]>;
-}
-
-// 分页响应类型
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-// 导出所有类型
+// 导出所有类型模块
 export * from './types/common';
+export * from './types/user';
+export * from './types/page';
+export * from './types/api';
+
+// 重新导出常用类型以保持向后兼容
+export type {
+  User,
+  CreateUserRequest,
+  UpdateUserRequest,
+  LoginRequest,
+  LoginResponse,
+} from './types/user';
+
+export type {
+  PageModule,
+  PageTemplate,
+  ShopConfiguration,
+  CreatePageTemplateRequest,
+  UpdatePageTemplateRequest,
+  CreateShopConfigurationRequest,
+  UpdateShopConfigurationRequest,
+} from './types/page';
+
+export type {
+  ApiResponse,
+  ErrorResponse,
+  SuccessResponse,
+  PaginatedResponse,
+  JwtTokenRequest,
+  JwtTokenResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+} from './types/api';
+
+// 值导出（枚举和常量）
+export {
+  UserRole,
+} from './types/user';
+
+export {
+  PageModuleType,
+} from './types/page';
+
+export {
+  API_ENDPOINTS,
+} from './types/api';
 
 // 注意：随着项目发展，应该将类型分类到不同的文件中
 // 例如：./types/user.ts, ./types/page.ts 等 

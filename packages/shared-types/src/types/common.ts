@@ -28,4 +28,4 @@ export interface PaginationParams {
   pageSize?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-} 
+}

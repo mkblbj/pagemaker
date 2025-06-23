@@ -8,23 +8,36 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "pnpm clean && tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "echo 'No tests for types package'",
-    "lint": "eslint src --ext .ts",
-    "format": "prettier --write src/**/*.ts"
+    "test": "jest tests/",
+    "test:types": "tsc --noEmit",
+    "lint": "eslint src --ext .ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
     "typescript": "~5.3.3",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
     "eslint": "^9.29.0",
+    "jest": "^30.0.2",
     "prettier": "^3.5.3"
+  },
+  "peerDependencies": {
+    "typescript": "~5.x"
   },
   "keywords": [
     "typescript",
     "types",
     "shared",
-    "pagemaker"
+    "pagemaker",
+    "cms"
   ],
-  "license": "MIT"
-} 
+  "license": "MIT",
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
