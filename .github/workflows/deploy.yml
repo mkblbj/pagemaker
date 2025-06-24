@@ -18,6 +18,36 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Validate Vercel secrets
+      run: |
+        echo "🔐 验证 Vercel 部署 secrets..."
+        
+        # 检查必要的 Vercel secrets 是否存在
+        MISSING_SECRETS=()
+        
+        if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+          MISSING_SECRETS+=("VERCEL_TOKEN")
+        fi
+        
+        if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+          MISSING_SECRETS+=("VERCEL_ORG_ID")
+        fi
+        
+        if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+          MISSING_SECRETS+=("VERCEL_PROJECT_ID")
+        fi
+        
+        if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+          echo "❌ 缺少必要的 Vercel Secrets:"
+          printf '%s\n' "${MISSING_SECRETS[@]}"
+          echo ""
+          echo "请在 GitHub 仓库设置中配置这些 secrets。"
+          echo "详细配置指南: docs/github-secrets-setup.md"
+          exit 1
+        fi
+        
+        echo "✅ 所有 Vercel secrets 已配置"
+      
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -44,6 +74,8 @@ jobs:
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         working-directory: apps/frontend
         vercel-args: '--prod'
+        # 强制部署，避免与 Vercel 自动部署冲突
+        github-comment: false
         
     - name: Comment deployment URL
       if: github.event_name == 'push'
@@ -68,6 +100,44 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Validate required secrets
+      run: |
+        echo "🔐 验证必要的部署 secrets..."
+        
+        # 检查必要的 secrets 是否存在
+        MISSING_SECRETS=()
+        
+        if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          MISSING_SECRETS+=("SSH_PRIVATE_KEY")
+        fi
+        
+        if [ -z "${{ secrets.SSH_HOST }}" ]; then
+          MISSING_SECRETS+=("SSH_HOST")
+        fi
+        
+        if [ -z "${{ secrets.SSH_USERNAME }}" ]; then
+          MISSING_SECRETS+=("SSH_USERNAME")
+        fi
+        
+        if [ -z "${{ secrets.SSH_PORT }}" ]; then
+          MISSING_SECRETS+=("SSH_PORT")
+        fi
+        
+        if [ -z "${{ secrets.BACKEND_DEPLOY_PATH }}" ]; then
+          MISSING_SECRETS+=("BACKEND_DEPLOY_PATH")
+        fi
+        
+        if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+          echo "❌ 缺少必要的 GitHub Secrets:"
+          printf '%s\n' "${MISSING_SECRETS[@]}"
+          echo ""
+          echo "请在 GitHub 仓库设置中配置这些 secrets。"
+          echo "详细配置指南: docs/github-secrets-setup.md"
+          exit 1
+        fi
+        
+        echo "✅ 所有必要的 secrets 已配置"
       
     - name: Setup SSH key
       uses: webfactory/ssh-agent@v0.9.0

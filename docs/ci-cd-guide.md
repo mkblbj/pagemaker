@@ -231,6 +231,22 @@ cd apps/frontend
 pnpm build
 ```
 
+#### 6. 重复部署问题
+
+**症状**: 前端被部署了两次（Vercel 自动部署 + GitHub Actions）
+
+**原因**: Vercel 自动部署和 GitHub Actions 同时触发
+
+**解决方案**:
+1. **推荐**: 禁用 Vercel 自动部署，仅使用 GitHub Actions
+   - 进入 Vercel Dashboard → 项目设置 → Git
+   - 取消勾选 "Automatic deployments from Git"
+   
+2. **备选**: 禁用 GitHub Actions 前端部署
+   - 注释掉 `.github/workflows/deploy.yml` 中的 `deploy-frontend` 作业
+
+**详细配置**: 参考 [Vercel 集成配置指南](vercel-integration-guide.md)
+
 #### 6. GitHub Secrets 配置错误
 
 **症状**: 工作流中出现认证错误
@@ -371,6 +387,24 @@ sudo systemctl restart pagemaker-gunicorn
 3. **备份关键配置**
    - GitHub Secrets 的备份记录
    - 部署脚本的版本控制
+
+## 安全配置
+
+### GitHub Secrets 管理
+
+所有敏感信息（API Token、SSH 密钥等）都必须通过 GitHub Secrets 进行管理。详细的安全配置指南请参考：
+
+📖 **[GitHub Secrets 配置指南](github-secrets-setup.md)**
+
+### 安全检查清单
+
+在设置 CI/CD 之前，请确保：
+
+- [ ] 所有 GitHub Secrets 已正确配置
+- [ ] 没有在代码中硬编码任何敏感信息
+- [ ] SSH 密钥权限设置正确（600）
+- [ ] API Token 权限最小化
+- [ ] 定期轮换密钥和令牌
 
 ## 联系和支持
 
