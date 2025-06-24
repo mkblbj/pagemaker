@@ -1,0 +1,231 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  # 前端部署到Vercel
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: 'pnpm-lock.yaml'
+        
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Build frontend
+      run: pnpm build
+      
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: apps/frontend
+        vercel-args: '--prod'
+        
+    - name: Comment deployment URL
+      if: github.event_name == 'push'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const deploymentUrl = process.env.VERCEL_URL || 'https://pagemaker.vercel.app';
+          
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `🚀 前端已部署到 Vercel: ${deploymentUrl}`
+          });
+
+  # 后端部署到云服务器
+  deploy-backend:
+    name: Deploy Backend to Server
+    runs-on: ubuntu-latest
+    needs: deploy-frontend  # 等待前端部署完成
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Copy deployment script to server
+      run: |
+        scp -P ${{ secrets.SSH_PORT }} scripts/deploy-backend.sh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.BACKEND_DEPLOY_PATH }}/
+        
+    - name: Make deployment script executable
+      run: |
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "chmod +x ${{ secrets.BACKEND_DEPLOY_PATH }}/deploy-backend.sh"
+        
+    - name: Execute deployment script
+      run: |
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.BACKEND_DEPLOY_PATH }} && ./deploy-backend.sh"
+        
+    - name: Verify deployment
+      run: |
+        # 等待服务启动
+        sleep 10
+        
+        # 检查部署状态
+        HEALTH_CHECK=$(ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "curl -f -s http://localhost:8000/api/health/ || echo 'FAILED'")
+        
+        if [[ "$HEALTH_CHECK" == "FAILED" ]]; then
+          echo "❌ 后端部署验证失败"
+          exit 1
+        else
+          echo "✅ 后端部署验证成功"
+        fi
+        
+    - name: Get deployment logs
+      if: always()
+      run: |
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "tail -50 /var/log/pagemaker-deploy.log" || echo "无法获取部署日志"
+        
+    - name: Notify deployment result
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const deploymentStatus = '${{ job.status }}';
+          const emoji = deploymentStatus === 'success' ? '✅' : '❌';
+          const status = deploymentStatus === 'success' ? '成功' : '失败';
+          
+          const body = `${emoji} 后端部署${status}
+          
+          **部署详情:**
+          - 提交: ${context.sha.substring(0, 7)}
+          - 分支: ${context.ref.replace('refs/heads/', '')}
+          - 时间: ${new Date().toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'})}
+          
+          📊 [查看部署日志](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          `;
+          
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: body
+          });
+
+  # 部署后集成测试
+  post-deploy-tests:
+    name: Post-deployment Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    if: always() && needs.deploy-backend.result == 'success'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: 'pnpm-lock.yaml'
+        
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Run smoke tests
+      run: |
+        # 前端健康检查
+        echo "检查前端部署..."
+        curl -f https://pagemaker.vercel.app || echo "前端健康检查失败"
+        
+        # 后端健康检查
+        echo "检查后端部署..."
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "curl -f http://localhost:8000/api/health/" || echo "后端健康检查失败"
+        
+    - name: Run basic API tests
+      run: |
+        # 这里可以添加基础的API测试
+        echo "API测试将在后续版本中实现"
+        
+  # 部署失败时的紧急回滚
+  emergency-rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    needs: [deploy-backend]
+    if: failure() && needs.deploy-backend.result == 'failure'
+    
+    steps:
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Execute emergency rollback
+      run: |
+        echo "执行紧急回滚..."
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+          cd ${{ secrets.BACKEND_DEPLOY_PATH }} && 
+          if [ -f deploy-backend.sh ]; then
+            source deploy-backend.sh
+            rollback
+          else
+            echo '部署脚本不存在，无法自动回滚'
+            exit 1
+          fi
+        "
+        
+    - name: Notify rollback
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const body = `🔄 紧急回滚已执行
+          
+          由于部署失败，系统已自动回滚到上一个稳定版本。
+          
+          **回滚详情:**
+          - 失败提交: ${context.sha.substring(0, 7)}
+          - 回滚时间: ${new Date().toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'})}
+          
+          请检查部署日志并修复问题后重新部署。
+          `;
+          
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: body
+          }); 

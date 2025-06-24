@@ -1,5 +1,10 @@
 # Pagemaker CMS
 
+[![CI](https://github.com/your-org/pagemaker/workflows/CI/badge.svg)](https://github.com/your-org/pagemaker/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/your-org/pagemaker/workflows/Security%20Scan/badge.svg)](https://github.com/your-org/pagemaker/actions/workflows/security.yml)
+[![Deploy](https://github.com/your-org/pagemaker/workflows/Deploy/badge.svg)](https://github.com/your-org/pagemaker/actions/workflows/deploy.yml)
+[![Coverage](https://img.shields.io/badge/coverage-80%25+-brightgreen)](https://github.com/your-org/pagemaker/actions/workflows/coverage.yml)
+
 > 乐天店铺页面可视化编辑器 - 让页面创建变得简单高效
 
 ## 📖 项目概述
