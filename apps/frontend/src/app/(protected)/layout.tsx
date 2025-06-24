@@ -46,9 +46,7 @@ export default function ProtectedLayout({
           <CardContent className="p-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-4">需要登录</h2>
-              <p className="text-muted-foreground mb-4">
-                请先登录以访问此页面
-              </p>
+              <p className="text-muted-foreground mb-4">请先登录以访问此页面</p>
               <button
                 onClick={() => {
                   // TODO: Implement actual login redirect
@@ -108,4 +106,4 @@ export default function ProtectedLayout({
       <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   );
-} 
+}

@@ -9,20 +9,20 @@ import type {
   PaginatedResponse,
   JwtTokenRequest,
   JwtTokenResponse,
-} from '@pagemaker/shared-types';
+} from "@pagemaker/shared-types";
 
 import {
   UserRole,
   PageModuleType,
   API_ENDPOINTS,
-} from '@pagemaker/shared-types';
+} from "@pagemaker/shared-types";
 
 // 测试用户类型
 const testUser: User = {
-  id: '123',
-  username: 'testuser',
-  email: 'test@example.com',
-  fullName: 'Test User',
+  id: "123",
+  username: "testuser",
+  email: "test@example.com",
+  fullName: "Test User",
   role: UserRole.EDITOR,
   isActive: true,
   createdAt: new Date().toISOString(),
@@ -31,18 +31,18 @@ const testUser: User = {
 
 // 测试页面模块类型
 const testPageModule: PageModule = {
-  id: 'module-1',
+  id: "module-1",
   type: PageModuleType.TITLE,
-  title: 'Welcome',
-  content: 'Welcome to our page',
+  title: "Welcome",
+  content: "Welcome to our page",
 };
 
 // 测试页面模板类型
 const testPageTemplate: PageTemplate = {
-  id: 'template-1',
-  name: 'Home Page Template',
+  id: "template-1",
+  name: "Home Page Template",
   content: [testPageModule],
-  targetArea: 'main-site',
+  targetArea: "main-site",
   ownerId: testUser.id,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -50,9 +50,9 @@ const testPageTemplate: PageTemplate = {
 
 // 测试店铺配置类型
 const testShopConfig: ShopConfiguration = {
-  id: 'shop-1',
-  shopName: 'Test Shop',
-  targetArea: 'main-site',
+  id: "shop-1",
+  shopName: "Test Shop",
+  targetArea: "main-site",
   apiLicenseExpiryDate: new Date().toISOString(),
 };
 
@@ -60,7 +60,7 @@ const testShopConfig: ShopConfiguration = {
 const testApiResponse: ApiResponse<User> = {
   success: true,
   data: testUser,
-  message: 'User fetched successfully',
+  message: "User fetched successfully",
 };
 
 // 测试分页响应类型
@@ -75,19 +75,19 @@ const testPaginatedResponse: PaginatedResponse<User> = {
     hasNext: false,
     hasPrevious: false,
   },
-  message: 'Users fetched successfully',
+  message: "Users fetched successfully",
 };
 
 // 测试JWT请求类型
 const testJwtRequest: JwtTokenRequest = {
-  username: 'testuser',
-  password: 'password123',
+  username: "testuser",
+  password: "password123",
 };
 
 // 测试JWT响应类型
 const testJwtResponse: JwtTokenResponse = {
-  access: 'access-token',
-  refresh: 'refresh-token',
+  access: "access-token",
+  refresh: "refresh-token",
   user: {
     id: testUser.id,
     username: testUser.username,
@@ -119,15 +119,15 @@ export {
 
 // 类型兼容性验证函数
 export function validateTypes(): boolean {
-  console.log('Testing shared types compatibility...');
-  console.log('User:', testUser);
-  console.log('Page Template:', testPageTemplate);
-  console.log('Shop Config:', testShopConfig);
-  console.log('API Response:', testApiResponse);
-  console.log('Paginated Response:', testPaginatedResponse);
-  console.log('JWT Request:', testJwtRequest);
-  console.log('JWT Response:', testJwtResponse);
-  console.log('API Endpoints:', { loginUrl, usersUrl, pagesUrl });
-  
+  console.log("Testing shared types compatibility...");
+  console.log("User:", testUser);
+  console.log("Page Template:", testPageTemplate);
+  console.log("Shop Config:", testShopConfig);
+  console.log("API Response:", testApiResponse);
+  console.log("Paginated Response:", testPaginatedResponse);
+  console.log("JWT Request:", testJwtRequest);
+  console.log("JWT Response:", testJwtResponse);
+  console.log("API Endpoints:", { loginUrl, usersUrl, pagesUrl });
+
   return true;
-} 
+}

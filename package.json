@@ -13,17 +13,23 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "pnpm --parallel --recursive run dev",
-    "build": "pnpm --recursive run build",
-    "test": "pnpm --recursive run test",
-    "lint": "pnpm --recursive run lint",
-    "format": "pnpm --recursive run format",
-    "clean": "pnpm --recursive run clean",
+    "dev": "pnpm dev:frontend & cd apps/backend && make dev",
+    "dev:frontend": "pnpm --filter frontend run dev",
+    "dev:backend": "cd apps/backend && make dev",
+    "build": "pnpm --filter frontend run build && cd apps/backend && make build",
+    "test": "pnpm test:frontend && pnpm test:shared && cd apps/backend && make test",
+    "test:frontend": "pnpm --filter frontend run test",
+    "test:backend": "cd apps/backend && make test",
+    "test:shared": "pnpm --filter @pagemaker/shared-types run test",
+    "lint": "pnpm --filter frontend run lint && cd apps/backend && make lint",
+    "format": "pnpm --filter frontend run format && cd apps/backend && make format",
+    "clean": "pnpm --filter frontend run clean && cd apps/backend && make clean",
     "install-all": "pnpm install --frozen-lockfile"
   },
   "devDependencies": {
     "@types/node": "^20.19.1",
     "eslint": "^9.29.0",
+    "jest": "^30.0.2",
     "prettier": "^3.5.3",
     "typescript": "~5.3.3"
   },

@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Pagemaker CMS",
-  description: "A modern content management system for creating and managing web pages",
+  description:
+    "A modern content management system for creating and managing web pages",
 };
 
 export default function RootLayout({
@@ -27,9 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div id="root">
-          {children}
-        </div>
+        <div id="root">{children}</div>
       </body>
     </html>
   );

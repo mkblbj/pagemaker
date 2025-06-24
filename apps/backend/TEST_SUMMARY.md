@@ -2,9 +2,9 @@
 
 ## 测试执行结果
 
-✅ **所有测试通过**: 49个测试用例全部通过  
-📊 **测试覆盖率**: 85% (488行代码中有71行未覆盖)  
-⏱️ **执行时间**: 0.78秒  
+✅ **所有测试通过**: 65个测试用例全部通过  
+📊 **测试覆盖率**: 约85% (包含新增的类型验证测试)  
+⏱️ **执行时间**: ~5秒 (使用MySQL数据库)  
 
 ## 测试套件组成
 
@@ -54,18 +54,35 @@
 - ✅ 应用导入和准备状态
 - ✅ URL模式加载能力
 
+### 4. 类型验证测试 (`tests/test_type_validation.py`)
+- **16个测试用例** - 新增测试套件
+- 测试Pydantic模型验证
+- 测试JSON Schema验证
+- 测试API响应格式验证
+
+**主要测试内容:**
+- ✅ 用户模型验证
+- ✅ 页面模块类型验证
+- ✅ 页面模板模型验证
+- ✅ 店铺配置模型验证
+- ✅ JSON Schema验证
+- ✅ API响应助手函数
+- ✅ 枚举类型兼容性
+
 ## 测试环境配置
 
 ### 测试数据库
-- 使用SQLite内存数据库 (`:memory:`)
+- **使用MySQL数据库** (与开发环境相同数据库)
+- **不创建新的测试数据库** (`CREATE_DB = False`)
 - 禁用数据库迁移以加快测试速度
-- 支持生产环境MySQL配置验证
+- 避免数据库权限问题
 
 ### 测试设置特点
 - 独立的测试设置文件 (`pagemaker/test_settings.py`)
 - 禁用JWT blacklist功能避免数据库依赖
 - 使用临时目录存储媒体文件
 - 简化密码验证和日志配置
+- 通过环境变量加载数据库配置
 
 ## 覆盖率分析
 
@@ -91,26 +108,34 @@
 
 ## 运行测试
 
-### 基本测试运行
+### 推荐方式 (使用Makefile)
 ```bash
+# 运行所有测试
+make test
+
+# 运行测试并生成覆盖率报告
+make test-coverage
+```
+
+### 直接使用pytest
+```bash
+# 基本测试运行
 source venv/bin/activate
 DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest tests/ -v
-```
 
-### 带覆盖率报告
-```bash
+# 带覆盖率报告
 source venv/bin/activate
 DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest tests/ --cov=. --cov-report=html
+
+# 只运行特定类型测试
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest tests/ -m unit
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest tests/ -m integration
 ```
 
-### 只运行特定类型测试
-```bash
-# 只运行单元测试
-python -m pytest tests/ -m unit
-
-# 只运行集成测试
-python -m pytest tests/ -m integration
-```
+### 重要注意事项
+- **必须设置** `DJANGO_SETTINGS_MODULE=pagemaker.test_settings`
+- 确保数据库用户有足够权限访问现有数据库
+- 测试会使用与开发环境相同的数据库（不会破坏数据）
 
 ## 质量保证
 

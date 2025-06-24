@@ -115,16 +115,39 @@ flake8 .
 
 ### 运行测试
 
+**推荐使用 Makefile**:
+```bash
+# 运行所有测试 (推荐)
+make test
+
+# 运行测试并生成覆盖率报告
+make test-coverage
+```
+
+**直接使用 pytest**:
 ```bash
 # 运行所有测试
-python -m pytest
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest
 
 # 运行特定测试
-python -m pytest tests/test_settings.py
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest tests/test_settings.py
 
 # 带覆盖率报告
-python -m pytest --cov=.
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest --cov=.
+
+# 只运行单元测试
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest -m "unit"
+
+# 只运行集成测试
+DJANGO_SETTINGS_MODULE=pagemaker.test_settings python -m pytest -m "integration"
 ```
+
+**测试配置说明**:
+- 测试使用 MySQL 数据库（与开发环境相同）
+- 不会创建新的测试数据库，使用现有数据库
+- 测试配置文件: `pagemaker/test_settings.py`
+- 支持 `unit` 和 `integration` 测试标记
+- 需要确保数据库用户有足够权限
 
 ## 环境变量
 
@@ -170,6 +193,31 @@ DB_PORT=3306
 2. 数据库和用户已创建
 3. 连接参数正确
 4. 安装了cryptography包
+
+### 测试相关问题
+
+**测试数据库权限错误**:
+```
+Access denied for user 'pagemaker_cms_user'@'%' to database 'test_pagemaker_cms'
+```
+解决方案：
+- 项目已配置使用现有数据库进行测试
+- 确保使用 `make test` 或设置 `DJANGO_SETTINGS_MODULE=pagemaker.test_settings`
+- 检查 `.env` 文件中的数据库配置是否正确
+
+**Django设置未配置错误**:
+```
+ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured
+```
+解决方案：
+- 使用 `make test` 命令（推荐）
+- 或手动设置环境变量：`DJANGO_SETTINGS_MODULE=pagemaker.test_settings pytest`
+
+**pytest标记警告**:
+```
+PytestUnknownMarkWarning: Unknown pytest.mark.unit
+```
+这是正常的警告，不影响测试运行。可以忽略或在 `pytest.ini` 中注册标记。
 
 ### 依赖问题
 

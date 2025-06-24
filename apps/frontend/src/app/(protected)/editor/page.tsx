@@ -10,9 +10,7 @@ export default function EditorPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">页面编辑器</h1>
-          <p className="text-muted-foreground">
-            创建和编辑您的页面内容
-          </p>
+          <p className="text-muted-foreground">创建和编辑您的页面内容</p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">保存草稿</Button>
@@ -103,4 +101,4 @@ export default function EditorPage() {
       </div>
     </div>
   );
-} 
+}

@@ -15,12 +15,12 @@ describe('Project Structure Tests', () => {
   });
 
   test('should have backend directory structure', () => {
-    const backendDir = path.join(rootDir, 'apps/backend/pagemaker');
+    const backendDir = path.join(rootDir, 'apps/backend');
     expect(fs.existsSync(backendDir)).toBe(true);
     expect(fs.existsSync(path.join(backendDir, 'api'))).toBe(true);
     expect(fs.existsSync(path.join(backendDir, 'users'))).toBe(true);
     expect(fs.existsSync(path.join(backendDir, 'pages'))).toBe(true);
-    expect(fs.existsSync(path.join(backendDir, 'configurations'))).toBe(true);
+    expect(fs.existsSync(path.join(backendDir, 'pagemaker'))).toBe(true);
     expect(fs.existsSync(path.join(backendDir, 'media'))).toBe(true);
   });
 

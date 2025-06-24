@@ -39,9 +39,7 @@ export default function PagesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">页面管理</h1>
-          <p className="text-muted-foreground">
-            管理您的所有页面内容
-          </p>
+          <p className="text-muted-foreground">管理您的所有页面内容</p>
         </div>
         <Button>创建新页面</Button>
       </div>
@@ -52,10 +50,7 @@ export default function PagesPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              placeholder="搜索页面标题..."
-              className="flex-1"
-            />
+            <Input placeholder="搜索页面标题..." className="flex-1" />
             <select className="px-3 py-2 border border-input rounded-md">
               <option value="">所有状态</option>
               <option value="published">已发布</option>
@@ -83,7 +78,7 @@ export default function PagesPage() {
                 </tr>
               </thead>
               <tbody>
-                {mockPages.map((page) => (
+                {mockPages.map(page => (
                   <tr key={page.id} className="border-b hover:bg-muted/50">
                     <td className="p-2 font-medium">{page.title}</td>
                     <td className="p-2">
@@ -123,4 +118,4 @@ export default function PagesPage() {
       </Card>
     </div>
   );
-} 
+}

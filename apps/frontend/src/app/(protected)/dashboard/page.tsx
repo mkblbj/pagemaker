@@ -18,9 +18,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +2 比上个月增加
-            </p>
+            <p className="text-xs text-muted-foreground">+2 比上个月增加</p>
           </CardContent>
         </Card>
 
@@ -30,9 +28,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">
-              +1 比上个月增加
-            </p>
+            <p className="text-xs text-muted-foreground">+1 比上个月增加</p>
           </CardContent>
         </Card>
 
@@ -42,9 +38,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">4</div>
-            <p className="text-xs text-muted-foreground">
-              +1 比上个月增加
-            </p>
+            <p className="text-xs text-muted-foreground">+1 比上个月增加</p>
           </CardContent>
         </Card>
       </div>
@@ -59,21 +53,27 @@ export default function DashboardPage() {
               <div className="flex items-center space-x-4">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">创建了新页面 &ldquo;关于我们&rdquo;</p>
+                  <p className="text-sm font-medium">
+                    创建了新页面 &ldquo;关于我们&rdquo;
+                  </p>
                   <p className="text-xs text-muted-foreground">2 小时前</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">发布了页面 &ldquo;产品介绍&rdquo;</p>
+                  <p className="text-sm font-medium">
+                    发布了页面 &ldquo;产品介绍&rdquo;
+                  </p>
                   <p className="text-xs text-muted-foreground">5 小时前</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">修改了页面 &ldquo;首页&rdquo;</p>
+                  <p className="text-sm font-medium">
+                    修改了页面 &ldquo;首页&rdquo;
+                  </p>
                   <p className="text-xs text-muted-foreground">1 天前</p>
                 </div>
               </div>
@@ -88,4 +88,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-} 
+}

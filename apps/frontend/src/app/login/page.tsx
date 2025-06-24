@@ -41,7 +41,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="请输入邮箱"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -52,7 +52,7 @@ export default function LoginPage() {
                 type="password"
                 placeholder="请输入密码"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -64,4 +64,4 @@ export default function LoginPage() {
       </Card>
     </div>
   );
-} 
+}
