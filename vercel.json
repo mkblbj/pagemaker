@@ -1,5 +1,6 @@
 {
   "buildCommand": "pnpm --filter @pagemaker/shared-types run build && pnpm --filter frontend run build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "apps/frontend/.next"
+  "framework": "nextjs",
+  "rootDirectory": "apps/frontend"
 } 
