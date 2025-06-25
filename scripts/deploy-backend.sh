@@ -315,7 +315,7 @@ health_check() {
     
     # 读取.env文件获取端口配置
     local backend_port=$(grep "^BACKEND_PORT=" "$DEPLOY_PATH/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "8456")
-    local health_url="http://localhost:${backend_port}/api/health/"
+    local health_url="http://localhost:${backend_port}/api/v1/health/"
     
     log "检查健康端点: $health_url"
     
