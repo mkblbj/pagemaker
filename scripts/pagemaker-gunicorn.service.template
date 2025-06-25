@@ -1,7 +1,3 @@
-# 注意: 此文件包含硬编码路径，仅适用于默认部署路径 /root/dev/pagemaker
-# 对于自定义路径部署，请使用 install-gunicorn-service.sh 脚本自动生成适配的服务文件
-# 该脚本会基于 pagemaker-gunicorn.service.template 模板生成正确的配置
-
 [Unit]
 Description=Pagemaker Gunicorn daemon
 Requires=network.target
@@ -9,13 +5,13 @@ After=network.target
 
 [Service]
 Type=notify
-User=root
-Group=root
+User={{USER}}
+Group={{GROUP}}
 RuntimeDirectory=pagemaker
-WorkingDirectory=/root/dev/pagemaker/apps/backend
-Environment=PATH=/root/dev/pagemaker/apps/backend/venv/bin
-EnvironmentFile=/root/dev/pagemaker/.env
-ExecStart=/root/dev/pagemaker/apps/backend/venv/bin/gunicorn \
+WorkingDirectory={{PROJECT_ROOT}}/apps/backend
+Environment=PATH={{PROJECT_ROOT}}/apps/backend/venv/bin
+EnvironmentFile={{PROJECT_ROOT}}/.env
+ExecStart={{PROJECT_ROOT}}/apps/backend/venv/bin/gunicorn \
     --workers 3 \
     --bind 127.0.0.1:${BACKEND_PORT} \
     --timeout 120 \

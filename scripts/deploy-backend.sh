@@ -14,10 +14,10 @@
 set -e  # 遇到错误立即退出
 set -u  # 使用未定义变量时退出
 
-# 配置变量
-DEPLOY_PATH="/root/dev/pagemaker"
-BACKUP_PATH="/root/backups/pagemaker"
-LOG_FILE="/var/log/pagemaker-deploy.log"
+# 配置变量 - 支持环境变量覆盖
+DEPLOY_PATH="${DEPLOY_PATH:-/root/dev/pagemaker}"
+BACKUP_PATH="${BACKUP_PATH:-/root/backups/pagemaker}"
+LOG_FILE="${LOG_FILE:-/var/log/pagemaker-deploy.log}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_NAME="pagemaker_backup_${TIMESTAMP}"
 
@@ -262,16 +262,8 @@ setup_gunicorn_service() {
     local systemd_service="/etc/systemd/system/pagemaker-gunicorn.service"
     
     if [ -f "$service_file" ]; then
-        # 读取.env文件获取端口配置
-        local backend_port=$(grep "^BACKEND_PORT=" "$DEPLOY_PATH/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "8456")
-        
-        # 创建临时服务文件，替换端口配置
-        local temp_service="/tmp/pagemaker-gunicorn.service"
-        sed "s/127\.0\.0\.1:8456/127.0.0.1:${backend_port}/g" "$service_file" > "$temp_service"
-        
-        # 复制服务文件
-        cp "$temp_service" "$systemd_service" || error_exit "复制服务文件失败"
-        rm -f "$temp_service"
+        # 直接复制服务文件（现在使用环境变量）
+        cp "$service_file" "$systemd_service" || error_exit "复制服务文件失败"
         
         # 重载systemd配置
         systemctl daemon-reload || error_exit "重载systemd配置失败"

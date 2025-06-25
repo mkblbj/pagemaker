@@ -6,9 +6,11 @@
 set -e
 set -u
 
-# 配置变量
-PROJECT_ROOT="/root/dev/pagemaker"
+# 配置变量 - 自动检测项目根目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 SERVICE_NAME="pagemaker-gunicorn"
+SERVICE_TEMPLATE="$PROJECT_ROOT/scripts/${SERVICE_NAME}.service.template"
 SERVICE_FILE="$PROJECT_ROOT/scripts/${SERVICE_NAME}.service"
 SYSTEMD_SERVICE="/etc/systemd/system/${SERVICE_NAME}.service"
 
@@ -43,8 +45,8 @@ check_permissions() {
 check_files() {
     log_info "检查必要文件..."
     
-    if [ ! -f "$SERVICE_FILE" ]; then
-        log_error "服务配置文件不存在: $SERVICE_FILE"
+    if [ ! -f "$SERVICE_TEMPLATE" ]; then
+        log_error "服务模板文件不存在: $SERVICE_TEMPLATE"
         exit 1
     fi
     
@@ -70,7 +72,27 @@ read_config() {
     # 读取端口配置
     BACKEND_PORT=$(grep "^BACKEND_PORT=" "$PROJECT_ROOT/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "8456")
     
+    # 检测当前用户和组
+    CURRENT_USER=$(whoami)
+    CURRENT_GROUP=$(id -gn)
+    
+    log_info "项目路径: $PROJECT_ROOT"
     log_info "后端端口: $BACKEND_PORT"
+    log_info "运行用户: $CURRENT_USER"
+    log_info "运行用户组: $CURRENT_GROUP"
+}
+
+# 生成服务文件
+generate_service_file() {
+    log_info "从模板生成服务文件..."
+    
+    # 使用sed替换模板中的占位符
+    sed -e "s|{{PROJECT_ROOT}}|$PROJECT_ROOT|g" \
+        -e "s|{{USER}}|$CURRENT_USER|g" \
+        -e "s|{{GROUP}}|$CURRENT_GROUP|g" \
+        "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
+    
+    log_info "✅ 服务文件已生成: $SERVICE_FILE"
 }
 
 # 安装服务
@@ -83,13 +105,8 @@ install_service() {
         systemctl stop "$SERVICE_NAME"
     fi
     
-    # 创建临时服务文件，替换端口配置
-    local temp_service="/tmp/${SERVICE_NAME}.service"
-    sed "s/127\.0\.0\.1:8456/127.0.0.1:${BACKEND_PORT}/g" "$SERVICE_FILE" > "$temp_service"
-    
-    # 复制服务文件
-    cp "$temp_service" "$SYSTEMD_SERVICE"
-    rm -f "$temp_service"
+    # 复制生成的服务文件
+    cp "$SERVICE_FILE" "$SYSTEMD_SERVICE"
     
     # 设置正确的权限
     chmod 644 "$SYSTEMD_SERVICE"
@@ -174,6 +191,7 @@ main() {
     check_permissions
     check_files
     read_config
+    generate_service_file
     install_service
     configure_service
     start_service
