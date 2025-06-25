@@ -73,8 +73,7 @@ jobs:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: apps/frontend
-        vercel-args: '--prod'
+        vercel-args: '--prod --cwd apps/frontend'
         # 强制部署，避免与 Vercel 自动部署冲突
         github-comment: false
         
