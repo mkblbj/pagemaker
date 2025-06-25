@@ -165,6 +165,49 @@ install_dependencies() {
     log "依赖安装完成"
 }
 
+# 检查和设置环境变量
+check_environment() {
+    log "检查环境变量配置..."
+    cd "$DEPLOY_PATH" || error_exit "无法进入部署目录"
+    
+    # 检查是否存在 .env 文件
+    if [ ! -f ".env" ]; then
+        log "警告: 未找到 .env 文件"
+        
+        # 检查是否存在 .env.example
+        if [ -f ".env.example" ]; then
+            log "发现 .env.example 文件，请手动创建 .env 文件并配置正确的环境变量"
+            log "示例命令: cp .env.example .env && nano .env"
+            error_exit "缺少 .env 配置文件"
+        else
+            error_exit "缺少环境变量配置文件 (.env 和 .env.example 都不存在)"
+        fi
+    fi
+    
+    # 加载环境变量
+    export $(grep -v '^#' .env | xargs) 2>/dev/null || true
+    
+    # 检查关键环境变量
+    required_vars=("DJANGO_SECRET_KEY" "DATABASE_NAME" "DATABASE_USER" "DATABASE_PASSWORD" "DATABASE_HOST")
+    missing_vars=()
+    
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var:-}" ]; then
+            missing_vars+=("$var")
+        fi
+    done
+    
+    if [ ${#missing_vars[@]} -gt 0 ]; then
+        log "错误: 缺少以下环境变量:"
+        for var in "${missing_vars[@]}"; do
+            log "  - $var"
+        done
+        error_exit "请在 .env 文件中设置所有必需的环境变量"
+    fi
+    
+    log "✅ 环境变量检查通过"
+}
+
 # 运行数据库迁移
 run_migrations() {
     log "运行数据库迁移..."
@@ -173,8 +216,19 @@ run_migrations() {
     # 激活虚拟环境
     source venv/bin/activate || error_exit "激活虚拟环境失败"
     
+    # 加载环境变量 (从根目录)
+    export $(grep -v '^#' ../../.env | xargs) 2>/dev/null || true
+    
     # 检查数据库连接
-    python manage.py check --database default || error_exit "数据库连接检查失败"
+    log "检查数据库连接..."
+    if ! python manage.py check --database default; then
+        log "数据库连接失败，请检查以下配置:"
+        log "  - 数据库服务器是否运行: ${DATABASE_HOST:-未设置}"
+        log "  - 数据库是否存在: ${DATABASE_NAME:-未设置}"
+        log "  - 用户权限是否正确: ${DATABASE_USER:-未设置}"
+        log "  - 网络连接是否正常"
+        error_exit "数据库连接检查失败"
+    fi
     
     # 运行迁移
     python manage.py migrate || error_exit "数据库迁移失败"
@@ -189,6 +243,9 @@ collect_static() {
     
     # 激活虚拟环境
     source venv/bin/activate || error_exit "激活虚拟环境失败"
+    
+    # 加载环境变量 (从根目录)
+    export $(grep -v '^#' ../../.env | xargs) 2>/dev/null || true
     
     # 收集静态文件
     python manage.py collectstatic --noinput || error_exit "收集静态文件失败"
@@ -282,6 +339,9 @@ main() {
     
     # 拉取最新代码
     pull_latest_code
+    
+    # 检查环境变量配置
+    check_environment
     
     # 安装依赖
     install_dependencies

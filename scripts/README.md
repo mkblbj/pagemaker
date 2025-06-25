@@ -8,6 +8,7 @@
 
 - `deploy-backend.sh` - 后端部署脚本
 - `monitor-deployment.sh` - 部署监控脚本
+- `test-db-connection.py` - 数据库连接测试工具
 
 ## 后端部署脚本使用方法
 
@@ -108,13 +109,70 @@ LOG_FILE="/var/log/pagemaker-deploy.log" # 日志文件
    - 原因：首次部署时未设置仓库URL
    - 解决：推荐手动克隆，或设置环境变量
 
-4. **"数据库连接检查失败"**
-   - 原因：数据库配置错误或数据库服务未启动
-   - 解决：检查 Django 设置文件中的数据库配置
+4. **"数据库连接检查失败" 或 "(1049, 'Unknown database')"**
+   - 原因：数据库配置错误、数据库不存在或服务未启动
+   - 解决方案：
+     ```bash
+     # 1. 检查环境变量配置
+     cat .env | grep DATABASE
+     
+     # 2. 运行数据库连接测试
+     python3 scripts/test-db-connection.py
+     
+     # 3. 检查数据库是否存在
+     mysql -h database.uoworld.co.jp -u pagemaker_cms_user -p
+     SHOW DATABASES;
+     
+     # 4. 如果数据库不存在，创建数据库
+     CREATE DATABASE pagemaker_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+     
+     # 5. 确保 .env 文件存在且配置正确
+     cp .env.example .env  # 如果 .env 不存在
+     nano .env  # 编辑数据库配置
+     ```
 
 5. **"重启Gunicorn失败"**
    - 原因：Gunicorn 服务配置错误
    - 解决：检查 systemd 服务配置文件
+
+6. **"缺少环境变量" 或 "环境变量读取失败"**
+   - 原因：.env 文件不存在或格式错误
+   - 解决方案：
+     ```bash
+     # 1. 检查 .env 文件是否存在
+     ls -la .env
+     
+     # 2. 从示例文件创建 .env
+     cp .env.example .env
+     
+     # 3. 编辑环境变量配置
+     nano .env
+     
+     # 4. 验证环境变量格式
+     source .env && echo "DATABASE_NAME: $DATABASE_NAME"
+     
+     # 5. 确保没有多余的空格或引号
+     grep -n "=" .env | head -5
+     ```
+
+7. **"网络连接超时" 或 "Connection refused"**
+   - 原因：无法连接到数据库服务器
+   - 解决方案：
+     ```bash
+     # 1. 测试网络连接
+     ping database.uoworld.co.jp
+     
+     # 2. 测试端口连接
+     telnet database.uoworld.co.jp 3306
+     # 或使用 nc 命令
+     nc -zv database.uoworld.co.jp 3306
+     
+     # 3. 检查防火墙设置
+     sudo ufw status
+     
+     # 4. 检查DNS解析
+     nslookup database.uoworld.co.jp
+     ```
 
 ### 日志查看
 
@@ -147,6 +205,62 @@ cp -r /root/backups/pagemaker/pagemaker_backup_YYYYMMDD_HHMMSS /root/dev/pagemak
 # 重启服务
 systemctl start pagemaker-gunicorn
 systemctl reload nginx
+```
+
+## 数据库连接测试工具
+
+`test-db-connection.py` 脚本用于诊断数据库连接问题，特别适用于部署时的故障排除。
+
+### 使用方法
+
+```bash
+# 在项目根目录运行
+python3 scripts/test-db-connection.py
+```
+
+该脚本会：
+- 检查环境变量配置
+- 测试MySQL服务器连接
+- 验证数据库是否存在
+- 检查用户权限
+- 测试Django数据库连接
+
+### 输出示例
+
+```
+==================================================
+🔧 Pagemaker 数据库连接诊断工具
+==================================================
+📁 当前目录: /root/dev/pagemaker
+✅ 找到环境变量文件: .env
+
+🔍 开始数据库连接测试...
+📋 数据库配置:
+  - 主机: database.uoworld.co.jp
+  - 端口: 3306
+  - 数据库: pagemaker_cms
+  - 用户: pagemaker_cms_user
+  - 密码: ********************
+
+🔌 测试MySQL服务器连接...
+✅ MySQL服务器连接成功
+
+🗄️ 检查数据库 'pagemaker_cms' 是否存在...
+✅ 数据库 'pagemaker_cms' 存在
+
+🎯 测试连接到数据库 'pagemaker_cms'...
+✅ 数据库连接成功，MySQL版本: 8.4.3
+📋 用户权限:
+  - GRANT ALL PRIVILEGES ON `pagemaker_cms`.* TO `pagemaker_cms_user`@`%`
+
+🎉 数据库连接测试全部通过！
+
+🐍 测试Django数据库连接...
+✅ Django数据库连接成功
+
+==================================================
+🎉 所有测试通过！数据库配置正确。
+==================================================
 ```
 
 ## 监控脚本

@@ -158,17 +158,9 @@ jobs:
       run: |
         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
         
-    - name: Copy deployment script to server
-      run: |
-        scp -P ${{ secrets.SSH_PORT }} scripts/deploy-backend.sh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.BACKEND_DEPLOY_PATH }}/
-        
-    - name: Make deployment script executable
-      run: |
-        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "chmod +x ${{ secrets.BACKEND_DEPLOY_PATH }}/deploy-backend.sh"
-        
     - name: Execute deployment script
       run: |
-        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.BACKEND_DEPLOY_PATH }} && ./deploy-backend.sh"
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.BACKEND_DEPLOY_PATH }} && ./scripts/deploy-backend.sh"
         
     - name: Verify deployment
       run: |
@@ -270,11 +262,12 @@ jobs:
         echo "执行紧急回滚..."
         ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
           cd ${{ secrets.BACKEND_DEPLOY_PATH }} && 
-          if [ -f deploy-backend.sh ]; then
-            source deploy-backend.sh
+          if [ -f scripts/deploy-backend.sh ]; then
+            source scripts/deploy-backend.sh
             rollback
           else
             echo '部署脚本不存在，无法自动回滚'
+            echo '请手动检查 /root/backups/pagemaker/ 中的备份文件'
             exit 1
           fi
         "
