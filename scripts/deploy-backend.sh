@@ -2,6 +2,14 @@
 
 # Pagemaker 后端部署脚本
 # 用于自动化部署Django后端应用到生产服务器
+#
+# 使用方法:
+#   推荐: 手动克隆仓库后运行脚本
+#     cd /root/dev && git clone https://github.com/your-username/pagemaker.git
+#     cd pagemaker && ./scripts/deploy-backend.sh
+#   
+#   备选: 设置GIT_REPO_URL环境变量自动克隆
+#     GIT_REPO_URL="https://github.com/your-username/pagemaker.git" ./deploy-backend.sh
 
 set -e  # 遇到错误立即退出
 set -u  # 使用未定义变量时退出
@@ -12,6 +20,10 @@ BACKUP_PATH="/root/backups/pagemaker"
 LOG_FILE="/var/log/pagemaker-deploy.log"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_NAME="pagemaker_backup_${TIMESTAMP}"
+
+# Git仓库URL (如果目录不是git仓库时需要)
+# 可以通过环境变量设置: export GIT_REPO_URL="https://github.com/your-username/pagemaker.git"
+GIT_REPO_URL="${GIT_REPO_URL:-}"
 
 # 日志函数
 log() {
@@ -44,19 +56,51 @@ backup_current_version() {
 # 拉取最新代码
 pull_latest_code() {
     log "拉取最新代码..."
-    cd "$DEPLOY_PATH" || error_exit "无法进入部署目录"
     
-    # 保存当前分支
-    CURRENT_BRANCH=$(git branch --show-current)
-    log "当前分支: $CURRENT_BRANCH"
-    
-    # 拉取最新代码
-    git fetch origin || error_exit "Git fetch 失败"
-    git reset --hard origin/main || error_exit "Git reset 失败"
-    
-    # 显示最新提交信息
-    LATEST_COMMIT=$(git log -1 --oneline)
-    log "最新提交: $LATEST_COMMIT"
+    # 检查是否为git仓库
+    if [ -d "$DEPLOY_PATH/.git" ]; then
+        log "检测到git仓库，执行git pull..."
+        cd "$DEPLOY_PATH" || error_exit "无法进入部署目录"
+        
+        # 保存当前分支
+        CURRENT_BRANCH=$(git branch --show-current)
+        log "当前分支: $CURRENT_BRANCH"
+        
+        # 拉取最新代码
+        git fetch origin || error_exit "Git fetch 失败"
+        git reset --hard origin/main || error_exit "Git reset 失败"
+        
+        # 显示最新提交信息
+        LATEST_COMMIT=$(git log -1 --oneline)
+        log "最新提交: $LATEST_COMMIT"
+    else
+        log "未检测到git仓库，执行git clone..."
+        
+        # 确保部署目录存在且为空
+        if [ -d "$DEPLOY_PATH" ]; then
+            log "移除现有目录..."
+            rm -rf "$DEPLOY_PATH"
+        fi
+        
+        # 创建父目录
+        mkdir -p "$(dirname "$DEPLOY_PATH")"
+        
+        # 克隆仓库 (需要配置GIT_REPO_URL环境变量)
+        if [ -z "${GIT_REPO_URL:-}" ]; then
+            error_exit "未设置GIT_REPO_URL环境变量，无法克隆仓库"
+        fi
+        
+        git clone "$GIT_REPO_URL" "$DEPLOY_PATH" || error_exit "Git clone 失败"
+        
+        cd "$DEPLOY_PATH" || error_exit "无法进入部署目录"
+        
+        # 切换到main分支
+        git checkout main || error_exit "切换到main分支失败"
+        
+        # 显示最新提交信息
+        LATEST_COMMIT=$(git log -1 --oneline)
+        log "克隆完成，最新提交: $LATEST_COMMIT"
+    fi
 }
 
 # 安装/更新依赖
