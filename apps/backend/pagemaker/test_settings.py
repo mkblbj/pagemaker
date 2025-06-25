@@ -8,13 +8,13 @@ from decouple import config
 
 # 设置测试环境的默认环境变量
 os.environ.setdefault(
-    "SECRET_KEY", "test-secret-key-for-testing-only-do-not-use-in-production"
+    "DJANGO_SECRET_KEY", "test-secret-key-for-testing-only-do-not-use-in-production"
 )
-os.environ.setdefault("DB_NAME", "pagemaker_test")
-os.environ.setdefault("DB_USER", "root")
-os.environ.setdefault("DB_PASSWORD", "test_password")
-os.environ.setdefault("DB_HOST", "localhost")
-os.environ.setdefault("DB_PORT", "3306")
+os.environ.setdefault("DATABASE_NAME", "pagemaker_test")
+os.environ.setdefault("DATABASE_USER", "root")
+os.environ.setdefault("DATABASE_PASSWORD", "test_password")
+os.environ.setdefault("DATABASE_HOST", "localhost")
+os.environ.setdefault("DATABASE_PORT", "3306")
 
 from .settings import *  # noqa: F403,F401
 
@@ -22,17 +22,17 @@ from .settings import *  # noqa: F403,F401
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST"),
-        "PORT": config("DB_PORT", default="3306"),
+        "NAME": config("DATABASE_NAME"),
+        "USER": config("DATABASE_USER"),
+        "PASSWORD": config("DATABASE_PASSWORD"),
+        "HOST": config("DATABASE_HOST"),
+        "PORT": config("DATABASE_PORT", default="3306"),
         "OPTIONS": {
             "charset": "utf8mb4",
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
         "TEST": {
-            "NAME": "test_" + config("DB_NAME"),  # 使用独立的测试数据库
+            "NAME": "test_" + config("DATABASE_NAME"),  # 使用独立的测试数据库
             "CREATE_DB": True,  # 允许创建测试数据库
             "CHARSET": "utf8mb4",
             "COLLATION": "utf8mb4_unicode_ci",
