@@ -219,7 +219,7 @@ test_health_check() {
         log_info "✅ curl 命令可用"
         
         # 测试健康检查URL格式 (不实际请求)
-        health_url="http://localhost:8000/api/health/"
+        health_url="http://localhost:8456/api/v1/health/"
         log_info "✅ 健康检查URL: $health_url"
     else
         log_warn "⚠️ curl 命令不可用，生产环境需要安装"

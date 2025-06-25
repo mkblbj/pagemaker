@@ -173,7 +173,7 @@ jobs:
         sleep 10
         
         # 检查部署状态
-        HEALTH_CHECK=$(ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "curl -f -s http://localhost:8000/api/health/ || echo 'FAILED'")
+        HEALTH_CHECK=$(ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "curl -f -s http://localhost:8456/api/v1/health/ || echo 'FAILED'")
         
         if [[ "$HEALTH_CHECK" == "FAILED" ]]; then
           echo "❌ 后端部署验证失败"
@@ -238,7 +238,7 @@ jobs:
         
         # 后端健康检查
         echo "检查后端部署..."
-        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "curl -f http://localhost:8000/api/health/" || echo "后端健康检查失败"
+        ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "curl -f http://localhost:8456/api/v1/health/" || echo "后端健康检查失败"
         
     - name: Run basic API tests
       run: |
