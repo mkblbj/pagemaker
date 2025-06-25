@@ -195,7 +195,7 @@ class ValidatorTestCase(TestCase):
         self.assertEqual(response["success"], True)
         self.assertEqual(response["data"]["test"], "data")
         self.assertEqual(response["message"], "Success")
-        self.assertIsNone(response["errors"])
+        self.assertNotIn("errors", response)  # errors字段不应该存在
 
     def test_create_api_response_with_errors(self):
         """测试创建带错误的API响应"""
