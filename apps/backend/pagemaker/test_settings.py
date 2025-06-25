@@ -6,17 +6,21 @@ import tempfile
 import os
 from decouple import config
 
-# 设置测试环境的默认SECRET_KEY，避免从.env读取
+# 设置测试环境的默认环境变量
 os.environ.setdefault('SECRET_KEY', 'test-secret-key-for-testing-only-do-not-use-in-production')
+os.environ.setdefault('DB_NAME', 'pagemaker_test')
+os.environ.setdefault('DB_USER', 'root')
+os.environ.setdefault('DB_PASSWORD', 'test_password')
+os.environ.setdefault('DB_HOST', 'localhost')
+os.environ.setdefault('DB_PORT', '3306')
 
 from .settings import *  # noqa: F403,F401
 
-# 使用MySQL数据库进行测试，但指定测试数据库名称为现有数据库
-# 这避免了创建新数据库的权限问题
+# 使用专用的测试数据库配置
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": config("DB_NAME"),  # 使用现有数据库
+        "NAME": config("DB_NAME"),
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASSWORD"),
         "HOST": config("DB_HOST"),
@@ -26,27 +30,16 @@ DATABASES = {
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
         "TEST": {
-            "NAME": config("DB_NAME"),  # 测试时使用同一个数据库
-            "CREATE_DB": False,  # 不创建新的测试数据库
+            "NAME": "test_" + config("DB_NAME"),  # 使用独立的测试数据库
+            "CREATE_DB": True,  # 允许创建测试数据库
+            "CHARSET": "utf8mb4",
+            "COLLATION": "utf8mb4_unicode_ci",
         },
     }
 }
 
-
-# 禁用数据库迁移以加快测试速度
-class DisableMigrations:
-    def __contains__(self, item):
-        return True
-
-    def __getitem__(self, item):
-        return None
-
-
-MIGRATION_MODULES = DisableMigrations()
-
 # 测试环境设置
 DEBUG = True
-SECRET_KEY = "test-secret-key-for-testing-only"
 
 # 在测试中禁用JWT blacklist以避免数据库依赖
 # INSTALLED_APPS = INSTALLED_APPS + [
