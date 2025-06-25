@@ -1,6 +1,8 @@
 name: Coverage Report
 
 on:
+  push:
+    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
 
@@ -78,6 +80,7 @@ jobs:
         echo "TOTAL_COVERAGE=$TOTAL_COVERAGE" >> $GITHUB_ENV
         
     - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         script: |
@@ -112,6 +115,28 @@ jobs:
             repo: context.repo.repo,
             body: body
           });
+          
+    - name: Print coverage summary
+      if: github.event_name == 'push'
+      run: |
+        echo "## 📊 代码覆盖率报告"
+        echo "| 组件 | 覆盖率 |"
+        echo "|------|--------|"
+        echo "| 前端 | $FRONTEND_COVERAGE% |"
+        echo "| 后端 | $BACKEND_COVERAGE% |"
+        echo "| 总体 | $TOTAL_COVERAGE% |"
+        echo ""
+        echo "### 质量门禁状态"
+        if (( $(echo "$FRONTEND_COVERAGE >= 80" | bc -l) )); then
+          echo "✅ 前端覆盖率达标 ($FRONTEND_COVERAGE% ≥ 80%)"
+        else
+          echo "❌ 前端覆盖率未达标 ($FRONTEND_COVERAGE% < 80%)"
+        fi
+        if (( $(echo "$BACKEND_COVERAGE >= 80" | bc -l) )); then
+          echo "✅ 后端覆盖率达标 ($BACKEND_COVERAGE% ≥ 80%)"
+        else
+          echo "❌ 后端覆盖率未达标 ($BACKEND_COVERAGE% < 80%)"
+        fi
           
     - name: Upload combined coverage reports
       uses: actions/upload-artifact@v4

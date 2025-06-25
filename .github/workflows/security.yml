@@ -139,20 +139,36 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install safety bandit
+        # 安装最新版本的安全工具
+        pip install --upgrade safety bandit
+        # 抑制 pkg_resources 弃用警告
+        export PYTHONWARNINGS="ignore::DeprecationWarning"
 
     - name: Run Safety check
+      env:
+        PYTHONWARNINGS: "ignore::DeprecationWarning"
       run: |
-        safety check --json > safety-report.json || true
-        VULNERABILITIES=$(jq '. | length' safety-report.json)
-        echo "发现 $VULNERABILITIES 个已知安全漏洞"
-        
-        if [ "$VULNERABILITIES" -gt 0 ]; then
-          echo "🔴 发现安全漏洞，详情："
-          safety check
-          exit 1
-        else
+        # 检查是否有安全漏洞
+        if safety check --json > safety-report.json 2>/dev/null; then
           echo "✅ 未发现已知安全漏洞"
+          echo "[]" > safety-report.json  # 确保JSON格式正确
+          VULNERABILITIES=0
+        else
+          # Safety发现漏洞时会返回非0退出码
+          echo "🔴 发现安全漏洞，详情："
+          safety check 2>/dev/null || true
+          
+          # 尝试解析JSON报告
+          if [ -f safety-report.json ] && jq empty safety-report.json 2>/dev/null; then
+            VULNERABILITIES=$(jq '. | length' safety-report.json 2>/dev/null || echo "unknown")
+          else
+            echo "⚠️ 无法解析安全报告，请手动检查"
+            echo "[]" > safety-report.json  # 创建空的有效JSON
+            VULNERABILITIES="unknown"
+          fi
+          
+          echo "发现 $VULNERABILITIES 个已知安全漏洞"
+          exit 1
         fi
 
     - name: Run Bandit security linter
