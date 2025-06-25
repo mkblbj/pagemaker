@@ -47,6 +47,7 @@ GIT_REPO_URL="https://github.com/your-username/pagemaker.git" ./deploy-backend.s
 
 - [ ] 服务器已安装 Git
 - [ ] 服务器已安装 Python 3.12+
+- [ ] 服务器已安装 `python3-venv` 包：`apt install python3-venv python3-pip`
 - [ ] 服务器已配置 MySQL 数据库
 - [ ] 服务器已安装 Nginx 和 Gunicorn
 - [ ] 已手动克隆仓库到 `/root/dev/pagemaker`
@@ -72,16 +73,54 @@ GIT_REPO_URL="https://github.com/your-username/pagemaker.git" ./deploy-backend.s
    tail -f /var/log/pagemaker-deploy.log
    ```
 
-## 🆘 如果仍然失败
+## 🆘 常见错误及解决方案
+
+### 1. Python 虚拟环境错误
+
+**错误信息**：`ensurepip is not available`、`创建虚拟环境失败`
+
+**解决方案**：
+```bash
+# 安装必要的 Python 包
+apt update
+apt install python3-venv python3-pip
+
+# 如果是非 root 用户
+sudo apt update
+sudo apt install python3-venv python3-pip
+```
+
+### 2. Git 仓库问题
+
+**错误信息**：`fatal: not a git repository`
+
+**解决方案**：
+```bash
+cd /root/dev && git clone https://github.com/your-username/pagemaker.git
+```
+
+### 3. 权限问题
+
+**错误信息**：`Permission denied`
+
+**解决方案**：
+```bash
+chmod +x scripts/deploy-backend.sh
+chown -R root:root /root/dev/pagemaker
+```
+
+## 🔍 故障排除步骤
 
 1. **检查详细错误**：
    ```bash
    tail -50 /var/log/pagemaker-deploy.log
    ```
 
-2. **验证 Git 访问**：
+2. **验证系统依赖**：
    ```bash
-   git clone $GIT_REPO_URL /tmp/test-clone
+   python3 --version
+   python3 -m venv --help
+   git --version
    ```
 
 3. **检查权限**：

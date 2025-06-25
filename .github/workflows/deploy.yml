@@ -16,6 +16,8 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend to Vercel
     runs-on: ubuntu-latest
+    outputs:
+      deployment_url: ${{ steps.set-deployment-url.outputs.deployment_url }}
     defaults:
       run:
         working-directory: apps/frontend
@@ -84,16 +86,20 @@ jobs:
         # 强制部署，避免与 Vercel 自动部署冲突
         github-comment: false
         
-    - name: Comment deployment URL
-      if: github.event_name == 'push'
+    - name: Set deployment URL output
+      id: set-deployment-url
       run: |
+        # 获取 Vercel 部署 URL
         DEPLOYMENT_URL="${{ steps.vercel-deploy.outputs.preview-url }}"
-        if [ -z "$DEPLOYMENT_URL" ]; then
-          DEPLOYMENT_URL="https://pagemaker-frontend-bgfdnaabf-mkblbjus-gmailcoms-projects.vercel.app"
-        fi
         
-        echo "🚀 前端已部署到 Vercel: $DEPLOYMENT_URL"
-        echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        if [ -n "$DEPLOYMENT_URL" ]; then
+          echo "🚀 前端已部署到 Vercel: $DEPLOYMENT_URL"
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ 未能获取到 Vercel 部署 URL"
+          echo "请检查 Vercel 部署步骤是否成功"
+          echo "deployment_url=unknown" >> $GITHUB_OUTPUT
+        fi
 
   # 后端部署到云服务器
   deploy-backend:
@@ -226,7 +232,12 @@ jobs:
       run: |
         # 前端健康检查
         echo "检查前端部署..."
-        curl -f https://pagemaker.vercel.app || echo "前端健康检查失败"
+        FRONTEND_URL="${{ needs.deploy-frontend.outputs.deployment_url }}"
+        if [ "$FRONTEND_URL" != "unknown" ] && [ -n "$FRONTEND_URL" ]; then
+          curl -f "$FRONTEND_URL" || echo "前端健康检查失败: $FRONTEND_URL"
+        else
+          echo "⚠️ 跳过前端健康检查，未获取到有效的部署 URL"
+        fi
         
         # 后端健康检查
         echo "检查后端部署..."

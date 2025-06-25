@@ -103,6 +103,36 @@ pull_latest_code() {
     fi
 }
 
+# 检查系统依赖
+check_system_dependencies() {
+    log "检查系统依赖..."
+    
+    # 检查 Python 3
+    if ! command -v python3 &> /dev/null; then
+        error_exit "Python 3 未安装，请先安装 Python 3.12+"
+    fi
+    
+    # 检查 python3-venv 是否可用
+    if ! python3 -m venv --help &> /dev/null; then
+        log "检测到缺少 python3-venv 包，尝试安装..."
+        
+        # 检查是否为 root 用户或有 sudo 权限
+        if [ "$EUID" -eq 0 ]; then
+            # 以 root 身份运行
+            apt update && apt install -y python3-venv python3-pip || error_exit "安装 python3-venv 失败"
+        elif command -v sudo &> /dev/null; then
+            # 有 sudo 权限
+            sudo apt update && sudo apt install -y python3-venv python3-pip || error_exit "安装 python3-venv 失败"
+        else
+            error_exit "缺少 python3-venv 包，请运行: apt install python3-venv python3-pip"
+        fi
+        
+        log "✅ python3-venv 安装完成"
+    fi
+    
+    log "✅ 系统依赖检查通过"
+}
+
 # 安装/更新依赖
 install_dependencies() {
     log "安装/更新Python依赖..."
@@ -111,7 +141,16 @@ install_dependencies() {
     # 检查虚拟环境
     if [ ! -d "venv" ]; then
         log "创建Python虚拟环境..."
-        python3 -m venv venv || error_exit "创建虚拟环境失败"
+        if ! python3 -m venv venv; then
+            log "创建虚拟环境失败，可能的解决方案："
+            log "1. 安装 python3-venv: apt install python3-venv"
+            log "2. 安装 python3-pip: apt install python3-pip" 
+            log "3. 确保 Python 版本 >= 3.8"
+            error_exit "创建虚拟环境失败"
+        fi
+        log "✅ Python虚拟环境创建成功"
+    else
+        log "使用现有的Python虚拟环境"
     fi
     
     # 激活虚拟环境
@@ -231,6 +270,9 @@ cleanup_old_backups() {
 # 主部署流程
 main() {
     log "========== 开始部署 Pagemaker 后端 =========="
+    
+    # 检查系统依赖
+    check_system_dependencies
     
     # 创建备份目录
     create_backup_dir

@@ -15,8 +15,13 @@
 
 1. 服务器已安装 Python 3.12+
 2. 服务器已安装 Git
-3. 服务器已配置 MySQL 数据库
-4. 服务器已安装并配置 Nginx 和 Gunicorn
+3. 服务器已安装 Python 虚拟环境支持：
+   ```bash
+   apt update
+   apt install python3-venv python3-pip
+   ```
+4. 服务器已配置 MySQL 数据库
+5. 服务器已安装并配置 Nginx 和 Gunicorn
 
 ### 使用场景
 
@@ -91,19 +96,23 @@ LOG_FILE="/var/log/pagemaker-deploy.log" # 日志文件
 
 #### 常见错误及解决方案
 
-1. **"fatal: not a git repository"**
+1. **"ensurepip is not available" 或 "创建虚拟环境失败"**
+   - 原因：缺少 `python3-venv` 包
+   - 解决：`apt install python3-venv python3-pip`
+
+2. **"fatal: not a git repository"**
    - 原因：服务器上的目录不是 Git 仓库
    - 解决：手动克隆仓库到 `/root/dev/pagemaker`
 
-2. **"未设置GIT_REPO_URL环境变量"**
+3. **"未设置GIT_REPO_URL环境变量"**
    - 原因：首次部署时未设置仓库URL
    - 解决：推荐手动克隆，或设置环境变量
 
-3. **"数据库连接检查失败"**
+4. **"数据库连接检查失败"**
    - 原因：数据库配置错误或数据库服务未启动
    - 解决：检查 Django 设置文件中的数据库配置
 
-4. **"重启Gunicorn失败"**
+5. **"重启Gunicorn失败"**
    - 原因：Gunicorn 服务配置错误
    - 解决：检查 systemd 服务配置文件
 
