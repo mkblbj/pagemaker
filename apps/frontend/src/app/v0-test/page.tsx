@@ -78,7 +78,7 @@ export default function V0TestPage() {
 
   const handleModuleDragStart = (
     event: React.DragEvent<HTMLDivElement>,
-    module: PageModule,
+    module: PageModule
   ) => {
     console.log("拖拽开始:", module.name);
   };
@@ -90,7 +90,7 @@ export default function V0TestPage() {
   const handlePropertyChange = (
     moduleId: string,
     propertyPath: string,
-    value: unknown,
+    value: unknown
   ) => {
     console.log("属性更改:", { moduleId, propertyPath, value });
     setSaveStatus("unsaved");
@@ -186,4 +186,4 @@ export default function V0TestPage() {
       {canvasContent}
     </EditorLayout>
   );
-} 
+}
