@@ -10,6 +10,7 @@ jobs:
   # 前端代码检查和测试
   frontend:
     runs-on: ubuntu-latest
+    needs: shared-types  # 等待shared-types构建完成
     defaults:
       run:
         working-directory: apps/frontend
@@ -30,6 +31,9 @@ jobs:
         
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+      
+    - name: Build shared-types
+      run: cd ../../packages/shared-types && pnpm build
       
     - name: TypeScript check
       run: pnpm tsc --noEmit
@@ -154,6 +158,9 @@ jobs:
         
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+      
+    - name: Build package
+      run: pnpm build
       
     - name: TypeScript check
       run: pnpm tsc --noEmit
