@@ -11,7 +11,7 @@ class HealthCheckTestCase(TestCase):
 
     def test_health_check_success(self):
         """测试健康检查端点返回成功状态"""
-        response = self.client.get("/api/health/")
+        response = self.client.get("/api/v1/health/")
 
         self.assertEqual(response.status_code, 200)
 
@@ -22,6 +22,6 @@ class HealthCheckTestCase(TestCase):
 
     def test_health_check_content_type(self):
         """测试健康检查端点返回JSON格式"""
-        response = self.client.get("/api/health/")
+        response = self.client.get("/api/v1/health/")
 
         self.assertEqual(response["Content-Type"], "application/json")
