@@ -160,7 +160,7 @@ verify_service() {
     fi
     
     # 健康检查
-    local health_url="http://localhost:${BACKEND_PORT}/api/health/"
+    local health_url="http://localhost:${BACKEND_PORT}/api/v1/health/"
     log_info "测试健康检查: $health_url"
     
     if curl -f -s "$health_url" > /dev/null; then
