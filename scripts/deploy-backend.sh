@@ -253,6 +253,38 @@ collect_static() {
     log "静态文件收集完成"
 }
 
+# 安装/更新Gunicorn服务
+setup_gunicorn_service() {
+    log "配置Gunicorn服务..."
+    
+    # 复制服务文件到systemd目录
+    local service_file="$DEPLOY_PATH/scripts/pagemaker-gunicorn.service"
+    local systemd_service="/etc/systemd/system/pagemaker-gunicorn.service"
+    
+    if [ -f "$service_file" ]; then
+        # 读取.env文件获取端口配置
+        local backend_port=$(grep "^BACKEND_PORT=" "$DEPLOY_PATH/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "8456")
+        
+        # 创建临时服务文件，替换端口配置
+        local temp_service="/tmp/pagemaker-gunicorn.service"
+        sed "s/127\.0\.0\.1:8456/127.0.0.1:${backend_port}/g" "$service_file" > "$temp_service"
+        
+        # 复制服务文件
+        cp "$temp_service" "$systemd_service" || error_exit "复制服务文件失败"
+        rm -f "$temp_service"
+        
+        # 重载systemd配置
+        systemctl daemon-reload || error_exit "重载systemd配置失败"
+        
+        # 启用服务
+        systemctl enable pagemaker-gunicorn || error_exit "启用Gunicorn服务失败"
+        
+        log "Gunicorn服务配置完成"
+    else
+        error_exit "未找到Gunicorn服务配置文件: $service_file"
+    fi
+}
+
 # 重启应用服务
 restart_services() {
     log "重启应用服务..."
@@ -261,9 +293,15 @@ restart_services() {
     if systemctl is-active --quiet pagemaker-gunicorn; then
         systemctl restart pagemaker-gunicorn || error_exit "重启Gunicorn失败"
         log "Gunicorn服务重启完成"
+    elif systemctl is-enabled --quiet pagemaker-gunicorn; then
+        log "启动Gunicorn服务..."
+        systemctl start pagemaker-gunicorn || error_exit "启动Gunicorn失败"
+        log "Gunicorn服务启动完成"
     else
-        log "警告: Gunicorn服务未运行，尝试启动..."
-        systemctl start pagemaker-gunicorn || log "警告: 启动Gunicorn失败"
+        log "警告: Gunicorn服务未配置，尝试配置并启动..."
+        setup_gunicorn_service
+        systemctl start pagemaker-gunicorn || error_exit "启动Gunicorn失败"
+        log "Gunicorn服务配置并启动完成"
     fi
     
     # 检查并重启OpenResty服务
@@ -283,12 +321,20 @@ health_check() {
     # 等待服务启动
     sleep 5
     
+    # 读取.env文件获取端口配置
+    local backend_port=$(grep "^BACKEND_PORT=" "$DEPLOY_PATH/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "8456")
+    local health_url="http://localhost:${backend_port}/api/health/"
+    
+    log "检查健康端点: $health_url"
+    
     # 检查应用是否响应
-    if curl -f -s http://localhost:8000/api/health/ > /dev/null; then
+    if curl -f -s "$health_url" > /dev/null; then
         log "✅ 健康检查通过"
         return 0
     else
         log "❌ 健康检查失败"
+        log "尝试检查服务状态..."
+        systemctl status pagemaker-gunicorn --no-pager || true
         return 1
     fi
 }

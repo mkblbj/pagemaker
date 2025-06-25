@@ -9,8 +9,11 @@
 - `deploy-backend.sh` - 主部署脚本
 - `test-deploy.sh` - 完整的部署脚本测试工具
 - `pre-deploy-check.sh` - 部署前快速检查脚本
+- `install-gunicorn-service.sh` - Gunicorn 服务安装脚本
+- `pagemaker-gunicorn.service` - systemd 服务配置文件
 - `openresty-config-example.conf` - OpenResty 配置示例
 - `monitor-deployment.sh` - 部署监控脚本
+- `TROUBLESHOOTING.md` - 故障排除指南
 
 ## 前置条件
 
@@ -102,10 +105,14 @@ GitHub Actions 会自动运行 `pre-deploy-check.sh` 进行部署前检查。
 
 ### 常见问题
 
-1. **权限问题**: 确保脚本有执行权限 (`chmod +x deploy-backend.sh`)
-2. **Python 环境**: 确保安装了 `python3-venv` 包
-3. **数据库连接**: 检查 `.env` 文件中的数据库配置
-4. **OpenResty 配置**: 手动配置反向代理后重载配置
+1. **Gunicorn 服务未找到**: 运行 `./scripts/install-gunicorn-service.sh` 安装服务
+2. **权限问题**: 确保脚本有执行权限 (`chmod +x deploy-backend.sh`)
+3. **Python 环境**: 确保安装了 `python3-venv` 包
+4. **数据库连接**: 检查 `.env` 文件中的数据库配置
+5. **端口配置**: 确保 `.env`、Gunicorn 服务、OpenResty 配置中的端口一致
+6. **OpenResty 配置**: 手动配置反向代理后重载配置
+
+详细的故障排除指南请参考: `scripts/TROUBLESHOOTING.md`
 
 ### 日志查看
 

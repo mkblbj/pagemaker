@@ -1,0 +1,34 @@
+[Unit]
+Description=Pagemaker Gunicorn daemon
+Requires=network.target
+After=network.target
+
+[Service]
+Type=notify
+User=root
+Group=root
+RuntimeDirectory=pagemaker
+WorkingDirectory=/root/dev/pagemaker/apps/backend
+Environment=PATH=/root/dev/pagemaker/apps/backend/venv/bin
+EnvironmentFile=/root/dev/pagemaker/.env
+ExecStart=/root/dev/pagemaker/apps/backend/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8456 \
+    --timeout 120 \
+    --keep-alive 5 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --preload \
+    --access-logfile /var/log/pagemaker-gunicorn-access.log \
+    --error-logfile /var/log/pagemaker-gunicorn-error.log \
+    --log-level info \
+    pagemaker.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 
