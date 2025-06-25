@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:  # 允许手动触发
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  repository-projects: read
+
 jobs:
   # 前端部署到Vercel
   deploy-frontend:
@@ -68,6 +74,7 @@ jobs:
       run: pnpm build
       
     - name: Deploy to Vercel
+      id: vercel-deploy
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -79,17 +86,14 @@ jobs:
         
     - name: Comment deployment URL
       if: github.event_name == 'push'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const deploymentUrl = process.env.VERCEL_URL || 'https://pagemaker.vercel.app';
-          
-          github.rest.repos.createCommitComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            commit_sha: context.sha,
-            body: `🚀 前端已部署到 Vercel: ${deploymentUrl}`
-          });
+      run: |
+        DEPLOYMENT_URL="${{ steps.vercel-deploy.outputs.preview-url }}"
+        if [ -z "$DEPLOYMENT_URL" ]; then
+          DEPLOYMENT_URL="https://pagemaker-frontend-bgfdnaabf-mkblbjus-gmailcoms-projects.vercel.app"
+        fi
+        
+        echo "🚀 前端已部署到 Vercel: $DEPLOYMENT_URL"
+        echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
   # 后端部署到云服务器
   deploy-backend:
@@ -182,29 +186,17 @@ jobs:
         
     - name: Notify deployment result
       if: always()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const deploymentStatus = '${{ job.status }}';
-          const emoji = deploymentStatus === 'success' ? '✅' : '❌';
-          const status = deploymentStatus === 'success' ? '成功' : '失败';
-          
-          const body = `${emoji} 后端部署${status}
-          
-          **部署详情:**
-          - 提交: ${context.sha.substring(0, 7)}
-          - 分支: ${context.ref.replace('refs/heads/', '')}
-          - 时间: ${new Date().toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'})}
-          
-          📊 [查看部署日志](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          `;
-          
-          github.rest.repos.createCommitComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            commit_sha: context.sha,
-            body: body
-          });
+      run: |
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "✅ 后端部署成功"
+        else
+          echo "❌ 后端部署失败"
+        fi
+        
+        echo "**部署详情:**"
+        echo "- 提交: ${{ github.sha }}"
+        echo "- 分支: ${{ github.ref_name }}"
+        echo "- 时间: $(date)"
 
   # 部署后集成测试
   post-deploy-tests:
@@ -277,23 +269,13 @@ jobs:
         "
         
     - name: Notify rollback
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const body = `🔄 紧急回滚已执行
-          
-          由于部署失败，系统已自动回滚到上一个稳定版本。
-          
-          **回滚详情:**
-          - 失败提交: ${context.sha.substring(0, 7)}
-          - 回滚时间: ${new Date().toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'})}
-          
-          请检查部署日志并修复问题后重新部署。
-          `;
-          
-          github.rest.repos.createCommitComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            commit_sha: context.sha,
-            body: body
-          }); 
+      run: |
+        echo "🔄 紧急回滚已执行"
+        echo ""
+        echo "由于部署失败，系统已自动回滚到上一个稳定版本。"
+        echo ""
+        echo "**回滚详情:**"
+        echo "- 失败提交: ${{ github.sha }}"
+        echo "- 回滚时间: $(date)"
+        echo ""
+        echo "请检查部署日志并修复问题后重新部署。" 
