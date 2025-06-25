@@ -49,7 +49,7 @@ GIT_REPO_URL="https://github.com/your-username/pagemaker.git" ./deploy-backend.s
 - [ ] 服务器已安装 Python 3.12+
 - [ ] 服务器已安装 `python3-venv` 包：`apt install python3-venv python3-pip`
 - [ ] 服务器已配置 MySQL 数据库
-- [ ] 服务器已安装 Nginx 和 Gunicorn
+- [ ] 服务器已安装 OpenResty 和 Gunicorn
 - [ ] 已手动克隆仓库到 `/root/dev/pagemaker`
 - [ ] 脚本具有执行权限 (`chmod +x deploy-backend.sh`)
 
@@ -60,7 +60,7 @@ GIT_REPO_URL="https://github.com/your-username/pagemaker.git" ./deploy-backend.s
 1. **检查服务状态**：
    ```bash
    systemctl status pagemaker-gunicorn
-   systemctl status nginx
+   systemctl status openresty
    ```
 
 2. **检查应用响应**：

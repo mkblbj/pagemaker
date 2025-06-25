@@ -32,7 +32,7 @@ Pagemaker项目将采用现代化的 **前后端分离** 架构。前端将使�
     * **部署平台:** 公司**内网服务器 (On-Premise)**。
     * **前端部署方式:** 在内网服务器上，我们将搭建一个 **Node.js** 运行环境，并通过 **PM2** 等进程管理器来运行Next.js应用。
     * **后端部署方式:** 使用 **Gunicorn** 作为WSGI服务器来运行Django应用。
-    * **流量分发与整合:** 为了让前后端在内网中无缝协作，我们将使用 **Nginx** 作为反向代理。Nginx将负责接收所有请求，将针对前端页面的请求转发给Node.js进程，将API请求（如 `/api/*`）转发给Gunicorn/Django进程。
+    * **流量分发与整合:** 为了让前后端在内网中无缝协作，我们将使用 **OpenResty** 作为反向代理。OpenResty将负责接收所有请求，将针对前端页面的请求转发给Node.js进程，将API请求（如 `/api/*`）转发给Gunicorn/Django进程。
 
 ### 2.4 高阶架构图 (High Level Architecture Diagram)
 
@@ -41,10 +41,10 @@ Pagemaker项目将采用现代化的 **前后端分离** 架构。前端将使�
 ```mermaid
 graph TD
     subgraph "公司内网"
-        User[运营团队用户] -->|Intranet| Nginx(Nginx 反向代理);
-        
-        Nginx -->|Page Request| FE(Next.js on Node.js);
-        Nginx -->|/api/* Request| BE(Backend: Django on Gunicorn);
+        User[运营团队用户] -->|Intranet| OpenResty(OpenResty 反向代理);
+
+OpenResty -->|Page Request| FE(Next.js on Node.js);
+OpenResty -->|/api/* Request| BE(Backend: Django on Gunicorn);
         
         BE -->|SQL Queries| DB(Database: MySQL);
         BE -->|Outbound API Calls| Rakuten(乐天API / R-Cabinet);
@@ -1150,7 +1150,7 @@ pagemaker-cms/
     * **强大的可测试性**: 通过仓库模式等设计，为高质量的自动化测试奠定了基础。
 * **主要风险**:
     * **外部API依赖**: 项目的成功高度依赖于对文档不完善的“乐天API”的成功集成。`Story 0.8` 的执行是后续开发的关键前置任务。
-    * **生产环境运维**: 在内网部署和维护全套服务（Nginx, Node.js/PM2, Django/Gunicorn, Prometheus/Grafana）需要相应的运维能力支持。
+    * **生产环境运维**: 在内网部署和维护全套服务（OpenResty, Node.js/PM2, Django/Gunicorn, Prometheus/Grafana）需要相应的运维能力支持。
 
 ### 2. 分类状态分析 (Category Statuses)
 
@@ -1172,7 +1172,7 @@ pagemaker-cms/
 该架构设计已准备就绪，可以进入开发阶段。
 
 * **最高优先级任务**: 立即开始执行PRD中定义的`Epic 0`，特别是`Story 0.8: 乐天API访问验证和文档整理`，以尽快消除最大的技术不确定性。
-* **运维准备**: 建议提前与公司IT/运维团队沟通，确保生产环境所需的软件（Node.js, PM2, Gunicorn, Nginx, Prometheus等）能够及时准备就绪。
+* **运维准备**: 建议提前与公司IT/运维团队沟通，确保生产环境所需的软件（Node.js, PM2, Gunicorn, OpenResty, Prometheus等）能够及时准备就绪。
 
 ---
 **结论: 架构已批准 (ARCHITECTURE APPROVED)**

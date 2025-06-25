@@ -266,12 +266,13 @@ restart_services() {
         systemctl start pagemaker-gunicorn || log "警告: 启动Gunicorn失败"
     fi
     
-    # 检查并重启Nginx服务
-    if systemctl is-active --quiet nginx; then
-        systemctl reload nginx || error_exit "重载Nginx配置失败"
-        log "Nginx配置重载完成"
+    # 检查并重启OpenResty服务
+    if systemctl is-active --quiet openresty; then
+        systemctl reload openresty || error_exit "重载OpenResty配置失败"
+        log "OpenResty配置重载完成"
     else
-        log "警告: Nginx服务未运行"
+        log "警告: OpenResty服务未运行，跳过配置重载"
+        log "提示: 请手动配置OpenResty反向代理指向 http://localhost:8000"
     fi
 }
 

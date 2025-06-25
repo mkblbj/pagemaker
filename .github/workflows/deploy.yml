@@ -111,6 +111,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Run pre-deploy checks
+      run: |
+        chmod +x scripts/pre-deploy-check.sh
+        ./scripts/pre-deploy-check.sh
+      
     - name: Validate required secrets
       run: |
         echo "🔐 验证必要的部署 secrets..."
