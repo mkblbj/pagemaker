@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd ../../packages/shared-types && pnpm build && cd ../../apps/frontend && pnpm build",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "functions": {
+    "app/**/*.js": {
+      "maxDuration": 30
+    }
+  }
+} 

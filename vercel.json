@@ -1,23 +1,5 @@
 {
   "git": {
     "deploymentEnabled": false
-  },
-  "builds": [
-    {
-      "src": "apps/frontend/package.json",
-      "use": "@vercel/next",
-      "config": {
-        "distDir": "apps/frontend/.next"
-      }
-    }
-  ],
-  "buildCommand": "cd packages/shared-types && pnpm build && cd ../../apps/frontend && pnpm build",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "apps/frontend/.next",
-  "framework": null,
-  "functions": {
-    "apps/frontend/app/**/*.js": {
-      "maxDuration": 30
-    }
   }
 }
