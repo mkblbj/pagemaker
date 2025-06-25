@@ -7,12 +7,14 @@ import os
 from decouple import config
 
 # 设置测试环境的默认环境变量
-os.environ.setdefault('SECRET_KEY', 'test-secret-key-for-testing-only-do-not-use-in-production')
-os.environ.setdefault('DB_NAME', 'pagemaker_test')
-os.environ.setdefault('DB_USER', 'root')
-os.environ.setdefault('DB_PASSWORD', 'test_password')
-os.environ.setdefault('DB_HOST', 'localhost')
-os.environ.setdefault('DB_PORT', '3306')
+os.environ.setdefault(
+    "SECRET_KEY", "test-secret-key-for-testing-only-do-not-use-in-production"
+)
+os.environ.setdefault("DB_NAME", "pagemaker_test")
+os.environ.setdefault("DB_USER", "root")
+os.environ.setdefault("DB_PASSWORD", "test_password")
+os.environ.setdefault("DB_HOST", "localhost")
+os.environ.setdefault("DB_PORT", "3306")
 
 from .settings import *  # noqa: F403,F401
 
