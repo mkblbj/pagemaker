@@ -2,10 +2,14 @@
 Test-specific Django settings
 """
 
-from .settings import *  # noqa: F403,F401
 import tempfile
 import os
 from decouple import config
+
+# 设置测试环境的默认SECRET_KEY，避免从.env读取
+os.environ.setdefault('SECRET_KEY', 'test-secret-key-for-testing-only-do-not-use-in-production')
+
+from .settings import *  # noqa: F403,F401
 
 # 使用MySQL数据库进行测试，但指定测试数据库名称为现有数据库
 # 这避免了创建新数据库的权限问题

@@ -21,7 +21,7 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 8
+        version: 9
         
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -105,6 +105,12 @@ jobs:
       env:
         DATABASE_URL: mysql://root:test_password@localhost:3306/pagemaker_test
         DJANGO_SETTINGS_MODULE: pagemaker.test_settings
+        SECRET_KEY: test-secret-key-for-ci-testing-only
+        DB_NAME: pagemaker_test
+        DB_USER: root
+        DB_PASSWORD: test_password
+        DB_HOST: localhost
+        DB_PORT: 3306
       run: |
         python manage.py migrate --settings=pagemaker.test_settings
         coverage run --source='.' manage.py test --settings=pagemaker.test_settings
@@ -141,7 +147,7 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 8
+        version: 9
         
     - name: Setup Node.js
       uses: actions/setup-node@v4
