@@ -12,7 +12,7 @@ RAKUTEN_API_RATE_LIMIT = 1  # 每秒最大请求数
 # R-Cabinet API端点
 CABINET_ENDPOINTS = {
     "USAGE_GET": "/es/1.0/cabinet/usage/get",
-    "FOLDERS_GET": "/es/1.0/cabinet/folders/get", 
+    "FOLDERS_GET": "/es/1.0/cabinet/folders/get",
     "FOLDER_FILES_GET": "/es/1.0/cabinet/folder/files/get",
     "FILES_SEARCH": "/es/1.0/cabinet/files/search",
     "FILE_DELETE": "/es/1.0/cabinet/file/delete",
@@ -76,7 +76,7 @@ MESSAGE_TYPES = {
     "OK": "OK",
     "PARAMETER_ERROR": "ParameterError",
     "REQUEST_FORMAT_ERROR": "Request data is wrong format",
-    "AUTH_ERROR": "AuthError", 
+    "AUTH_ERROR": "AuthError",
     "ACCESS_LIMIT": "AccessLimit",
     "SYSTEM_ERROR": "SystemError",
     "METHOD_NOT_ALLOWED": "Method Not Allowed",
@@ -106,9 +106,7 @@ FILE_LIMITS = {
 }
 
 # 支持的文件格式
-SUPPORTED_FILE_FORMATS = [
-    "JPG", "JPEG", "GIF", "PNG", "TIFF", "BMP"
-]
+SUPPORTED_FILE_FORMATS = ["JPG", "JPEG", "GIF", "PNG", "TIFF", "BMP"]
 
 # 自动转换格式（会转换为JPG）
 AUTO_CONVERT_FORMATS = ["PNG", "TIFF", "BMP"]
@@ -132,4 +130,4 @@ LOG_CONFIG = {
     "LOGGER_NAME": "rakuten_api",
     "FORMAT": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     "LEVEL": "INFO",
-} 
+}

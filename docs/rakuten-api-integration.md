@@ -470,4 +470,436 @@ def debug_api_call(endpoint, headers, data=None):
 
 **文档版本**: 1.0  
 **最后更新**: 2025年  
+**维护者**: Pagemaker开发团队
+
+## 10. 备用方案和降级策略
+
+### 10.1 降级策略概述
+
+为确保系统在乐天API不可用时仍能正常运行，实现了多层次的降级和备用方案：
+
+#### 10.1.1 降级级别
+
+1. **Level 1 - 重试机制**: 自动重试失败的API调用
+2. **Level 2 - 断路器模式**: 快速失败，避免级联故障
+3. **Level 3 - 缓存降级**: 使用缓存数据提供服务
+4. **Level 4 - 功能降级**: 禁用特定功能，保持核心功能
+5. **Level 5 - 紧急模式**: 完全禁用API集成
+
+#### 10.1.2 自动触发条件
+
+```python
+# 降级触发条件
+DEGRADATION_TRIGGERS = {
+    "api_error_rate": 0.1,        # 10%错误率
+    "response_time_ms": 5000,     # 5秒响应时间
+    "consecutive_failures": 5,     # 连续5次失败
+    "circuit_breaker_open": True,  # 断路器开启
+}
+```
+
+### 10.2 断路器模式实现
+
+#### 10.2.1 断路器状态
+
+- **CLOSED**: 正常状态，允许所有请求通过
+- **OPEN**: 断开状态，快速失败所有请求
+- **HALF_OPEN**: 半开状态，允许少量请求测试服务恢复
+
+#### 10.2.2 使用示例
+
+```python
+from pagemaker.integrations.fallback_strategies import execute_with_fallback
+
+def get_cabinet_usage_with_fallback():
+    """带降级的获取R-Cabinet使用情况"""
+    
+    def primary_call():
+        return cabinet_client.get_usage()
+    
+    def fallback_call():
+        # 返回缓存数据或默认值
+        cached_data = get_cached_usage()
+        if cached_data:
+            return cached_data
+        return {
+            "max_space": 100,
+            "used_space": 0,
+            "available_space": 100,
+            "from_cache": True
+        }
+    
+    return execute_with_fallback(
+        service_name="cabinet_api",
+        primary_func=primary_call,
+        fallback_func=fallback_call
+    )
+```
+
+### 10.3 功能开关（Feature Flag）
+
+#### 10.3.1 可控制的功能
+
+```python
+FEATURE_FLAGS = {
+    "cabinet_api_enabled": True,      # R-Cabinet API
+    "license_api_enabled": True,      # License Management API  
+    "ftp_service_enabled": True,      # FTP文件上传
+    "auto_retry_enabled": True,       # 自动重试
+    "cache_fallback_enabled": True,   # 缓存降级
+}
+```
+
+#### 10.3.2 动态控制
+
+```python
+from pagemaker.integrations.fallback_strategies import get_fallback_manager
+
+# 运行时禁用功能
+manager = get_fallback_manager()
+manager.disable_feature("cabinet_api_enabled")
+
+# 检查功能状态
+if manager.is_feature_enabled("cabinet_api_enabled"):
+    # 执行API调用
+    pass
+else:
+    # 使用备用方案
+    pass
+```
+
+### 10.4 缓存降级策略
+
+#### 10.4.1 缓存层次
+
+1. **L1 - 内存缓存**: 最近访问的数据（TTL: 5分钟）
+2. **L2 - 数据库缓存**: 较长期的数据（TTL: 1小时）
+3. **L3 - 静态数据**: 默认配置和模拟数据
+
+#### 10.4.2 缓存实现
+
+```python
+def get_with_cache_fallback(cache_key: str, api_call_func, ttl: int = 300):
+    """带缓存降级的数据获取"""
+    
+    # 尝试从缓存获取
+    cached_data = get_cached_response(cache_key)
+    if cached_data:
+        return cached_data
+    
+    try:
+        # 调用API
+        data = api_call_func()
+        # 缓存结果
+        cache_response(cache_key, data, ttl)
+        return data
+    except Exception as e:
+        # API失败，返回过期缓存或默认值
+        expired_cache = get_expired_cache(cache_key)
+        if expired_cache:
+            return {**expired_cache, "from_expired_cache": True}
+        
+        # 返回默认值
+        return get_default_data(cache_key)
+```
+
+### 10.5 FTP连接备用方案
+
+#### 10.5.1 多重备用策略
+
+1. **主要FTP服务器**: 乐天提供的FTP服务器
+2. **备用FTP服务器**: 如果配置了多个FTP服务器
+3. **本地存储**: 临时存储文件，稍后同步
+4. **禁用上传**: 仅允许查看和管理现有文件
+
+#### 10.5.2 实现示例
+
+```python
+def upload_file_with_fallback(file_data, filename):
+    """带备用方案的文件上传"""
+    
+    upload_strategies = [
+        ("primary_ftp", upload_to_primary_ftp),
+        ("backup_ftp", upload_to_backup_ftp),
+        ("local_storage", save_to_local_storage),
+    ]
+    
+    for strategy_name, upload_func in upload_strategies:
+        try:
+            result = upload_func(file_data, filename)
+            logger.info(f"文件上传成功，策略: {strategy_name}")
+            return result
+        except Exception as e:
+            logger.warning(f"上传策略 {strategy_name} 失败: {e}")
+            continue
+    
+    # 所有策略都失败
+    raise Exception("所有文件上传策略都失败")
+```
+
+### 10.6 API配额管理
+
+#### 10.6.1 配额监控
+
+```python
+class QuotaManager:
+    def __init__(self):
+        self.daily_quota = 10000  # 每日请求限制
+        self.hourly_quota = 500   # 每小时请求限制
+        self.current_usage = {"daily": 0, "hourly": 0}
+        self.reset_times = {}
+    
+    def check_quota(self) -> bool:
+        """检查是否还有配额"""
+        if self.current_usage["hourly"] >= self.hourly_quota:
+            return False
+        if self.current_usage["daily"] >= self.daily_quota:
+            return False
+        return True
+    
+    def consume_quota(self):
+        """消耗配额"""
+        self.current_usage["hourly"] += 1
+        self.current_usage["daily"] += 1
+```
+
+#### 10.6.2 配额耗尽处理
+
+```python
+def handle_quota_exhausted():
+    """处理配额耗尽"""
+    # 1. 启用严格缓存模式
+    enable_strict_cache_mode()
+    
+    # 2. 延迟非关键请求
+    delay_non_critical_requests()
+    
+    # 3. 通知管理员
+    send_quota_alert()
+    
+    # 4. 记录事件
+    logger.critical("API配额耗尽，启用降级模式")
+```
+
+### 10.7 紧急情况处理
+
+#### 10.7.1 紧急禁用所有API
+
+```python
+from pagemaker.integrations.fallback_strategies import emergency_disable_all
+
+# 紧急情况下禁用所有API
+emergency_disable_all()
+```
+
+#### 10.7.2 紧急缓存模式
+
+```python
+from pagemaker.integrations.fallback_strategies import emergency_cache_only
+
+# 启用仅缓存模式
+emergency_cache_only()
+```
+
+#### 10.7.3 手动干预程序
+
+```python
+def manual_intervention_checklist():
+    """手动干预检查清单"""
+    checklist = [
+        "1. 检查乐天API服务状态",
+        "2. 验证网络连接",
+        "3. 检查凭据有效性", 
+        "4. 查看系统日志",
+        "5. 重置断路器",
+        "6. 清理缓存",
+        "7. 重启服务（如需要）",
+        "8. 通知相关人员",
+    ]
+    
+    for item in checklist:
+        print(f"☐ {item}")
+    
+    return checklist
+```
+
+### 10.8 监控和告警
+
+#### 10.8.1 监控指标
+
+```python
+MONITORING_METRICS = {
+    "api_success_rate": "API成功率",
+    "api_response_time": "API响应时间", 
+    "circuit_breaker_state": "断路器状态",
+    "cache_hit_rate": "缓存命中率",
+    "quota_usage": "配额使用情况",
+    "error_rate": "错误率",
+}
+```
+
+#### 10.8.2 告警阈值
+
+```python
+ALERT_THRESHOLDS = {
+    "api_success_rate": 0.95,      # 95%
+    "api_response_time_ms": 5000,  # 5秒
+    "error_rate": 0.05,            # 5%
+    "quota_usage": 0.8,            # 80%
+}
+```
+
+#### 10.8.3 告警通知
+
+```python
+def send_alert(metric_name: str, current_value: float, threshold: float):
+    """发送告警通知"""
+    alert_message = f"""
+    🚨 乐天API告警
+    
+    指标: {metric_name}
+    当前值: {current_value}
+    阈值: {threshold}
+    时间: {datetime.now().isoformat()}
+    
+    建议操作:
+    1. 检查API服务状态
+    2. 查看系统日志
+    3. 考虑启用降级模式
+    """
+    
+    # 发送邮件、短信或其他通知方式
+    send_notification(alert_message)
+```
+
+### 10.9 恢复策略
+
+#### 10.9.1 自动恢复
+
+```python
+def auto_recovery_check():
+    """自动恢复检查"""
+    
+    # 检查API是否恢复
+    if test_api_connectivity():
+        # 逐步恢复功能
+        gradual_recovery()
+    else:
+        # 延长降级时间
+        extend_degradation_period()
+```
+
+#### 10.9.2 渐进式恢复
+
+```python
+def gradual_recovery():
+    """渐进式恢复正常服务"""
+    
+    recovery_steps = [
+        ("重置断路器", reset_circuit_breakers),
+        ("启用缓存降级", enable_cache_fallback),
+        ("启用License API", enable_license_api),
+        ("启用R-Cabinet API", enable_cabinet_api),
+        ("启用FTP服务", enable_ftp_service),
+        ("恢复正常模式", restore_normal_mode),
+    ]
+    
+    for step_name, step_func in recovery_steps:
+        try:
+            step_func()
+            logger.info(f"恢复步骤完成: {step_name}")
+            time.sleep(30)  # 等待30秒观察
+        except Exception as e:
+            logger.error(f"恢复步骤失败: {step_name}, 错误: {e}")
+            # 回滚到上一个稳定状态
+            rollback_to_previous_state()
+            break
+```
+
+### 10.10 数据库迁移回滚
+
+#### 10.10.1 迁移脚本
+
+```python
+# migrations/rollback_integration.py
+def rollback_integration_tables():
+    """回滚集成相关的数据库表"""
+    
+    rollback_sql = """
+    -- 删除API凭据表
+    DROP TABLE IF EXISTS rakuten_api_credentials;
+    
+    -- 删除API调用日志表
+    DROP TABLE IF EXISTS rakuten_api_logs;
+    
+    -- 删除缓存表
+    DROP TABLE IF EXISTS rakuten_api_cache;
+    """
+    
+    execute_sql(rollback_sql)
+```
+
+#### 10.10.2 配置回滚
+
+```python
+def rollback_configuration():
+    """回滚配置更改"""
+    
+    # 移除环境变量
+    remove_env_vars([
+        "RAKUTEN_SERVICE_SECRET",
+        "RAKUTEN_LICENSE_KEY", 
+        "RAKUTEN_API_ENABLED",
+    ])
+    
+    # 恢复默认配置
+    restore_default_settings()
+```
+
+### 10.11 测试降级策略
+
+#### 10.11.1 混沌工程测试
+
+```python
+def chaos_test_api_failure():
+    """混沌工程：模拟API故障"""
+    
+    # 模拟网络故障
+    with mock_network_failure():
+        test_api_fallback()
+    
+    # 模拟API限流
+    with mock_rate_limiting():
+        test_rate_limit_handling()
+    
+    # 模拟服务不可用
+    with mock_service_unavailable():
+        test_service_degradation()
+```
+
+#### 10.11.2 降级测试用例
+
+```python
+def test_fallback_scenarios():
+    """测试各种降级场景"""
+    
+    test_cases = [
+        "API认证失败",
+        "网络连接超时",
+        "服务返回错误",
+        "配额耗尽",
+        "断路器开启",
+        "缓存失效",
+    ]
+    
+    for test_case in test_cases:
+        logger.info(f"测试降级场景: {test_case}")
+        result = simulate_failure_scenario(test_case)
+        assert result["fallback_triggered"], f"降级未触发: {test_case}"
+```
+
+---
+
+**备用方案文档版本**: 1.0  
+**最后更新**: 2025年  
 **维护者**: Pagemaker开发团队 
