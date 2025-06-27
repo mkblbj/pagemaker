@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
-乐天API连接测试脚本
+乐天API手动连接测试脚本
 
-用于测试R-Cabinet API和License Management API的连接状态
+这是一个独立的测试脚本，用于手动验证R-Cabinet API和SFTP连接。
+不是Django单元测试的一部分。
+
+使用方法:
+python manual_connection_test.py
 """
 
 import os
