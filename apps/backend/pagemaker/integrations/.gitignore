@@ -1,0 +1,26 @@
+# 环境变量文件 - 包含敏感信息，不应提交到版本控制
+.env
+.env.local
+.env.production
+.env.development
+
+# Python缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 测试结果文件
+test_results.json
+*.log
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.temp 
