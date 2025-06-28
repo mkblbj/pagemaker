@@ -11,9 +11,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
 from datetime import timedelta
 import pymysql
+
+# 导入统一配置管理
+from .config import config
 
 # PyMySQL compatibility
 pymysql.install_as_MySQLdb()
@@ -26,16 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("DJANGO_SECRET_KEY")
+SECRET_KEY = config.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
+DEBUG = config.DEBUG
 
-ALLOWED_HOSTS = config(
-    "DJANGO_ALLOWED_HOSTS",
-    default="localhost,127.0.0.1",
-    cast=lambda v: [s.strip() for s in v.split(",")],
-)
+ALLOWED_HOSTS = config.ALLOWED_HOSTS
 
 
 # Application definition
@@ -94,18 +92,7 @@ WSGI_APPLICATION = "pagemaker.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": config("DATABASE_NAME"),
-        "USER": config("DATABASE_USER"),
-        "PASSWORD": config("DATABASE_PASSWORD"),
-        "HOST": config("DATABASE_HOST"),
-        "PORT": config("DATABASE_PORT", default="3306"),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
-    }
+    "default": config.get_database_config()
 }
 
 
@@ -198,10 +185,7 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = config.CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_CREDENTIALS = True
 

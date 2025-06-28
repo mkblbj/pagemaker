@@ -57,25 +57,21 @@ class RCabinetClient:
         """
         self.logger = setup_logger("rakuten.cabinet")
 
+        # 导入统一配置
+        from pagemaker.config import config as app_config
+        
         # 配置参数
-        self.base_url = base_url or RAKUTEN_API_BASE_URL
-        self.timeout = timeout or RAKUTEN_API_TIMEOUT
-        self.test_mode = test_mode or os.getenv(
-            "RAKUTEN_API_TEST_MODE", TEST_MODE["MOCK"]
-        )
+        self.base_url = base_url or app_config.RAKUTEN_API_BASE_URL
+        self.timeout = timeout or app_config.RAKUTEN_API_TIMEOUT
+        self.test_mode = test_mode or app_config.RAKUTEN_API_TEST_MODE
 
         # 凭据配置
-        self.service_secret = service_secret or os.getenv("RAKUTEN_SERVICE_SECRET")
-        self.license_key = license_key or os.getenv("RAKUTEN_LICENSE_KEY")
+        self.service_secret = service_secret or app_config.RAKUTEN_SERVICE_SECRET
+        self.license_key = license_key or app_config.RAKUTEN_LICENSE_KEY
 
         # 如果是测试模式，使用测试凭据
         if self.test_mode == TEST_MODE["MOCK"]:
-            self.service_secret = self.service_secret or os.getenv(
-                "RAKUTEN_TEST_SERVICE_SECRET"
-            )
-            self.license_key = self.license_key or os.getenv("RAKUTEN_TEST_LICENSE_KEY")
-
-            # 如果测试环境变量也没有设置，则使用默认测试值
+            # 如果没有设置真实凭据，则使用默认测试值
             if not self.service_secret:
                 self.service_secret = "test_secret"
             if not self.license_key:

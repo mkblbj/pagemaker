@@ -38,25 +38,22 @@ class RakutenFTPClient:
         """
         self.logger = setup_logger("rakuten.sftp")
 
+        # 导入统一配置
+        from pagemaker.config import config as app_config
+        
         # 配置参数
-        self.test_mode = test_mode or os.getenv(
-            "RAKUTEN_API_TEST_MODE", TEST_MODE["MOCK"]
-        )
+        self.test_mode = test_mode or app_config.RAKUTEN_API_TEST_MODE
         self.timeout = timeout
 
         # 连接配置
-        self.host = host or os.getenv("RAKUTEN_FTP_HOST")
+        self.host = host or app_config.RAKUTEN_FTP_HOST
         self.port = port
-        self.username = username or os.getenv("RAKUTEN_FTP_USERNAME")
-        self.password = password or os.getenv("RAKUTEN_FTP_PASSWORD")
+        self.username = username or app_config.RAKUTEN_FTP_USERNAME
+        self.password = password or app_config.RAKUTEN_FTP_PASSWORD
 
         # 如果是测试模式，使用测试配置
         if self.test_mode == TEST_MODE["MOCK"]:
-            self.host = self.host or os.getenv("RAKUTEN_TEST_FTP_HOST")
-            self.username = self.username or os.getenv("RAKUTEN_TEST_FTP_USERNAME")
-            self.password = self.password or os.getenv("RAKUTEN_TEST_FTP_PASSWORD")
-
-            # 如果测试环境变量也没有设置，则使用默认测试值
+            # 如果没有设置真实配置，则使用默认测试值
             if not self.host:
                 self.host = "test.sftp.server"
             if not self.username:
