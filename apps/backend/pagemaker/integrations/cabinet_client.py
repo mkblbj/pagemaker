@@ -59,7 +59,7 @@ class RCabinetClient:
 
         # 导入统一配置
         from pagemaker.config import config as app_config
-        
+
         # 配置参数
         self.base_url = base_url or app_config.RAKUTEN_API_BASE_URL
         self.timeout = timeout or app_config.RAKUTEN_API_TIMEOUT

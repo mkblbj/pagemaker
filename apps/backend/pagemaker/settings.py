@@ -91,9 +91,7 @@ WSGI_APPLICATION = "pagemaker.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": config.get_database_config()
-}
+DATABASES = {"default": config.get_database_config()}
 
 
 # Password validation

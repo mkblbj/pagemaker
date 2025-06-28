@@ -40,7 +40,7 @@ class RakutenFTPClient:
 
         # 导入统一配置
         from pagemaker.config import config as app_config
-        
+
         # 配置参数
         self.test_mode = test_mode or app_config.RAKUTEN_API_TEST_MODE
         self.timeout = timeout
