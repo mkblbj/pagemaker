@@ -273,6 +273,12 @@ class ConfigManager:
         """CSRF Cookie安全标志"""
         return decouple_config("CSRF_COOKIE_SECURE", default=False, cast=bool)
 
+    # R-Cabinet 集成功能开关
+    @property
+    def RCABINET_INTEGRATION_ENABLED(self) -> bool:
+        """R-Cabinet集成功能是否启用"""
+        return self.get_bool("RCABINET_INTEGRATION_ENABLED", default=True)
+
     def validate_rakuten_config(self) -> bool:
         """
         验证乐天API配置是否完整

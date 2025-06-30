@@ -166,9 +166,219 @@ Authorization: ESA {Base64编码}
 }
 ```
 
-## 4. 最佳实践
+## 4. 生产使用指南
 
-### 4.1 速率限制处理
+### 4.1 文件上传最佳实践
+
+#### 文件验证流程
+```python
+from media.validators import validate_uploaded_file
+
+# 完整的文件验证
+is_valid, error_message = validate_uploaded_file(uploaded_file)
+if not is_valid:
+    # 处理验证错误
+    return error_response(error_message)
+```
+
+#### 支持的文件格式
+- **JPG/JPEG**: 推荐格式，无需转换
+- **GIF**: 支持动画GIF
+- **PNG**: 自动转换为JPG，透明度会丢失
+- **TIFF**: 自动转换为JPG
+- **BMP**: 自动转换为JPG
+
+#### 文件限制说明
+- **最大文件大小**: 2MB
+- **最大图片尺寸**: 3840x3840px
+- **格式转换**: PNG/TIFF/BMP会自动转换为JPG，需要在前端提示用户
+
+### 4.2 错误处理最佳实践
+
+#### 分类错误处理
+```python
+try:
+    result = cabinet_client.upload_file(file_data, filename)
+except RakutenAPIError as e:
+    # R-Cabinet API特定错误
+    if e.result_code == 3008:  # 文件容量超限
+        return "文件过大，请压缩后重试"
+    elif e.result_code == 3012:  # 可用容量不足
+        return "存储空间不足，请清理文件后重试"
+except RakutenConnectionError as e:
+    # 网络连接错误，可重试
+    return "网络连接异常，请稍后重试"
+```
+
+#### 重试策略
+- **网络错误**: 自动重试3次，指数退避
+- **认证错误**: 不重试，立即报错
+- **容量错误**: 不重试，提示用户处理
+- **系统错误**: 重试1次，记录详细日志
+
+### 4.3 性能优化建议
+
+#### 文件预处理
+```python
+# 在上传前进行文件优化
+from PIL import Image
+
+def optimize_image(image_file):
+    with Image.open(image_file) as img:
+        # 如果尺寸过大，自动缩放
+        if img.size[0] > 3840 or img.size[1] > 3840:
+            img.thumbnail((3840, 3840), Image.Resampling.LANCZOS)
+        
+        # 优化JPEG质量
+        if img.format in ['PNG', 'TIFF', 'BMP']:
+            img = img.convert('RGB')
+        
+        return img
+```
+
+#### 批量上传处理
+```python
+# 使用队列处理批量上传
+from django.core.management.base import BaseCommand
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        pending_files = MediaFile.objects.filter(upload_status='pending')
+        for media_file in pending_files:
+            try:
+                # 处理单个文件上传
+                process_upload(media_file)
+            except Exception as e:
+                # 记录错误但继续处理其他文件
+                logger.error(f"上传失败: {media_file.id}, 错误: {e}")
+```
+
+### 4.4 监控和告警
+
+#### 健康检查集成
+```python
+# 在应用启动时检查R-Cabinet可用性
+from pagemaker.integrations.cabinet_client import RCabinetClient
+
+def check_rcabinet_health():
+    client = RCabinetClient()
+    result = client.health_check()
+    if result['status'] != 'healthy':
+        # 发送告警通知
+        send_alert(f"R-Cabinet服务异常: {result.get('error')}")
+```
+
+#### 关键指标监控
+- **上传成功率**: 目标 > 95%
+- **API响应时间**: 目标 < 5秒
+- **错误率**: 目标 < 5%
+- **存储空间使用率**: 告警阈值 80%
+
+## 5. 已知限制和解决方案
+
+### 5.1 技术限制
+
+#### R-Cabinet API限制
+- **速率限制**: 1请求/秒，无法突发处理
+- **文件大小**: 最大2MB，无法上传大文件
+- **并发限制**: 不支持并发上传
+- **格式转换**: PNG透明度丢失
+
+#### 解决方案
+```python
+# 文件大小超限处理
+def handle_large_file(uploaded_file):
+    if uploaded_file.size > 2 * 1024 * 1024:
+        # 自动压缩图片
+        compressed_file = compress_image(uploaded_file, target_size=1.8 * 1024 * 1024)
+        return compressed_file
+    return uploaded_file
+
+# 批量上传队列
+def queue_batch_upload(files):
+    for i, file in enumerate(files):
+        # 延迟处理，遵守速率限制
+        delay = i * 1.1  # 1.1秒间隔确保不超过速率限制
+        schedule_upload.apply_async(args=[file.id], countdown=delay)
+```
+
+### 5.2 业务限制
+
+#### 存储配额管理
+- **空间限制**: 根据乐天店铺等级不同
+- **文件数量**: 有最大文件数限制
+- **文件夹数量**: 有最大文件夹数限制
+
+#### 监控和预警
+```python
+def check_storage_quota():
+    client = RCabinetClient()
+    usage = client.get_usage()
+    
+    use_ratio = usage['data']['use_space'] / usage['data']['max_space']
+    if use_ratio > 0.8:  # 使用率超过80%
+        send_quota_warning(use_ratio)
+    
+    if usage['data']['avail_folder_count'] < 10:  # 可用文件夹少于10个
+        send_folder_warning()
+```
+
+## 6. 故障排除指南
+
+### 6.1 常见问题
+
+#### 问题1: 上传失败 - 认证错误
+```
+错误: RakutenAuthError: 认证失败
+解决: 检查serviceSecret和licenseKey是否正确
+```
+
+#### 问题2: 上传失败 - 容量超限
+```
+错误: 文件容量超限 (result_code: 3008)
+解决: 压缩文件或清理R-Cabinet存储空间
+```
+
+#### 问题3: 连接超时
+```
+错误: RakutenConnectionError: 请求超时
+解决: 检查网络连接，增加超时时间配置
+```
+
+### 6.2 调试工具
+
+#### 启用详细日志
+```python
+# settings.py
+LOGGING = {
+    'loggers': {
+        'rakuten.cabinet': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file'],
+        }
+    }
+}
+```
+
+#### 手动测试命令
+```bash
+# 测试R-Cabinet连接
+python manage.py shell -c "
+from pagemaker.integrations.cabinet_client import RCabinetClient
+client = RCabinetClient()
+print(client.test_connection())
+"
+
+# 检查健康状态
+curl http://localhost:8000/api/v1/health/rakuten/
+
+# 禁用集成功能
+python manage.py disable_rcabinet_integration --reason='调试问题'
+```
+
+## 7. 最佳实践
+
+### 7.1 速率限制处理
 
 ```python
 import time

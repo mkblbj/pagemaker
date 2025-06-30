@@ -9,7 +9,7 @@ import random
 import xml.etree.ElementTree as ET
 from functools import wraps
 from typing import Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .constants import (
     LOG_CONFIG,
@@ -168,6 +168,14 @@ def _parse_cabinet_result_data(root: ET.Element, interface_id: str) -> Dict[str,
                 ),
                 "file_count": _safe_int(_get_element_text(files_result, "fileCount")),
                 "files": _parse_files_list(files_result.find("files")),
+            }
+
+    elif "file.insert" in interface_id:
+        file_insert_result = root.find("cabinetFileInsertResult")
+        if file_insert_result is not None:
+            data = {
+                "result_code": _safe_int(_get_element_text(file_insert_result, "resultCode")),
+                "file_id": _safe_int(_get_element_text(file_insert_result, "FileId")),
             }
 
     return data
@@ -396,7 +404,7 @@ def log_api_call(
         error: 错误信息
     """
     log_entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "endpoint": endpoint,
         "method": method,
         "duration_ms": round(duration * 1000, 2) if duration else None,

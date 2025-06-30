@@ -143,6 +143,10 @@ class RCabinetClient:
         url = urljoin(self.base_url, endpoint)
         headers = self._get_headers()
 
+        # 如果有文件上传，让requests自动设置multipart/form-data的Content-Type
+        if files:
+            headers.pop("Content-Type", None)
+
         start_time = time.time()
         response = None
         error = None
@@ -459,3 +463,109 @@ class RCabinetClient:
                 "error_type": type(e).__name__,
                 "last_check": time.time(),
             }
+
+    @retry_with_backoff()
+    def upload_file(
+        self,
+        file_data: bytes,
+        filename: str,
+        folder_id: int = None,
+        alt_text: str = None,
+    ) -> Dict[str, Any]:
+        """
+        上传文件到R-Cabinet
+
+        Args:
+            file_data: 文件二进制数据
+            filename: 文件名
+            folder_id: 目标文件夹ID（可选，默认为0即基本文件夹）
+            alt_text: 替代文本（保留参数，但API不支持）
+
+        Returns:
+            上传结果数据
+
+        Raises:
+            RakutenAPIError: 上传失败时
+        """
+        if self.test_mode == TEST_MODE["MOCK"]:
+            return self._mock_upload_response(filename)
+
+        # 构建XML请求参数
+        xml_data = self._build_upload_xml(filename, folder_id, alt_text)
+
+        # 准备multipart/form-data
+        # 按照Rakuten API文档要求设置正确的Content-Disposition
+        files = {
+            "xml": (None, xml_data, "text/xml"),
+            "file": (filename, file_data, "image/jpeg"),  # 根据文件类型设置MIME类型
+        }
+
+        # 发送请求
+        return self._make_request("POST", CABINET_ENDPOINTS["FILE_INSERT"], files=files)
+
+    def _build_upload_xml(
+        self, filename: str, folder_id: int = None, alt_text: str = None
+    ) -> str:
+        """
+        构建文件上传的XML请求参数
+
+        Args:
+            filename: 文件名
+            folder_id: 文件夹ID
+            alt_text: 替代文本（实际上Cabinet API不支持此参数，保留以备后用）
+
+        Returns:
+            XML字符串
+        """
+        xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>']
+        xml_parts.append("<request>")
+        xml_parts.append("  <fileInsertRequest>")
+        xml_parts.append("    <file>")
+        xml_parts.append(f"      <fileName>{filename}</fileName>")
+
+        # folderId: 登录先フォルダID（必须）
+        # 如果未指定，使用0（基本文件夹）
+        target_folder_id = folder_id if folder_id is not None else 0
+        xml_parts.append(f"      <folderId>{target_folder_id}</folderId>")
+
+        # filePath: 登录file名（可选）
+        # 未指定时API会自动生成，这里不设置让API自动处理
+        
+        # overWrite: 上书きフラグ（可选）
+        # 默认为false，这里不设置使用默认值
+
+        xml_parts.append("    </file>")
+        xml_parts.append("  </fileInsertRequest>")
+        xml_parts.append("</request>")
+
+        return "".join(xml_parts)
+
+    def _mock_upload_response(self, filename: str) -> Dict[str, Any]:
+        """
+        模拟文件上传响应
+
+        Args:
+            filename: 文件名
+
+        Returns:
+            模拟响应数据
+        """
+        import uuid
+
+        mock_file_id = f"mock_file_{uuid.uuid4().hex[:8]}"
+        mock_url = f"https://image.rakuten.co.jp/shop/cabinet/{mock_file_id}_{filename}"
+
+        return {
+            "success": True,
+            "system_status": "OK",
+            "request_id": f"mock-request-{uuid.uuid4().hex[:8]}",
+            "interface_id": "cabinet.file.insert",
+            "data": {
+                "result_code": 0,
+                "file_id": mock_file_id,
+                "file_url": mock_url,
+                "file_name": filename,
+                "file_size": 1024,  # 模拟文件大小
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            },
+        }
