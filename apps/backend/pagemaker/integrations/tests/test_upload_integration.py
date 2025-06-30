@@ -70,9 +70,7 @@ class RCabinetUploadIntegrationTestCase(TestCase):
 
     def test_upload_xml_generation(self):
         """测试XML请求参数生成"""
-        xml_data = self.client._build_upload_xml(
-            filename="test.jpg", folder_id=456
-        )
+        xml_data = self.client._build_upload_xml(filename="test.jpg", folder_id=456)
 
         self.assertIn("<fileName>test.jpg</fileName>", xml_data)
         self.assertIn("<folderId>456</folderId>", xml_data)
@@ -157,13 +155,13 @@ class RCabinetConnectionTestCase(TestCase):
         client = RCabinetClient(test_mode="real")
 
         import time
-        
+
         start_time = time.time()
-        
+
         # 连续调用两次API
         result1 = client.get_usage()
         result2 = client.get_usage()
-        
+
         end_time = time.time()
         duration = end_time - start_time
 

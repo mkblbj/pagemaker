@@ -174,7 +174,9 @@ def _parse_cabinet_result_data(root: ET.Element, interface_id: str) -> Dict[str,
         file_insert_result = root.find("cabinetFileInsertResult")
         if file_insert_result is not None:
             data = {
-                "result_code": _safe_int(_get_element_text(file_insert_result, "resultCode")),
+                "result_code": _safe_int(
+                    _get_element_text(file_insert_result, "resultCode")
+                ),
                 "file_id": _safe_int(_get_element_text(file_insert_result, "FileId")),
             }
 
