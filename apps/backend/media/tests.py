@@ -58,9 +58,7 @@ class MediaFileModelTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
+            username="testuser", email="test@example.com", password="testpass123"
         )
 
     def test_create_media_file(self):
@@ -70,9 +68,9 @@ class MediaFileModelTestCase(TestCase):
             original_filename="test.jpg",
             file_size=1024,
             content_type="image/jpeg",
-            upload_status="pending"
+            upload_status="pending",
         )
-        
+
         self.assertEqual(media_file.user, self.user)
         self.assertEqual(media_file.original_filename, "test.jpg")
         self.assertEqual(media_file.file_size, 1024)
@@ -87,9 +85,9 @@ class MediaFileModelTestCase(TestCase):
             original_filename="test.jpg",
             file_size=1024,
             content_type="image/jpeg",
-            upload_status="pending"
+            upload_status="pending",
         )
-        
+
         expected = "test.jpg (pending)"
         self.assertEqual(str(media_file), expected)
 
@@ -97,9 +95,9 @@ class MediaFileModelTestCase(TestCase):
 class MediaValidatorsTestCase(TestCase):
     """Media验证器测试"""
 
-    def create_test_image(self, format='JPEG', size=(100, 100)):
+    def create_test_image(self, format="JPEG", size=(100, 100)):
         """创建测试图片"""
-        img = Image.new('RGB', size, color='red')
+        img = Image.new("RGB", size, color="red")
         img_io = io.BytesIO()
         img.save(img_io, format=format)
         img_io.seek(0)
@@ -107,26 +105,22 @@ class MediaValidatorsTestCase(TestCase):
 
     def test_validate_uploaded_file_valid_jpeg(self):
         """测试验证有效的JPEG文件"""
-        image_data = self.create_test_image('JPEG')
+        image_data = self.create_test_image("JPEG")
         uploaded_file = SimpleUploadedFile(
-            "test.jpg",
-            image_data,
-            content_type="image/jpeg"
+            "test.jpg", image_data, content_type="image/jpeg"
         )
-        
+
         is_valid, error_message = validate_uploaded_file(uploaded_file)
         self.assertTrue(is_valid)
         self.assertIsNone(error_message)
 
     def test_validate_uploaded_file_valid_png(self):
         """测试验证有效的PNG文件"""
-        image_data = self.create_test_image('PNG')
+        image_data = self.create_test_image("PNG")
         uploaded_file = SimpleUploadedFile(
-            "test.png",
-            image_data,
-            content_type="image/png"
+            "test.png", image_data, content_type="image/png"
         )
-        
+
         is_valid, error_message = validate_uploaded_file(uploaded_file)
         self.assertTrue(is_valid)
         self.assertIsNone(error_message)
@@ -134,13 +128,11 @@ class MediaValidatorsTestCase(TestCase):
     def test_validate_uploaded_file_too_large(self):
         """测试验证文件过大的情况"""
         # 创建一个模拟的大文件
-        large_data = b'x' * (3 * 1024 * 1024)  # 3MB
+        large_data = b"x" * (3 * 1024 * 1024)  # 3MB
         uploaded_file = SimpleUploadedFile(
-            "large.jpg",
-            large_data,
-            content_type="image/jpeg"
+            "large.jpg", large_data, content_type="image/jpeg"
         )
-        
+
         is_valid, error_message = validate_uploaded_file(uploaded_file)
         self.assertFalse(is_valid)
         self.assertIn("文件大小", error_message)
@@ -149,11 +141,9 @@ class MediaValidatorsTestCase(TestCase):
     def test_validate_uploaded_file_invalid_type(self):
         """测试验证无效文件类型"""
         uploaded_file = SimpleUploadedFile(
-            "test.txt",
-            b"hello world",
-            content_type="text/plain"
+            "test.txt", b"hello world", content_type="text/plain"
         )
-        
+
         is_valid, error_message = validate_uploaded_file(uploaded_file)
         self.assertFalse(is_valid)
         self.assertIn("不支持的文件格式", error_message)
@@ -164,77 +154,68 @@ class MediaViewsTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
+            username="testuser", email="test@example.com", password="testpass123"
         )
         self.client = APIClient()
-        
+
         # 生成JWT令牌
         refresh = RefreshToken.for_user(self.user)
         self.access_token = str(refresh.access_token)
 
-    def create_test_image(self, format='JPEG', size=(100, 100)):
+    def create_test_image(self, format="JPEG", size=(100, 100)):
         """创建测试图片"""
-        img = Image.new('RGB', size, color='red')
+        img = Image.new("RGB", size, color="red")
         img_io = io.BytesIO()
         img.save(img_io, format=format)
         img_io.seek(0)
         return img_io.getvalue()
 
-    @patch('media.views.RCabinetClient')
+    @patch("media.views.RCabinetClient")
     def test_upload_file_success(self, mock_cabinet_client):
         """测试文件上传成功"""
         # 模拟R-Cabinet客户端响应
         mock_client = Mock()
         mock_cabinet_client.return_value = mock_client
         mock_client.upload_file.return_value = {
-            'success': True,
-            'data': {
-                'file_id': 'rcab_12345',
-                'file_url': 'https://cabinet.rakuten.co.jp/test.jpg'
-            }
+            "success": True,
+            "data": {
+                "file_id": "rcab_12345",
+                "file_url": "https://cabinet.rakuten.co.jp/test.jpg",
+            },
         }
 
         # 设置JWT认证
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
 
         # 创建测试文件
         image_data = self.create_test_image()
         uploaded_file = SimpleUploadedFile(
-            "test.jpg",
-            image_data,
-            content_type="image/jpeg"
+            "test.jpg", image_data, content_type="image/jpeg"
         )
 
         # 发送上传请求
         response = self.client.post(
-            reverse('media:upload_media_file'),
-            {
-                'file': uploaded_file,
-                'alt_text': 'Test image'
-            },
-            format='multipart'
+            reverse("media:upload_media_file"),
+            {"file": uploaded_file, "alt_text": "Test image"},
+            format="multipart",
         )
 
         self.assertEqual(response.status_code, 201)
         data = response.json()
-        self.assertTrue(data['success'])
-        self.assertIn('data', data)
+        self.assertTrue(data["success"])
+        self.assertIn("data", data)
 
     def test_upload_file_unauthorized(self):
         """测试未认证用户上传文件"""
         image_data = self.create_test_image()
         uploaded_file = SimpleUploadedFile(
-            "test.jpg",
-            image_data,
-            content_type="image/jpeg"
+            "test.jpg", image_data, content_type="image/jpeg"
         )
 
         response = self.client.post(
-            reverse('media:upload_media_file'),
-            {'file': uploaded_file},
-            format='multipart'
+            reverse("media:upload_media_file"),
+            {"file": uploaded_file},
+            format="multipart",
         )
 
         self.assertEqual(response.status_code, 401)
@@ -242,21 +223,19 @@ class MediaViewsTestCase(TestCase):
     def test_upload_file_invalid_file(self):
         """测试上传无效文件"""
         # 设置JWT认证
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
 
         # 上传无效文件
         uploaded_file = SimpleUploadedFile(
-            "test.txt",
-            b"hello world",
-            content_type="text/plain"
+            "test.txt", b"hello world", content_type="text/plain"
         )
 
         response = self.client.post(
-            reverse('media:upload_media_file'),
-            {'file': uploaded_file},
-            format='multipart'
+            reverse("media:upload_media_file"),
+            {"file": uploaded_file},
+            format="multipart",
         )
 
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertIn('error', data)
+        self.assertIn("error", data)
