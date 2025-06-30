@@ -1,0 +1,37 @@
+[run]
+source = .
+omit = 
+    */migrations/*
+    manage.py
+    */asgi.py
+    */wsgi.py
+    */venv/*
+    */htmlcov/*
+    */test_*
+    */__pycache__/*
+    */node_modules/*
+    */static/*
+    */media_files/*
+    */logs/*
+    .git/*
+    */integrations/fallback_strategies.py
+    */integrations/monitoring.py
+    */integrations/manual_connection_test.py
+    */management/commands/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+[html]
+directory = htmlcov
+title = Pagemaker Backend Coverage Report 
