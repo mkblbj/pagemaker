@@ -15,4 +15,6 @@ urlpatterns = [
     path("pages/", include("pages.urls")),
     # Media API endpoints
     path("media/", include("media.urls")),
+    # Shop Configurations API endpoints
+    path("shop-configurations/", include("configurations.urls")),
 ]

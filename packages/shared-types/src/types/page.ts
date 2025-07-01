@@ -31,9 +31,16 @@ export interface PageTemplate {
 // 店铺配置接口
 export interface ShopConfiguration {
   id: string;
-  shopName: string;
-  targetArea: string;
-  apiLicenseExpiryDate?: string | null; // ISO 8601 Date String
+  shop_name: string;
+  target_area: string;
+  api_service_secret: string;
+  api_license_key: string;
+  ftp_host: string;
+  ftp_port: number;
+  ftp_user: string;
+  ftp_password: string;
+  created_at: string; // ISO 8601 Date String
+  updated_at: string; // ISO 8601 Date String
 }
 
 // 页面模板创建请求类型
@@ -52,14 +59,24 @@ export interface UpdatePageTemplateRequest {
 
 // 店铺配置创建请求类型
 export interface CreateShopConfigurationRequest {
-  shopName: string;
-  targetArea: string;
-  apiLicenseExpiryDate?: string | null;
+  shop_name: string;
+  target_area: string;
+  api_service_secret: string;
+  api_license_key: string;
+  ftp_host: string;
+  ftp_port: number;
+  ftp_user: string;
+  ftp_password: string;
 }
 
 // 店铺配置更新请求类型
 export interface UpdateShopConfigurationRequest {
-  shopName?: string;
-  targetArea?: string;
-  apiLicenseExpiryDate?: string | null;
+  shop_name?: string;
+  target_area?: string;
+  api_service_secret?: string;
+  api_license_key?: string;
+  ftp_host?: string;
+  ftp_port?: number;
+  ftp_user?: string;
+  ftp_password?: string;
 }

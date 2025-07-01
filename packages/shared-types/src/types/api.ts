@@ -140,10 +140,10 @@ export const API_ENDPOINTS = {
   },
   // 店铺配置
   SHOP_CONFIG: {
-    LIST: '/api/v1/shop-config',
-    DETAIL: '/api/v1/shop-config/:id',
-    CREATE: '/api/v1/shop-config',
-    UPDATE: '/api/v1/shop-config/:id',
-    DELETE: '/api/v1/shop-config/:id',
+    LIST: '/api/v1/shop-configurations',
+    DETAIL: '/api/v1/shop-configurations/:id',
+    CREATE: '/api/v1/shop-configurations',
+    UPDATE: '/api/v1/shop-configurations/:id',
+    DELETE: '/api/v1/shop-configurations/:id',
   },
 } as const;
