@@ -17,15 +17,28 @@ export interface PageModule {
   [key: string]: unknown; // 其他配置属性
 }
 
-// 页面模板接口
+// 页面模板接口（完整版本，用于详情API）
 export interface PageTemplate {
   id: string;
   name: string;
   content: PageModule[];
-  targetArea: string;
-  ownerId: string;
-  createdAt: string; // ISO 8601 Date String
-  updatedAt: string; // ISO 8601 Date String
+  target_area: string; // 后端使用snake_case
+  owner_id: string; // 后端使用snake_case
+  created_at: string; // ISO 8601 Date String，后端使用snake_case
+  updated_at: string; // ISO 8601 Date String，后端使用snake_case
+  module_count: number; // 页面中模块的数量
+}
+
+// 页面模板列表项接口（轻量级版本，用于列表API）
+export interface PageTemplateListItem {
+  id: string;
+  name: string;
+  target_area: string;
+  owner_id: string;
+  owner_username: string; // 列表中包含用户名
+  created_at: string;
+  updated_at: string;
+  module_count: number;
 }
 
 // 店铺配置接口
@@ -47,14 +60,40 @@ export interface ShopConfiguration {
 export interface CreatePageTemplateRequest {
   name: string;
   content: PageModule[];
-  targetArea: string;
+  target_area: string; // 使用snake_case匹配后端
 }
 
 // 页面模板更新请求类型
 export interface UpdatePageTemplateRequest {
   name?: string;
   content?: PageModule[];
-  targetArea?: string;
+  target_area?: string; // 使用snake_case匹配后端
+}
+
+// API响应包装类型
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}
+
+// 分页信息类型
+export interface PaginationInfo {
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+}
+
+// 页面列表API响应类型
+export interface PageListResponse {
+  pages: PageTemplateListItem[];
+  pagination: PaginationInfo;
 }
 
 // 店铺配置创建请求类型

@@ -3,10 +3,12 @@ Pages app URL configuration
 """
 
 from django.urls import path
-from . import views
+from .views import PageListCreateView, PageDetailView
+
+app_name = "pages"
 
 urlpatterns = [
-    # Page management endpoints will be added here
-    # path("", views.PageListView.as_view(), name="page_list"),
-    # path("<uuid:pk>/", views.PageDetailView.as_view(), name="page_detail"),
+    # PageTemplate CRUD API端点
+    path("", PageListCreateView.as_view(), name="page-list-create"),
+    path("<uuid:id>/", PageDetailView.as_view(), name="page-detail"),
 ]

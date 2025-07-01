@@ -1,1 +1,1 @@
-# Configurations tests package 
+# Configurations tests package
