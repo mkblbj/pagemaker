@@ -2,6 +2,7 @@
 PageTemplate Repository扩展测试
 测试所有未覆盖的repository方法
 """
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -69,17 +70,23 @@ class PageTemplateRepositoryExtendedTests(TestCase):
 
     def test_get_pages_by_target_area_admin(self):
         """测试管理员按target_area获取页面"""
-        pages = PageTemplateRepository.get_pages_by_target_area("area1", self.admin_user)
+        pages = PageTemplateRepository.get_pages_by_target_area(
+            "area1", self.admin_user
+        )
         self.assertEqual(pages.count(), 2)  # page1 和 page3
 
     def test_get_pages_by_target_area_editor(self):
         """测试编辑者按target_area获取页面"""
-        pages = PageTemplateRepository.get_pages_by_target_area("area1", self.editor_user)
+        pages = PageTemplateRepository.get_pages_by_target_area(
+            "area1", self.editor_user
+        )
         self.assertEqual(pages.count(), 2)  # 只能看到自己的页面
 
     def test_get_pages_by_target_area_other_editor(self):
         """测试其他编辑者按target_area获取页面"""
-        pages = PageTemplateRepository.get_pages_by_target_area("area1", self.other_editor)
+        pages = PageTemplateRepository.get_pages_by_target_area(
+            "area1", self.other_editor
+        )
         self.assertEqual(pages.count(), 0)  # 看不到其他人的页面
 
     def test_get_pages_by_target_area_no_user(self):
@@ -133,7 +140,7 @@ class PageTemplateRepositoryExtendedTests(TestCase):
         new_page = PageTemplateRepository.duplicate_page(
             str(self.page1.id), "Duplicated Page", self.editor_user
         )
-        
+
         self.assertIsNotNone(new_page)
         self.assertEqual(new_page.name, "Duplicated Page")
         self.assertEqual(new_page.content, self.page1.content)
@@ -160,7 +167,7 @@ class PageTemplateRepositoryExtendedTests(TestCase):
         new_page = PageTemplateRepository.duplicate_page(
             str(self.page2.id), "Admin Duplicated Page", self.admin_user
         )
-        
+
         self.assertIsNotNone(new_page)
         self.assertEqual(new_page.name, "Admin Duplicated Page")
         self.assertEqual(new_page.owner, self.admin_user)  # 新页面的所有者是当前用户
@@ -183,7 +190,7 @@ class PageTemplateRepositoryExtendedTests(TestCase):
             "  test_area  ",  # 包含空白字符
             self.editor_user,
         )
-        
+
         self.assertEqual(page.name, "Test Page")
         self.assertEqual(page.target_area, "test_area")
 
@@ -204,7 +211,7 @@ class PageTemplateRepositoryExtendedTests(TestCase):
             name="  Updated Name  ",
             target_area="  updated_area  ",
         )
-        
+
         self.assertEqual(updated_page.name, "Updated Name")
         self.assertEqual(updated_page.target_area, "updated_area")
 
@@ -216,7 +223,7 @@ class PageTemplateRepositoryExtendedTests(TestCase):
             invalid_field="should_be_ignored",
             name="Valid Update",
         )
-        
+
         self.assertEqual(updated_page.name, "Valid Update")
         self.assertFalse(hasattr(updated_page, "invalid_field"))
 
@@ -230,13 +237,11 @@ class PageTemplateRepositoryExtendedTests(TestCase):
                 target_area="test",
                 owner=self.editor_user,
             )
-        
+
         # 测试limit
-        pages = PageTemplateRepository.get_all_pages_for_user(
-            self.editor_user, limit=3
-        )
+        pages = PageTemplateRepository.get_all_pages_for_user(self.editor_user, limit=3)
         self.assertEqual(len(list(pages)), 3)
-        
+
         # 测试offset
         pages = PageTemplateRepository.get_all_pages_for_user(
             self.editor_user, offset=2
@@ -247,10 +252,10 @@ class PageTemplateRepositoryExtendedTests(TestCase):
         """测试管理员和编辑者获取页面的区别"""
         admin_pages = PageTemplateRepository.get_all_pages_for_user(self.admin_user)
         editor_pages = PageTemplateRepository.get_all_pages_for_user(self.editor_user)
-        
+
         # 管理员可以看到所有页面
         self.assertGreater(admin_pages.count(), editor_pages.count())
-        
+
         # 编辑者只能看到自己的页面
         for page in editor_pages:
             self.assertEqual(page.owner, self.editor_user)
@@ -260,14 +265,14 @@ class PageTemplateRepositoryExtendedTests(TestCase):
         # 测试管理员
         admin_role = PageTemplateRepository._get_user_role(self.admin_user)
         self.assertEqual(admin_role, "admin")
-        
+
         # 测试编辑者
         editor_role = PageTemplateRepository._get_user_role(self.editor_user)
         self.assertEqual(editor_role, "editor")
-        
+
         # 测试无profile用户
         no_profile_user = User.objects.create_user(
             username="noprofile", email="noprofile@test.com", password="pass"
         )
         role = PageTemplateRepository._get_user_role(no_profile_user)
-        self.assertEqual(role, "editor")  # 默认角色 
+        self.assertEqual(role, "editor")  # 默认角色

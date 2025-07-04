@@ -1,6 +1,7 @@
 """
 PageTemplate权限系统测试
 """
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIRequestFactory
@@ -135,14 +136,18 @@ class IsOwnerOrAdminTests(TestCase):
         """测试其他用户的对象级权限"""
         request = self.factory.get("/")
         request.user = self.other_user
-        self.assertFalse(self.permission.has_object_permission(request, None, self.page))
+        self.assertFalse(
+            self.permission.has_object_permission(request, None, self.page)
+        )
 
     def test_has_object_permission_unauthenticated(self):
         """测试未认证用户的对象级权限"""
         request = self.factory.get("/")
         request.user = Mock()
         request.user.is_authenticated = False
-        self.assertFalse(self.permission.has_object_permission(request, None, self.page))
+        self.assertFalse(
+            self.permission.has_object_permission(request, None, self.page)
+        )
 
 
 class IsOwnerOrReadOnlyTests(TestCase):
@@ -214,7 +219,9 @@ class IsOwnerOrReadOnlyTests(TestCase):
         """测试其他用户的写入权限"""
         request = self.factory.post("/")
         request.user = self.other_user
-        self.assertFalse(self.permission.has_object_permission(request, None, self.page))
+        self.assertFalse(
+            self.permission.has_object_permission(request, None, self.page)
+        )
 
 
 class IsAdminOrOwnerReadOnlyTests(TestCase):
@@ -260,7 +267,9 @@ class IsAdminOrOwnerReadOnlyTests(TestCase):
         """测试所有者的写入权限（应该被拒绝）"""
         request = self.factory.post("/")
         request.user = self.editor_user
-        self.assertFalse(self.permission.has_object_permission(request, None, self.page))
+        self.assertFalse(
+            self.permission.has_object_permission(request, None, self.page)
+        )
 
 
 class IsOwnerTests(TestCase):
@@ -300,7 +309,9 @@ class IsOwnerTests(TestCase):
         """测试管理员权限（应该被拒绝）"""
         request = self.factory.get("/")
         request.user = self.admin_user
-        self.assertFalse(self.permission.has_object_permission(request, None, self.page))
+        self.assertFalse(
+            self.permission.has_object_permission(request, None, self.page)
+        )
 
 
 class CanCreatePageTests(TestCase):
@@ -379,4 +390,4 @@ class GetPermissionClassesForActionTests(TestCase):
     def test_unknown_action(self):
         """测试未知动作的权限类"""
         permission_classes = get_permission_classes_for_action("unknown")
-        self.assertEqual(permission_classes, [permissions.IsAuthenticated]) 
+        self.assertEqual(permission_classes, [permissions.IsAuthenticated])
