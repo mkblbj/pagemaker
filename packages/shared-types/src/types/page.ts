@@ -70,17 +70,6 @@ export interface UpdatePageTemplateRequest {
   target_area?: string; // 使用snake_case匹配后端
 }
 
-// API响应包装类型
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-}
 
 // 分页信息类型
 export interface PaginationInfo {
