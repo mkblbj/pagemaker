@@ -52,9 +52,9 @@ describe('Shared Types Integration Tests', () => {
     expect(API_ENDPOINTS.PAGES.DETAIL).toBe('/api/v1/pages/:id');
     
     // 验证店铺配置端点
-    expect(API_ENDPOINTS.SHOP_CONFIG.LIST).toBe('/api/v1/shop-config');
-    expect(API_ENDPOINTS.SHOP_CONFIG.CREATE).toBe('/api/v1/shop-config');
-    expect(API_ENDPOINTS.SHOP_CONFIG.DETAIL).toBe('/api/v1/shop-config/:id');
+    expect(API_ENDPOINTS.SHOP_CONFIG.LIST).toBe('/api/v1/shop-configurations');
+    expect(API_ENDPOINTS.SHOP_CONFIG.CREATE).toBe('/api/v1/shop-configurations');
+    expect(API_ENDPOINTS.SHOP_CONFIG.DETAIL).toBe('/api/v1/shop-configurations/:id');
   });
 
   test('User data structure should be compatible', () => {
