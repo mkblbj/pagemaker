@@ -42,18 +42,26 @@ const testPageTemplate: PageTemplate = {
   id: "template-1",
   name: "Home Page Template",
   content: [testPageModule],
-  targetArea: "main-site",
-  ownerId: testUser.id,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  target_area: "main-site",
+  owner_id: testUser.id,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  module_count: 1,
 };
 
 // 测试店铺配置类型
 const testShopConfig: ShopConfiguration = {
   id: "shop-1",
-  shopName: "Test Shop",
-  targetArea: "main-site",
-  apiLicenseExpiryDate: new Date().toISOString(),
+  shop_name: "Test Shop",
+  target_area: "main-site",
+  api_service_secret: "test-secret",
+  api_license_key: "test-license",
+  ftp_host: "ftp.example.com",
+  ftp_port: 21,
+  ftp_user: "testuser",
+  ftp_password: "testpass",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 // 测试API响应类型

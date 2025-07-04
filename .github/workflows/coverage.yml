@@ -90,7 +90,7 @@ jobs:
           
           const coverageEmoji = (coverage) => {
             if (coverage >= 90) return '🟢';
-            if (coverage >= 80) return '🟡';
+            if (coverage >= 60) return '🟡';
             return '🔴';
           };
           

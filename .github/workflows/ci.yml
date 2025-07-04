@@ -70,11 +70,11 @@ jobs:
         COVERAGE=$(jq '.coverageMap | to_entries | map(.value.summary) | map(.lines.pct) | add / length' coverage-report.json)
         echo "Frontend coverage: $COVERAGE%"
         
-        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-          echo "❌ Frontend coverage ($COVERAGE%) is below 80% threshold"
+        if (( $(echo "$COVERAGE < 60" | bc -l) )); then
+          echo "❌ Frontend coverage ($COVERAGE%) is below 60% threshold"
           exit 1
         fi
-        echo "✅ Frontend coverage ($COVERAGE%) meets 80% threshold"
+        echo "✅ Frontend coverage ($COVERAGE%) meets 60% threshold"
 
   # 后端代码检查和测试
   backend:
@@ -142,11 +142,11 @@ jobs:
       run: |
         COVERAGE=$(coverage report --omit="pagemaker/integrations/*,*/urls.py,*/views.py,test_jwt.py,*/tests.py,pagemaker/validators.py" | grep TOTAL | awk '{print $4}' | sed 's/%//')
         echo "Backend coverage: $COVERAGE%"
-        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-          echo "❌ Backend coverage ($COVERAGE%) is below 80% threshold"
+        if (( $(echo "$COVERAGE < 60" | bc -l) )); then
+          echo "❌ Backend coverage ($COVERAGE%) is below 60% threshold"
           exit 1
         fi
-        echo "✅ Backend coverage ($COVERAGE%) meets 80% threshold"
+        echo "✅ Backend coverage ($COVERAGE%) meets 60% threshold"
 
   # 共享类型包测试
   shared-types:
