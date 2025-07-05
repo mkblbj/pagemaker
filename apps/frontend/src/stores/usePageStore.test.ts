@@ -58,10 +58,10 @@ describe('usePageStore', () => {
     
     act(() => {
       result.current.setPage(mockPage);
-      result.current.updatePage({ title: 'Updated Title' });
+      result.current.updatePage({ name: 'Updated Name' });
     });
 
-    expect(result.current.currentPage?.title).toBe('Updated Title');
+    expect(result.current.currentPage?.name).toBe('Updated Name');
   });
 
   it('应该正确添加模块', () => {

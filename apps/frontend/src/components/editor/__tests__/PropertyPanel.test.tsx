@@ -59,7 +59,7 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />);
 
-    expect(screen.getByText('TITLE 模块')).toBeInTheDocument();
+    expect(screen.getByText('title 模块')).toBeInTheDocument();
     expect(screen.getByLabelText('标题文本')).toBeInTheDocument();
     expect(screen.getByLabelText('标题级别')).toBeInTheDocument();
     expect(screen.getByDisplayValue('测试标题')).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />);
 
-    expect(screen.getByText('TEXT 模块')).toBeInTheDocument();
+    expect(screen.getByText('text 模块')).toBeInTheDocument();
     expect(screen.getByLabelText('文本内容')).toBeInTheDocument();
     expect(screen.getByDisplayValue('测试文本内容')).toBeInTheDocument();
   });
@@ -105,7 +105,7 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />);
 
-    expect(screen.getByText('IMAGE 模块')).toBeInTheDocument();
+    expect(screen.getByText('image 模块')).toBeInTheDocument();
     expect(screen.getByLabelText('图片URL')).toBeInTheDocument();
     expect(screen.getByLabelText('图片描述')).toBeInTheDocument();
     expect(screen.getByDisplayValue('https://example.com/image.jpg')).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />);
 
-    expect(screen.getByText('KEY_VALUE 模块')).toBeInTheDocument();
+    expect(screen.getByText('keyValue 模块')).toBeInTheDocument();
     expect(screen.getByText('键值对列表')).toBeInTheDocument();
     expect(screen.getByDisplayValue('键1')).toBeInTheDocument();
     expect(screen.getByDisplayValue('值1')).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />);
 
-    expect(screen.getByText('SEPARATOR 模块')).toBeInTheDocument();
+    expect(screen.getByText('separator 模块')).toBeInTheDocument();
     expect(screen.getByText('分隔线模块暂无可配置属性')).toBeInTheDocument();
   });
 
@@ -177,7 +177,7 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />);
 
-    expect(screen.getByText('MULTI_COLUMN 模块')).toBeInTheDocument();
+    expect(screen.getByText('multiColumn 模块')).toBeInTheDocument();
     expect(screen.getByLabelText('列数')).toBeInTheDocument();
   });
 
