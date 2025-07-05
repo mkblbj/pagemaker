@@ -4,6 +4,7 @@
     "i18n_demo_title": "多语言功能演示",
     "i18n_demo_description": "展示 Pagemaker CMS 的多语言支持功能",
     "loading": "加载中...",
+    "current_language": "当前语言",
     "save": "保存",
     "cancel": "取消",
     "confirm": "确认",

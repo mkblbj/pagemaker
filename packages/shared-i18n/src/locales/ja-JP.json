@@ -4,6 +4,7 @@
     "i18n_demo_title": "多言語機能デモ",
     "i18n_demo_description": "Pagemaker CMS の多言語サポート機能を紹介します",
     "loading": "読み込み中...",
+    "current_language": "現在の言語",
     "save": "保存",
     "cancel": "キャンセル",
     "confirm": "確認",

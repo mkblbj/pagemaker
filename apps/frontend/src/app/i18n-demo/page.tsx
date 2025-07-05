@@ -44,7 +44,7 @@ export default function I18nDemoPage() {
           {tCommon('i18n_demo_description')}
         </p>
         <Badge variant="outline" className="text-sm">
-          当前语言: {currentLanguage}
+          {tCommon('current_language')}: {currentLanguage}
         </Badge>
       </div>
 

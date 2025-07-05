@@ -4,6 +4,7 @@
     "i18n_demo_title": "Multilingual Feature Demo",
     "i18n_demo_description": "Showcasing Pagemaker CMS multilingual support features",
     "loading": "Loading...",
+    "current_language": "Current Language",
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
