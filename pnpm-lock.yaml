@@ -24,10 +24,11 @@ importers:
         specifier: ~5.3.3
         version: 5.3.3
 
-  apps/backend: {}
-
   apps/frontend:
     dependencies:
+      '@pagemaker/shared-i18n':
+        specifier: workspace:*
+        version: link:../../packages/shared-i18n
       '@pagemaker/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -145,6 +146,19 @@ importers:
         version: 5.3.3
       vitest:
         specifier: ~3.2.4
+        version: 3.2.4(@types/node@20.19.1)(@vitest/ui@3.2.4)(jiti@2.4.2)(jsdom@24.1.3)(lightningcss@1.30.1)
+
+  packages/shared-i18n:
+    dependencies:
+      '@pagemaker/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.3.3
+      vitest:
+        specifier: ^3.2.4
         version: 3.2.4(@types/node@20.19.1)(@vitest/ui@3.2.4)(jiti@2.4.2)(jsdom@24.1.3)(lightningcss@1.30.1)
 
   packages/shared-types:

@@ -3,6 +3,12 @@
  * 提供错误分类、多语言支持、用户友好的错误消息
  */
 
+import { 
+  createTranslator, 
+  getErrorMessage, 
+  type SupportedLanguage 
+} from '@pagemaker/shared-i18n';
+
 export enum ErrorType {
   NETWORK = 'NETWORK',
   AUTHENTICATION = 'AUTHENTICATION',
@@ -35,118 +41,43 @@ export interface AppError {
   originalError?: any;
   retryable: boolean;
   actionable: boolean;
+  language?: SupportedLanguage;
 }
 
-// 错误消息映射表
-const ERROR_MESSAGES: Record<string, { message: string; userMessage: string; severity: ErrorSeverity }> = {
+// 错误严重程度映射表 (语言无关)
+const ERROR_SEVERITY_MAP: Record<string, ErrorSeverity> = {
   // 网络错误
-  'NETWORK_ERROR': {
-    message: '网络连接失败',
-    userMessage: '网络连接失败，请检查您的网络连接后重试',
-    severity: ErrorSeverity.MEDIUM
-  },
-  'NETWORK_TIMEOUT': {
-    message: '网络请求超时',
-    userMessage: '请求超时，请稍后重试',
-    severity: ErrorSeverity.MEDIUM
-  },
-  'NETWORK_OFFLINE': {
-    message: '网络离线',
-    userMessage: '网络已断开，请检查网络连接',
-    severity: ErrorSeverity.HIGH
-  },
+  'NETWORK_ERROR': ErrorSeverity.MEDIUM,
+  'NETWORK_TIMEOUT': ErrorSeverity.MEDIUM,
+  'NETWORK_OFFLINE': ErrorSeverity.HIGH,
 
   // 认证错误
-  'AUTH_TOKEN_EXPIRED': {
-    message: '登录已过期',
-    userMessage: '登录已过期，请重新登录',
-    severity: ErrorSeverity.HIGH
-  },
-  'AUTH_INVALID_CREDENTIALS': {
-    message: '用户名或密码错误',
-    userMessage: '用户名或密码错误，请重试',
-    severity: ErrorSeverity.MEDIUM
-  },
-  'AUTH_UNAUTHORIZED': {
-    message: '未授权访问',
-    userMessage: '您没有权限访问此资源',
-    severity: ErrorSeverity.HIGH
-  },
+  'AUTH_TOKEN_EXPIRED': ErrorSeverity.HIGH,
+  'AUTH_INVALID_CREDENTIALS': ErrorSeverity.MEDIUM,
+  'AUTH_UNAUTHORIZED': ErrorSeverity.HIGH,
 
   // 验证错误
-  'VALIDATION_REQUIRED_FIELD': {
-    message: '必填字段缺失',
-    userMessage: '请填写必填字段',
-    severity: ErrorSeverity.LOW
-  },
-  'VALIDATION_INVALID_FORMAT': {
-    message: '格式不正确',
-    userMessage: '输入格式不正确，请检查后重试',
-    severity: ErrorSeverity.LOW
-  },
-  'VALIDATION_FILE_TOO_LARGE': {
-    message: '文件过大',
-    userMessage: '文件大小超出限制，请选择较小的文件',
-    severity: ErrorSeverity.MEDIUM
-  },
+  'VALIDATION_REQUIRED_FIELD': ErrorSeverity.LOW,
+  'VALIDATION_INVALID_FORMAT': ErrorSeverity.LOW,
+  'VALIDATION_FILE_TOO_LARGE': ErrorSeverity.MEDIUM,
 
   // 服务器错误
-  'SERVER_INTERNAL_ERROR': {
-    message: '服务器内部错误',
-    userMessage: '服务器遇到问题，请稍后重试',
-    severity: ErrorSeverity.HIGH
-  },
-  'SERVER_MAINTENANCE': {
-    message: '服务器维护中',
-    userMessage: '系统正在维护中，请稍后访问',
-    severity: ErrorSeverity.HIGH
-  },
-  'SERVER_OVERLOAD': {
-    message: '服务器负载过高',
-    userMessage: '服务器繁忙，请稍后重试',
-    severity: ErrorSeverity.MEDIUM
-  },
+  'SERVER_INTERNAL_ERROR': ErrorSeverity.HIGH,
+  'SERVER_MAINTENANCE': ErrorSeverity.HIGH,
+  'SERVER_OVERLOAD': ErrorSeverity.MEDIUM,
 
   // 数据冲突
-  'CONFLICT_VERSION': {
-    message: '数据版本冲突',
-    userMessage: '数据已被其他用户修改，请刷新后重试',
-    severity: ErrorSeverity.MEDIUM
-  },
-  'CONFLICT_DUPLICATE': {
-    message: '数据重复',
-    userMessage: '该数据已存在，请检查后重试',
-    severity: ErrorSeverity.MEDIUM
-  },
+  'CONFLICT_VERSION': ErrorSeverity.MEDIUM,
+  'CONFLICT_DUPLICATE': ErrorSeverity.MEDIUM,
 
   // 页面编辑器特定错误
-  'EDITOR_SAVE_FAILED': {
-    message: '页面保存失败',
-    userMessage: '页面保存失败，请检查网络连接后重试',
-    severity: ErrorSeverity.HIGH
-  },
-  'EDITOR_LOAD_FAILED': {
-    message: '页面加载失败',
-    userMessage: '页面加载失败，请刷新页面重试',
-    severity: ErrorSeverity.HIGH
-  },
-  'EDITOR_MODULE_INVALID': {
-    message: '模块配置无效',
-    userMessage: '模块配置有误，请检查配置后重试',
-    severity: ErrorSeverity.MEDIUM
-  },
+  'EDITOR_SAVE_FAILED': ErrorSeverity.HIGH,
+  'EDITOR_LOAD_FAILED': ErrorSeverity.HIGH,
+  'EDITOR_MODULE_INVALID': ErrorSeverity.MEDIUM,
 
   // 通用错误
-  'GENERIC_ERROR': {
-    message: '操作失败',
-    userMessage: '操作失败，请重试',
-    severity: ErrorSeverity.MEDIUM
-  },
-  'NOT_FOUND': {
-    message: '资源不存在',
-    userMessage: '请求的资源不存在',
-    severity: ErrorSeverity.MEDIUM
-  }
+  'GENERIC_ERROR': ErrorSeverity.MEDIUM,
+  'NOT_FOUND': ErrorSeverity.MEDIUM
 };
 
 /**
@@ -225,7 +156,8 @@ export function isActionableError(error: AppError): boolean {
  */
 export function createAppError(
   originalError: any,
-  context?: Record<string, any>
+  context?: Record<string, any>,
+  language: SupportedLanguage = 'zh-CN'
 ): AppError {
   let errorCode = 'GENERIC_ERROR';
   let errorType = ErrorType.UNKNOWN;
@@ -280,19 +212,26 @@ export function createAppError(
     errorType = ErrorType.NETWORK;
   }
 
-  // 获取错误消息配置
-  const errorConfig = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES['GENERIC_ERROR'];
+  // 获取错误严重程度
+  const severity = ERROR_SEVERITY_MAP[errorCode] || ErrorSeverity.MEDIUM;
+  
+  // 使用多语言系统获取错误消息
+  const userMessage = getErrorMessage(errorCode, language);
+  
+  // 技术消息保持英文（用于开发调试）
+  const message = originalError?.message || errorCode;
 
   return {
     type: errorType,
-    severity: errorConfig.severity,
+    severity,
     code: errorCode,
-    message: errorConfig.message,
-    userMessage: errorConfig.userMessage,
+    message,
+    userMessage,
     details: originalError?.response?.data,
     timestamp: Date.now(),
     context,
     originalError,
+    language,
     retryable: isRetryableError({ type: errorType, code: errorCode } as AppError),
     actionable: isActionableError({ type: errorType, code: errorCode } as AppError)
   };
@@ -332,8 +271,12 @@ export class ErrorHandler {
   /**
    * 处理错误
    */
-  handleError(originalError: any, context?: Record<string, any>): AppError {
-    const appError = createAppError(originalError, context);
+  handleError(
+    originalError: any, 
+    context?: Record<string, any>, 
+    language?: SupportedLanguage
+  ): AppError {
+    const appError = createAppError(originalError, context, language);
 
     // 记录错误
     this.logError(appError);
@@ -416,20 +359,27 @@ export const errorHandler = ErrorHandler.getInstance();
 /**
  * 便捷的错误处理函数
  */
-export function handleError(error: any, context?: Record<string, any>): AppError {
-  return errorHandler.handleError(error, context);
+export function handleError(
+  error: any, 
+  context?: Record<string, any>, 
+  language?: SupportedLanguage
+): AppError {
+  return errorHandler.handleError(error, context, language);
 }
 
 /**
  * 获取用户友好的错误消息
  */
-export function getUserFriendlyMessage(error: any): string {
+export function getUserFriendlyMessage(
+  error: any, 
+  language: SupportedLanguage = 'zh-CN'
+): string {
   // 检查是否已经是 AppError 类型
   if (error && typeof error === 'object' && 'userMessage' in error && 'type' in error) {
     return error.userMessage;
   }
   
-  const appError = createAppError(error);
+  const appError = createAppError(error, undefined, language);
   return appError.userMessage;
 }
 
