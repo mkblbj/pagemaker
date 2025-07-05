@@ -1,0 +1,30 @@
+{
+  "name": "@pagemaker/shared-i18n",
+  "version": "0.1.0",
+  "description": "Pagemaker CMS 多语言支持包",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "i18n",
+    "internationalization",
+    "pagemaker",
+    "cms"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "@pagemaker/shared-types": "workspace:*"
+  }
+} 
