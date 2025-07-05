@@ -101,7 +101,7 @@ export function PropertyPanel() {
                 value={String((selectedModule as any).level || 1)}
                 onValueChange={(value) => handlePropertyUpdate('level', parseInt(value))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="title-level">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -216,7 +216,7 @@ export function PropertyPanel() {
                 value={String((selectedModule as any).columns || 2)}
                 onValueChange={(value) => handlePropertyUpdate('columns', parseInt(value))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="columns-count">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -126,10 +126,10 @@ export function Canvas() {
 
   // 处理模块复制
   const handleModuleCopy = useCallback((moduleId: string) => {
-    const module = modules.find(m => m.id === moduleId);
-    if (module) {
+    const targetModule = modules.find(m => m.id === moduleId);
+    if (targetModule) {
       const newModule = {
-        ...module,
+        ...targetModule,
         id: `module-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       };
       addModule(newModule);

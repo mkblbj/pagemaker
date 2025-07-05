@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ProtectedLayout({
@@ -72,24 +73,24 @@ export default function ProtectedLayout({
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">Pagemaker CMS</h1>
             <nav className="flex items-center space-x-4">
-              <a
+              <Link
                 href="/dashboard"
                 className="text-muted-foreground hover:text-foreground"
               >
                 仪表板
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/editor"
                 className="text-muted-foreground hover:text-foreground"
               >
                 编辑器
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/pages"
                 className="text-muted-foreground hover:text-foreground"
               >
                 页面管理
-              </a>
+              </Link>
               <button
                 onClick={() => {
                   localStorage.removeItem("auth-token");

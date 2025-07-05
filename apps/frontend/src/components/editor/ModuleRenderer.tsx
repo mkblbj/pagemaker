@@ -72,7 +72,7 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
                 />
               ) : (
                 <div className="text-gray-500">
-                  <Image className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <Image className="h-12 w-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
                   <p className="text-sm">点击上传图片</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {(module as any).alt || '图片描述'}
@@ -104,7 +104,7 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <Badge variant="secondary">键值对模块</Badge>
             </div>
             <div className="space-y-2">
-              {((module as any).pairs || [{ key: '键', value: '值' }]).map((pair: any, index: number) => (
+              {(((module as any).pairs && (module as any).pairs.length > 0) ? (module as any).pairs : [{ key: '键', value: '值' }]).map((pair: any, index: number) => (
                 <div key={index} className="flex items-center gap-4 p-2 bg-gray-50 rounded">
                   <span className="font-medium text-sm min-w-0 flex-1">
                     {pair.key || '键'}:

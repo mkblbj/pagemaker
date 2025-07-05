@@ -29,8 +29,8 @@ describe('Canvas', () => {
     render(<Canvas />);
 
     expect(screen.getByTestId('canvas')).toBeInTheDocument();
-    expect(screen.getByText('开始构建你的页面')).toBeInTheDocument();
-    expect(screen.getByText('从左侧拖拽模块到这里开始编辑')).toBeInTheDocument();
+    expect(screen.getByText('开始创建您的页面')).toBeInTheDocument();
+    expect(screen.getByText('从左侧模块库拖拽模块到此处，或点击下方按钮添加模块')).toBeInTheDocument();
   });
 
   it('应该渲染页面模块', () => {
@@ -82,8 +82,8 @@ describe('Canvas', () => {
 
     render(<Canvas />);
 
-    const moduleElement = screen.getByText('测试标题').closest('div');
-    expect(moduleElement).toHaveClass('ring-2', 'ring-blue-500');
+    const moduleElement = screen.getByTestId('module-title-1');
+    expect(moduleElement).toHaveClass('ring-2', 'ring-primary');
   });
 
   it('应该处理模块点击选择', () => {
@@ -120,7 +120,7 @@ describe('Canvas', () => {
 
     render(<Canvas />);
 
-    expect(screen.getByText('开始构建你的页面')).toBeInTheDocument();
+    expect(screen.getByText('开始创建您的页面')).toBeInTheDocument();
   });
 
   it('应该处理多个模块', () => {
@@ -307,8 +307,8 @@ describe('Canvas', () => {
     render(<Canvas />);
 
     // 第一个模块应该被选中
-    const firstModule = screen.getByText('第一个文本').closest('div');
-    expect(firstModule).toHaveClass('ring-2', 'ring-blue-500');
+    const firstModule = screen.getByTestId('module-text-1');
+    expect(firstModule).toHaveClass('ring-2', 'ring-primary');
 
     // 第二个模块不应该被选中
     const secondModule = screen.getByText('第二个文本').closest('div');

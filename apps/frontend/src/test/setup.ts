@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
-// Mock environment variables - 使用与根目录 .env 文件一致的配置
-process.env.NEXT_PUBLIC_API_URL = "http://localhost:8456/api/v1";
+// Mock environment variables - 从环境变量读取或使用默认值
+process.env.NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Setup global test utilities
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

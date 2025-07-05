@@ -98,7 +98,7 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 // 函数式错误边界Hook
-export function withErrorBoundary<T extends {}>(
+export function withErrorBoundary<T extends Record<string, unknown>>(
   Component: React.ComponentType<T>,
   fallback?: ReactNode
 ) {
