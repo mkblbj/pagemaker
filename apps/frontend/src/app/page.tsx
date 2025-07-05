@@ -10,7 +10,7 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuthAndRedirect = () => {
-      const hasAuth = localStorage.getItem("auth-token");
+      const hasAuth = localStorage.getItem("access_token");
 
       if (hasAuth) {
         router.push("/dashboard");

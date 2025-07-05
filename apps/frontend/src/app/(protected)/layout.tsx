@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { apiClient } from "@/lib/apiClient";
 
 export default function ProtectedLayout({
   children,
@@ -10,14 +12,29 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    // TODO: Implement actual authentication check
-    // For now, simulate authentication check
-    const checkAuth = () => {
-      // Placeholder: In real implementation, check JWT token, session, etc.
-      const hasAuth = localStorage.getItem("auth-token");
-      setIsAuthenticated(!!hasAuth);
+    const checkAuth = async () => {
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        // 尝试调用一个需要认证的API来验证token
+        await apiClient.get("/api/v1/pages/");
+        setIsAuthenticated(true);
+      } catch (error: any) {
+        console.error("Auth check failed:", error);
+        
+        // Token无效，清除并跳转到登录
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        setIsAuthenticated(false);
+      }
     };
 
     checkAuth();
@@ -41,23 +58,14 @@ export default function ProtectedLayout({
 
   // Not authenticated - redirect to login
   if (!isAuthenticated) {
+    router.push("/login");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
           <CardContent className="p-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-4">需要登录</h2>
-              <p className="text-muted-foreground mb-4">请先登录以访问此页面</p>
-              <button
-                onClick={() => {
-                  // TODO: Implement actual login redirect
-                  localStorage.setItem("auth-token", "demo-token");
-                  setIsAuthenticated(true);
-                }}
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
-              >
-                模拟登录
-              </button>
+              <p className="text-muted-foreground mb-4">正在跳转到登录页面...</p>
             </div>
           </CardContent>
         </Card>
@@ -93,8 +101,9 @@ export default function ProtectedLayout({
               </Link>
               <button
                 onClick={() => {
-                  localStorage.removeItem("auth-token");
-                  setIsAuthenticated(false);
+                  localStorage.removeItem("access_token");
+                  localStorage.removeItem("refresh_token");
+                  router.push("/login");
                 }}
                 className="text-muted-foreground hover:text-foreground"
               >
