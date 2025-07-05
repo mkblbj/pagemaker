@@ -9,9 +9,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "next lint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "next lint --fix",
+    "format": "prettier --write . --ignore-unknown",
+    "format:check": "prettier --check . --ignore-unknown",
     "clean": "rm -rf .next dist coverage"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.0.1",
     "lucide-react": "^0.519.0",
     "next": "15.3.4",
     "react": "^19.0.0",
