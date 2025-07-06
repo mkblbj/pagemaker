@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient } from "@/lib/apiClient";
+import { useTranslation } from "@/contexts/I18nContext";
 
 export default function ProtectedLayout({
   children,
@@ -13,6 +14,7 @@ export default function ProtectedLayout({
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
+  const { tAuth, tCommon } = useTranslation();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -48,7 +50,7 @@ export default function ProtectedLayout({
           <CardContent className="p-6">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">检查认证状态...</p>
+              <p className="text-muted-foreground">{tAuth('检查认证状态...')}</p>
             </div>
           </CardContent>
         </Card>
@@ -64,8 +66,8 @@ export default function ProtectedLayout({
         <Card className="w-96">
           <CardContent className="p-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold mb-4">需要登录</h2>
-              <p className="text-muted-foreground mb-4">正在跳转到登录页面...</p>
+              <h2 className="text-xl font-semibold mb-4">{tAuth('需要登录')}</h2>
+              <p className="text-muted-foreground mb-4">{tAuth('正在跳转到登录页面...')}</p>
             </div>
           </CardContent>
         </Card>
@@ -85,19 +87,19 @@ export default function ProtectedLayout({
                 href="/dashboard"
                 className="text-muted-foreground hover:text-foreground"
               >
-                仪表板
+                {tCommon('仪表板')}
               </Link>
               <Link
                 href="/editor"
                 className="text-muted-foreground hover:text-foreground"
               >
-                编辑器
+                {tCommon('编辑器')}
               </Link>
               <Link
                 href="/pages"
                 className="text-muted-foreground hover:text-foreground"
               >
-                页面管理
+                {tCommon('页面管理')}
               </Link>
               <button
                 onClick={() => {
@@ -107,7 +109,7 @@ export default function ProtectedLayout({
                 }}
                 className="text-muted-foreground hover:text-foreground"
               >
-                退出
+                {tAuth('退出')}
               </button>
             </nav>
           </div>

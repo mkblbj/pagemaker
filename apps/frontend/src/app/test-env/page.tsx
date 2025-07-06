@@ -1,4 +1,14 @@
+"use client";
+
+import { useEffect } from "react";
+
 export default function TestEnvPage() {
+  useEffect(() => {
+    console.log("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
+    console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+  }, []);
+
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">环境变量测试</h1>

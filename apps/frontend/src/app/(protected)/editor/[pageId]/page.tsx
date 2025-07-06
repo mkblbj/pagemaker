@@ -12,10 +12,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/contexts/I18nContext';
 
 function EditorPageContent() {
   const params = useParams();
   const pageId = params.pageId as string;
+  const { tEditor, tCommon, tError } = useTranslation();
 
   const { 
     currentPage, 
@@ -37,10 +39,10 @@ function EditorPageContent() {
     interval: 30000, // 30秒自动保存
     enabled: true,
     onSave: () => {
-      console.log('自动保存完成');
+      console.log(tEditor('自动保存完成'));
     },
     onError: (error) => {
-      console.error('自动保存失败:', error);
+      console.error(tEditor('自动保存失败:'), error);
     }
   });
 
@@ -56,15 +58,15 @@ function EditorPageContent() {
         const page = await pageService.getPage(pageId);
         setPage(page);
       } catch (error) {
-        console.error('加载页面失败:', error);
-        setError(error instanceof Error ? error.message : '加载页面失败');
+        console.error(tError('加载页面失败:'), error);
+        setError(error instanceof Error ? error.message : tError('加载页面失败'));
       } finally {
         setLoading(false);
       }
     };
 
     loadPage();
-  }, [pageId, setPage, setLoading, setError]);
+  }, [pageId, setPage, setLoading, setError, tError]);
 
   // 清理状态
   useEffect(() => {
@@ -85,8 +87,8 @@ function EditorPageContent() {
       <div className="h-screen flex items-center justify-center bg-background">
         <Card className="p-8 text-center">
           <RefreshCw className="h-12 w-12 mx-auto mb-4 animate-spin text-primary" />
-          <h2 className="text-lg font-semibold mb-2">加载页面中...</h2>
-          <p className="text-muted-foreground">正在获取页面数据</p>
+          <h2 className="text-lg font-semibold mb-2">{tEditor('加载页面中...')}</h2>
+          <p className="text-muted-foreground">{tEditor('正在获取页面数据')}</p>
         </Card>
       </div>
     );
@@ -98,19 +100,19 @@ function EditorPageContent() {
       <div className="h-screen flex items-center justify-center bg-background p-4">
         <Card className="p-8 text-center max-w-md">
           <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-          <h2 className="text-lg font-semibold mb-2">加载失败</h2>
+          <h2 className="text-lg font-semibold mb-2">{tError('加载失败')}</h2>
           <p className="text-muted-foreground mb-6">
             {error}
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={handleRetry}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              重试
+              {tCommon('重试')}
             </Button>
             <Button variant="outline" asChild>
               <Link href="/pages">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                返回页面列表
+                {tCommon('返回页面列表')}
               </Link>
             </Button>
           </div>
@@ -125,14 +127,14 @@ function EditorPageContent() {
       <div className="h-screen flex items-center justify-center bg-background p-4">
         <Card className="p-8 text-center max-w-md">
           <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
-          <h2 className="text-lg font-semibold mb-2">页面不存在</h2>
+          <h2 className="text-lg font-semibold mb-2">{tError('页面不存在')}</h2>
           <p className="text-muted-foreground mb-6">
-            页面 ID "{pageId}" 不存在或您没有访问权限
+            {tError('页面 ID')} "{pageId}" {tError('不存在或您没有访问权限')}
           </p>
           <Button variant="outline" asChild>
             <Link href="/pages">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              返回页面列表
+              {tCommon('返回页面列表')}
             </Link>
           </Button>
         </Card>
@@ -150,7 +152,7 @@ function EditorPageContent() {
     <div className="h-screen flex items-center justify-center bg-background">
       <Card className="p-8 text-center">
         <RefreshCw className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
-        <p className="text-muted-foreground">初始化编辑器...</p>
+        <p className="text-muted-foreground">{tEditor('初始化编辑器...')}</p>
       </Card>
     </div>
   );

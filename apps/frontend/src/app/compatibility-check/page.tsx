@@ -33,7 +33,7 @@ import {
 import { CompatibilityWarning } from '@/components/common/CompatibilityWarning';
 
 export default function CompatibilityCheckPage() {
-  const [compatibilityData, setCompatibilityData] = useState(() => performCompatibilityCheck());
+  const [compatibilityData, setCompatibilityData] = useState<ReturnType<typeof performCompatibilityCheck> | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
   const [monitoringEvents, setMonitoringEvents] = useState<Array<{
@@ -42,10 +42,15 @@ export default function CompatibilityCheckPage() {
     data?: any;
   }>>([]);
 
+  // 在客户端初始化兼容性检查
+  useEffect(() => {
+    setCompatibilityData(performCompatibilityCheck());
+  }, []);
+
   useEffect(() => {
     let cleanup: (() => void) | null = null;
 
-    if (monitoringEnabled) {
+    if (monitoringEnabled && compatibilityData) {
       cleanup = setupCompatibilityMonitoring((event, data) => {
         setMonitoringEvents(prev => [...prev, {
           event,
@@ -63,7 +68,7 @@ export default function CompatibilityCheckPage() {
         cleanup();
       }
     };
-  }, [monitoringEnabled]);
+  }, [monitoringEnabled, compatibilityData]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -110,6 +115,19 @@ export default function CompatibilityCheckPage() {
       <XCircle className="h-4 w-4 text-red-500" />
     );
   };
+
+  // 加载状态
+  if (!compatibilityData) {
+    return (
+      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <RefreshCw className="h-12 w-12 mx-auto mb-4 animate-spin text-primary" />
+          <h2 className="text-lg font-semibold mb-2">正在检测兼容性...</h2>
+          <p className="text-muted-foreground">请稍候，正在分析您的浏览器环境</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4">

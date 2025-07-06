@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { 
   createTranslator, 
   getBrowserLanguage, 
@@ -109,18 +109,26 @@ export function useI18n(): I18nContextType {
 export function useTranslation() {
   const { t, currentLanguage, setLanguage } = useI18n();
   
+  // 使用useCallback确保函数引用稳定
+  const tError = useCallback((errorCode: string, params?: Record<string, string | number>) => 
+    t(`errors.${errorCode}`, params), [t]);
+  
+  const tCommon = useCallback((key: string, params?: Record<string, string | number>) => 
+    t(`common.${key}`, params), [t]);
+  
+  const tEditor = useCallback((key: string, params?: Record<string, string | number>) => 
+    t(`editor.${key}`, params), [t]);
+  
+  const tAuth = useCallback((key: string, params?: Record<string, string | number>) => 
+    t(`auth.${key}`, params), [t]);
+  
   return {
     t,
     currentLanguage,
     setLanguage,
-    // 便捷的错误消息翻译
-    tError: (errorCode: string, params?: Record<string, string | number>) => 
-      t(`errors.${errorCode}`, params),
-    // 便捷的通用消息翻译
-    tCommon: (key: string, params?: Record<string, string | number>) => 
-      t(`common.${key}`, params),
-    // 便捷的编辑器消息翻译
-    tEditor: (key: string, params?: Record<string, string | number>) => 
-      t(`editor.${key}`, params)
+    tError,
+    tCommon,
+    tEditor,
+    tAuth
   };
 } 

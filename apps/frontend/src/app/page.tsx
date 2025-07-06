@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from "@/contexts/I18nContext";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { tCommon } = useTranslation();
 
   useEffect(() => {
     const checkAuthAndRedirect = () => {
@@ -33,7 +35,7 @@ export default function Home() {
           <CardContent className="p-6">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">正在加载...</p>
+              <p className="text-muted-foreground">{tCommon('loading')}</p>
             </div>
           </CardContent>
         </Card>
