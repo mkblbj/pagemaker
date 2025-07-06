@@ -14,7 +14,7 @@ import { AlertCircle, CheckCircle, Info, Wifi, WifiOff } from 'lucide-react';
  * 多语言功能演示页面
  */
 export default function I18nDemoPage() {
-  const { t, currentLanguage, tError, tCommon } = useTranslation();
+  const { currentLanguage, tError, tCommon } = useTranslation();
 
   // 模拟错误处理
   const simulateError = (errorCode: string) => {
