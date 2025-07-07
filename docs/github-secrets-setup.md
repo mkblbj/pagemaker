@@ -12,6 +12,9 @@
 | `VERCEL_TOKEN` | Vercel API Token | Vercel Dashboard → Settings → Tokens |
 | `VERCEL_ORG_ID` | Vercel 组织 ID | Vercel 项目设置中查看 |
 | `VERCEL_PROJECT_ID` | Vercel 项目 ID | Vercel 项目设置中查看 |
+| `NEXT_PUBLIC_API_URL` | 后端API地址 | 如：https://your-backend-domain.com/api/v1 |
+| `NEXTAUTH_SECRET` | NextAuth密钥 | 随机生成的长字符串 |
+| `NEXTAUTH_URL` | 前端URL | 如：https://your-app.vercel.app |
 
 ### 服务器部署相关
 | Secret 名称 | 说明 | 获取方式 |

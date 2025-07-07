@@ -45,6 +45,18 @@ jobs:
           MISSING_SECRETS+=("VERCEL_PROJECT_ID")
         fi
         
+        if [ -z "${{ secrets.NEXT_PUBLIC_API_URL }}" ]; then
+          MISSING_SECRETS+=("NEXT_PUBLIC_API_URL")
+        fi
+        
+        if [ -z "${{ secrets.NEXTAUTH_SECRET }}" ]; then
+          MISSING_SECRETS+=("NEXTAUTH_SECRET")
+        fi
+        
+        if [ -z "${{ secrets.NEXTAUTH_URL }}" ]; then
+          MISSING_SECRETS+=("NEXTAUTH_URL")
+        fi
+        
         if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
           echo "❌ 缺少必要的 Vercel Secrets:"
           printf '%s\n' "${MISSING_SECRETS[@]}"
@@ -87,6 +99,10 @@ jobs:
         vercel-args: '--prod --env VERCEL_FUNCTIONS_MAX_DURATION=30'
         # 强制部署，避免与 Vercel 自动部署冲突
         github-comment: false
+      env:
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
         
     - name: Set deployment URL output
       id: set-deployment-url
