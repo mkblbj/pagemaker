@@ -47,7 +47,20 @@ export function createTranslator(language: SupportedLanguage): (key: string, par
     const interpolationParams = params && 'defaultValue' in params ? {} : params as Record<string, string | number>;
     
     // 支持嵌套键值访问 (如 'errors.NETWORK_ERROR')
-    const keys = key.split('.');
+    // 只在第一个点号处分割，避免键名中的点号被误认为分隔符
+    const firstDotIndex = key.indexOf('.');
+    let keys: string[];
+    
+    if (firstDotIndex === -1) {
+      // 没有点号，直接使用整个键
+      keys = [key];
+    } else {
+      // 有点号，只在第一个点号处分割
+      const namespace = key.substring(0, firstDotIndex);
+      const actualKey = key.substring(firstDotIndex + 1);
+      keys = [namespace, actualKey];
+    }
+    
     let value: any = messages;
     
     for (const k of keys) {
