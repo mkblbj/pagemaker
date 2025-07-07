@@ -10,7 +10,7 @@ jobs:
   # 前端代码检查和测试
   frontend:
     runs-on: ubuntu-latest
-    needs: shared-types  # 等待shared-types构建完成
+    needs: shared-i18n  # 等待shared-i18n构建完成 (它依赖于shared-types)
     defaults:
       run:
         working-directory: apps/frontend
@@ -34,6 +34,9 @@ jobs:
       
     - name: Build shared-types
       run: cd ../../packages/shared-types && pnpm build
+      
+    - name: Build shared-i18n
+      run: cd ../../packages/shared-i18n && pnpm build
       
     - name: TypeScript check
       run: pnpm tsc --noEmit
@@ -179,4 +182,38 @@ jobs:
       run: pnpm tsc --noEmit
       
     - name: Run tests
-      run: pnpm test 
+      run: pnpm test
+
+  # 共享国际化包测试
+  shared-i18n:
+    runs-on: ubuntu-latest
+    needs: shared-types
+    defaults:
+      run:
+        working-directory: packages/shared-i18n
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: 'pnpm-lock.yaml'
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Build package
+      run: pnpm build
+      
+    - name: TypeScript check
+      run: pnpm tsc --noEmit
+      
+    - name: Run tests
+      run: pnpm test
