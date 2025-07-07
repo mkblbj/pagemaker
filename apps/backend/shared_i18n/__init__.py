@@ -7,8 +7,8 @@ from .error_messages import get_error_message, ERROR_SEVERITY_MAP
 from .utils import get_client_language, format_message
 
 __all__ = [
-    'get_error_message',
-    'ERROR_SEVERITY_MAP', 
-    'get_client_language',
-    'format_message'
-] 
+    "get_error_message",
+    "ERROR_SEVERITY_MAP",
+    "get_client_language",
+    "format_message",
+]

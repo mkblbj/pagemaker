@@ -120,9 +120,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # 支持的语言列表
 LANGUAGES = [
-    ('zh-hans', '中文 (简体)'),
-    ('ja', '日本語'),
-    ('en', 'English'),
+    ("zh-hans", "中文 (简体)"),
+    ("ja", "日本語"),
+    ("en", "English"),
 ]
 
 # 默认语言
@@ -136,7 +136,7 @@ USE_TZ = True
 
 # 语言文件路径
 LOCALE_PATHS = [
-    BASE_DIR / 'locale',
+    BASE_DIR / "locale",
 ]
 
 
