@@ -1,20 +1,12 @@
-'use client';
+'use client'
 
-import { PageModule, PageModuleType } from '@pagemaker/shared-types';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Type, 
-  FileText, 
-  Image, 
-  Minus, 
-  Layout, 
-  Columns,
-  AlertTriangle
-} from 'lucide-react';
+import { PageModule, PageModuleType } from '@pagemaker/shared-types'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Type, FileText, Image, Minus, Layout, Columns, AlertTriangle } from 'lucide-react'
 
 interface ModuleRendererProps {
-  module: PageModule;
+  module: PageModule
 }
 
 export function ModuleRenderer({ module }: ModuleRendererProps) {
@@ -28,20 +20,22 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <Type className="h-4 w-4 text-blue-600" />
               <Badge variant="secondary">标题模块</Badge>
             </div>
-            <div 
+            <div
               className={`font-bold text-gray-800 ${
-                (module as any).level === 1 ? 'text-2xl' :
-                (module as any).level === 2 ? 'text-xl' :
-                (module as any).level === 3 ? 'text-lg' : 'text-base'
+                (module as any).level === 1
+                  ? 'text-2xl'
+                  : (module as any).level === 2
+                    ? 'text-xl'
+                    : (module as any).level === 3
+                      ? 'text-lg'
+                      : 'text-base'
               }`}
             >
               {(module as any).text || '标题文本'}
             </div>
-            <div className="text-xs text-muted-foreground">
-              级别: H{(module as any).level || 1}
-            </div>
+            <div className="text-xs text-muted-foreground">级别: H{(module as any).level || 1}</div>
           </div>
-        );
+        )
 
       case PageModuleType.TEXT:
         return (
@@ -50,11 +44,9 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <FileText className="h-4 w-4 text-green-600" />
               <Badge variant="secondary">文本模块</Badge>
             </div>
-            <div className="text-gray-700 leading-relaxed">
-              {(module as any).text || '文本内容'}
-            </div>
+            <div className="text-gray-700 leading-relaxed">{(module as any).text || '文本内容'}</div>
           </div>
-        );
+        )
 
       case PageModuleType.IMAGE:
         return (
@@ -65,23 +57,21 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
               {(module as any).src ? (
-                <img 
-                  src={(module as any).src} 
-                  alt={(module as any).alt || '图片'} 
+                <img
+                  src={(module as any).src}
+                  alt={(module as any).alt || '图片'}
                   className="max-w-full h-auto mx-auto rounded"
                 />
               ) : (
                 <div className="text-gray-500">
                   <Image className="h-12 w-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
                   <p className="text-sm">点击上传图片</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {(module as any).alt || '图片描述'}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{(module as any).alt || '图片描述'}</p>
                 </div>
               )}
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.SEPARATOR:
         return (
@@ -94,7 +84,7 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <hr className="border-t-2 border-gray-300" />
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.KEY_VALUE:
         return (
@@ -104,19 +94,18 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <Badge variant="secondary">键值对模块</Badge>
             </div>
             <div className="space-y-2">
-              {(((module as any).pairs && (module as any).pairs.length > 0) ? (module as any).pairs : [{ key: '键', value: '值' }]).map((pair: any, index: number) => (
+              {((module as any).pairs && (module as any).pairs.length > 0
+                ? (module as any).pairs
+                : [{ key: '键', value: '值' }]
+              ).map((pair: any, index: number) => (
                 <div key={index} className="flex items-center gap-4 p-2 bg-gray-50 rounded">
-                  <span className="font-medium text-sm min-w-0 flex-1">
-                    {pair.key || '键'}:
-                  </span>
-                  <span className="text-sm text-gray-700 min-w-0 flex-2">
-                    {pair.value || '值'}
-                  </span>
+                  <span className="font-medium text-sm min-w-0 flex-1">{pair.key || '键'}:</span>
+                  <span className="text-sm text-gray-700 min-w-0 flex-2">{pair.value || '值'}</span>
                 </div>
               ))}
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.MULTI_COLUMN:
         return (
@@ -125,26 +114,31 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <Columns className="h-4 w-4 text-red-600" />
               <Badge variant="secondary">多列布局模块</Badge>
             </div>
-            <div 
+            <div
               className={`grid gap-4 ${
-                (module as any).columns === 2 ? 'grid-cols-2' :
-                (module as any).columns === 3 ? 'grid-cols-3' :
-                (module as any).columns === 4 ? 'grid-cols-4' : 'grid-cols-2'
+                (module as any).columns === 2
+                  ? 'grid-cols-2'
+                  : (module as any).columns === 3
+                    ? 'grid-cols-3'
+                    : (module as any).columns === 4
+                      ? 'grid-cols-4'
+                      : 'grid-cols-2'
               }`}
             >
               {Array.from({ length: (module as any).columns || 2 }).map((_, index) => (
-                <div key={index} className="border border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-500">
+                <div
+                  key={index}
+                  className="border border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-500"
+                >
                   列 {index + 1}
                   <br />
                   <span className="text-xs">拖拽内容到此处</span>
                 </div>
               ))}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {(module as any).columns || 2} 列布局
-            </div>
+            <div className="text-xs text-muted-foreground">{(module as any).columns || 2} 列布局</div>
           </div>
-        );
+        )
 
       default:
         return (
@@ -158,13 +152,9 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
               <p className="text-xs mt-1">该模块类型暂不支持预览</p>
             </div>
           </div>
-        );
+        )
     }
-  };
+  }
 
-  return (
-    <div className="w-full">
-      {renderModuleContent()}
-    </div>
-  );
-} 
+  return <div className="w-full">{renderModuleContent()}</div>
+}

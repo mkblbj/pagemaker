@@ -1,65 +1,56 @@
-'use client';
+'use client'
 
-import { usePageStore } from '@/stores/usePageStore';
-import { useEditorStore } from '@/stores/useEditorStore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Settings, 
-  Type, 
-  FileText, 
-  Image, 
-  Layout,
-  Columns,
-  Plus,
-  Trash2
-} from 'lucide-react';
-import { PageModuleType } from '@pagemaker/shared-types';
+import { usePageStore } from '@/stores/usePageStore'
+import { useEditorStore } from '@/stores/useEditorStore'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Settings, Type, FileText, Image, Layout, Columns, Plus, Trash2 } from 'lucide-react'
+import { PageModuleType } from '@pagemaker/shared-types'
 
 export function PropertyPanel() {
-  const { currentPage, selectedModuleId, updateModule } = usePageStore();
-  const { markUnsaved } = useEditorStore();
+  const { currentPage, selectedModuleId, updateModule } = usePageStore()
+  const { markUnsaved } = useEditorStore()
 
-  const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId);
+  const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)
 
   // 处理属性更新
   const handlePropertyUpdate = (property: string, value: any) => {
     if (selectedModuleId) {
-      updateModule(selectedModuleId, { [property]: value });
-      markUnsaved();
+      updateModule(selectedModuleId, { [property]: value })
+      markUnsaved()
     }
-  };
+  }
 
   // 处理键值对更新
   const handleKeyValueUpdate = (index: number, field: 'key' | 'value', value: string) => {
     if (selectedModule && (selectedModule as any).pairs) {
-      const newPairs = [...(selectedModule as any).pairs];
-      newPairs[index] = { ...newPairs[index], [field]: value };
-      handlePropertyUpdate('pairs', newPairs);
+      const newPairs = [...(selectedModule as any).pairs]
+      newPairs[index] = { ...newPairs[index], [field]: value }
+      handlePropertyUpdate('pairs', newPairs)
     }
-  };
+  }
 
   // 添加键值对
   const handleAddKeyValue = () => {
     if (selectedModule) {
-      const currentPairs = (selectedModule as any).pairs || [];
-      const newPairs = [...currentPairs, { key: '新键', value: '新值' }];
-      handlePropertyUpdate('pairs', newPairs);
+      const currentPairs = (selectedModule as any).pairs || []
+      const newPairs = [...currentPairs, { key: '新键', value: '新值' }]
+      handlePropertyUpdate('pairs', newPairs)
     }
-  };
+  }
 
   // 删除键值对
   const handleRemoveKeyValue = (index: number) => {
     if (selectedModule && (selectedModule as any).pairs) {
-      const newPairs = (selectedModule as any).pairs.filter((_: any, i: number) => i !== index);
-      handlePropertyUpdate('pairs', newPairs);
+      const newPairs = (selectedModule as any).pairs.filter((_: any, i: number) => i !== index)
+      handlePropertyUpdate('pairs', newPairs)
     }
-  };
+  }
 
   if (!selectedModule) {
     return (
@@ -78,7 +69,7 @@ export function PropertyPanel() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   const renderModuleProperties = () => {
@@ -91,15 +82,15 @@ export function PropertyPanel() {
               <Input
                 id="title-text"
                 value={(selectedModule as any).text || ''}
-                onChange={(e) => handlePropertyUpdate('text', e.target.value)}
+                onChange={e => handlePropertyUpdate('text', e.target.value)}
                 placeholder="输入标题文本"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="title-level">标题级别</Label>
-              <Select 
+              <Select
                 value={String((selectedModule as any).level || 1)}
-                onValueChange={(value) => handlePropertyUpdate('level', parseInt(value))}
+                onValueChange={value => handlePropertyUpdate('level', parseInt(value))}
               >
                 <SelectTrigger id="title-level">
                   <SelectValue />
@@ -113,7 +104,7 @@ export function PropertyPanel() {
               </Select>
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.TEXT:
         return (
@@ -123,13 +114,13 @@ export function PropertyPanel() {
               <Textarea
                 id="text-content"
                 value={(selectedModule as any).text || ''}
-                onChange={(e) => handlePropertyUpdate('text', e.target.value)}
+                onChange={e => handlePropertyUpdate('text', e.target.value)}
                 placeholder="输入文本内容"
                 rows={6}
               />
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.IMAGE:
         return (
@@ -139,7 +130,7 @@ export function PropertyPanel() {
               <Input
                 id="image-src"
                 value={(selectedModule as any).src || ''}
-                onChange={(e) => handlePropertyUpdate('src', e.target.value)}
+                onChange={e => handlePropertyUpdate('src', e.target.value)}
                 placeholder="输入图片URL或点击上传"
               />
             </div>
@@ -148,7 +139,7 @@ export function PropertyPanel() {
               <Input
                 id="image-alt"
                 value={(selectedModule as any).alt || ''}
-                onChange={(e) => handlePropertyUpdate('alt', e.target.value)}
+                onChange={e => handlePropertyUpdate('alt', e.target.value)}
                 placeholder="输入图片描述文本"
               />
             </div>
@@ -157,18 +148,14 @@ export function PropertyPanel() {
               上传图片
             </Button>
           </div>
-        );
+        )
 
       case PageModuleType.KEY_VALUE:
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label>键值对列表</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddKeyValue}
-              >
+              <Button variant="outline" size="sm" onClick={handleAddKeyValue}>
                 <Plus className="h-4 w-4 mr-1" />
                 添加
               </Button>
@@ -190,13 +177,13 @@ export function PropertyPanel() {
                     </div>
                     <Input
                       value={pair.key || ''}
-                      onChange={(e) => handleKeyValueUpdate(index, 'key', e.target.value)}
+                      onChange={e => handleKeyValueUpdate(index, 'key', e.target.value)}
                       placeholder="键"
                       className="text-sm"
                     />
                     <Input
                       value={pair.value || ''}
-                      onChange={(e) => handleKeyValueUpdate(index, 'value', e.target.value)}
+                      onChange={e => handleKeyValueUpdate(index, 'value', e.target.value)}
                       placeholder="值"
                       className="text-sm"
                     />
@@ -205,16 +192,16 @@ export function PropertyPanel() {
               ))}
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.MULTI_COLUMN:
         return (
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="columns-count">列数</Label>
-              <Select 
+              <Select
                 value={String((selectedModule as any).columns || 2)}
-                onValueChange={(value) => handlePropertyUpdate('columns', parseInt(value))}
+                onValueChange={value => handlePropertyUpdate('columns', parseInt(value))}
               >
                 <SelectTrigger id="columns-count">
                   <SelectValue />
@@ -230,7 +217,7 @@ export function PropertyPanel() {
               <p>多列布局功能将在后续版本中完善</p>
             </div>
           </div>
-        );
+        )
 
       case PageModuleType.SEPARATOR:
         return (
@@ -239,7 +226,7 @@ export function PropertyPanel() {
               <p>分隔线模块暂无可配置属性</p>
             </div>
           </div>
-        );
+        )
 
       default:
         return (
@@ -248,9 +235,9 @@ export function PropertyPanel() {
               <p>该模块类型暂不支持属性编辑</p>
             </div>
           </div>
-        );
+        )
     }
-  };
+  }
 
   return (
     <div className="h-full flex flex-col" data-testid="property-panel">
@@ -268,9 +255,7 @@ export function PropertyPanel() {
       </div>
 
       {/* 属性编辑区域 */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {renderModuleProperties()}
-      </div>
+      <div className="flex-1 overflow-y-auto p-4">{renderModuleProperties()}</div>
 
       {/* 底部信息 */}
       <div className="p-4 border-t bg-muted/30">
@@ -280,5 +265,5 @@ export function PropertyPanel() {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}

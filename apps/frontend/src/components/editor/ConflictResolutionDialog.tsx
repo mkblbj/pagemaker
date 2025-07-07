@@ -1,44 +1,30 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  AlertTriangle, 
-  Clock, 
-  User, 
-  FileText,
-  ArrowRight,
-  CheckCircle,
-  XCircle
-} from 'lucide-react';
-import type { PageTemplate } from '@pagemaker/shared-types';
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { AlertTriangle, Clock, User, FileText, ArrowRight, CheckCircle, XCircle } from 'lucide-react'
+import type { PageTemplate } from '@pagemaker/shared-types'
 
 interface ConflictData {
-  localVersion: PageTemplate;
-  serverVersion: PageTemplate;
-  conflictFields: string[];
-  lastSyncTime: string;
-  serverLastModified: string;
-  conflictingUser?: string;
+  localVersion: PageTemplate
+  serverVersion: PageTemplate
+  conflictFields: string[]
+  lastSyncTime: string
+  serverLastModified: string
+  conflictingUser?: string
 }
 
 interface ConflictResolutionDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  conflictData: ConflictData | null;
-  onResolve: (resolution: 'local' | 'server' | 'merge') => Promise<void>;
-  isResolving?: boolean;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  conflictData: ConflictData | null
+  onResolve: (resolution: 'local' | 'server' | 'merge') => Promise<void>
+  isResolving?: boolean
 }
 
 export function ConflictResolutionDialog({
@@ -48,27 +34,28 @@ export function ConflictResolutionDialog({
   onResolve,
   isResolving = false
 }: ConflictResolutionDialogProps) {
-  const [selectedResolution, setSelectedResolution] = useState<'local' | 'server' | 'merge' | null>(null);
+  const [selectedResolution, setSelectedResolution] = useState<'local' | 'server' | 'merge' | null>(null)
 
-  if (!conflictData) return null;
+  if (!conflictData) return null
 
-  const { localVersion, serverVersion, conflictFields, lastSyncTime, serverLastModified, conflictingUser } = conflictData;
+  const { localVersion, serverVersion, conflictFields, lastSyncTime, serverLastModified, conflictingUser } =
+    conflictData
 
   const handleResolve = async () => {
-    if (!selectedResolution) return;
-    
+    if (!selectedResolution) return
+
     try {
-      await onResolve(selectedResolution);
-      onOpenChange(false);
-      setSelectedResolution(null);
+      await onResolve(selectedResolution)
+      onOpenChange(false)
+      setSelectedResolution(null)
     } catch (error) {
-      console.error('解决冲突失败:', error);
+      console.error('解决冲突失败:', error)
     }
-  };
+  }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN');
-  };
+    return new Date(dateString).toLocaleString('zh-CN')
+  }
 
   const getFieldDisplayName = (field: string) => {
     const fieldMap: Record<string, string> = {
@@ -76,9 +63,9 @@ export function ConflictResolutionDialog({
       content: '页面内容',
       target_area: '目标区域',
       module_count: '模块数量'
-    };
-    return fieldMap[field] || field;
-  };
+    }
+    return fieldMap[field] || field
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -113,13 +100,13 @@ export function ConflictResolutionDialog({
                   </div>
                 )}
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <p className="text-sm font-medium mb-2">冲突字段:</p>
                 <div className="flex flex-wrap gap-1">
-                  {conflictFields.map((field) => (
+                  {conflictFields.map(field => (
                     <Badge key={field} variant="destructive" className="text-xs">
                       {getFieldDisplayName(field)}
                     </Badge>
@@ -204,79 +191,73 @@ export function ConflictResolutionDialog({
             <CardContent>
               <div className="space-y-3">
                 {/* 使用本地版本 */}
-                <div 
+                <div
                   className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedResolution === 'local' 
-                      ? 'border-blue-500 bg-blue-50' 
+                    selectedResolution === 'local'
+                      ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setSelectedResolution('local')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      selectedResolution === 'local' 
-                        ? 'border-blue-500 bg-blue-500' 
-                        : 'border-gray-300'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedResolution === 'local' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                      }`}
+                    >
                       {selectedResolution === 'local' && <CheckCircle className="h-3 w-3 text-white" />}
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium">使用我的版本</h4>
-                      <p className="text-sm text-muted-foreground">
-                        保留您的本地更改，覆盖服务器版本
-                      </p>
+                      <p className="text-sm text-muted-foreground">保留您的本地更改，覆盖服务器版本</p>
                     </div>
                   </div>
                 </div>
 
                 {/* 使用服务器版本 */}
-                <div 
+                <div
                   className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedResolution === 'server' 
-                      ? 'border-green-500 bg-green-50' 
+                    selectedResolution === 'server'
+                      ? 'border-green-500 bg-green-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setSelectedResolution('server')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      selectedResolution === 'server' 
-                        ? 'border-green-500 bg-green-500' 
-                        : 'border-gray-300'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedResolution === 'server' ? 'border-green-500 bg-green-500' : 'border-gray-300'
+                      }`}
+                    >
                       {selectedResolution === 'server' && <CheckCircle className="h-3 w-3 text-white" />}
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium">使用服务器版本</h4>
-                      <p className="text-sm text-muted-foreground">
-                        放弃您的本地更改，使用服务器最新版本
-                      </p>
+                      <p className="text-sm text-muted-foreground">放弃您的本地更改，使用服务器最新版本</p>
                     </div>
                   </div>
                 </div>
 
                 {/* 手动合并 */}
-                <div 
+                <div
                   className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedResolution === 'merge' 
-                      ? 'border-purple-500 bg-purple-50' 
+                    selectedResolution === 'merge'
+                      ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setSelectedResolution('merge')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      selectedResolution === 'merge' 
-                        ? 'border-purple-500 bg-purple-500' 
-                        : 'border-gray-300'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedResolution === 'merge' ? 'border-purple-500 bg-purple-500' : 'border-gray-300'
+                      }`}
+                    >
                       {selectedResolution === 'merge' && <CheckCircle className="h-3 w-3 text-white" />}
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium">手动合并</h4>
-                      <p className="text-sm text-muted-foreground">
-                        进入合并模式，手动选择要保留的内容
-                      </p>
+                      <p className="text-sm text-muted-foreground">进入合并模式，手动选择要保留的内容</p>
                     </div>
                   </div>
                 </div>
@@ -286,17 +267,10 @@ export function ConflictResolutionDialog({
         </div>
 
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-            disabled={isResolving}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isResolving}>
             取消
           </Button>
-          <Button 
-            onClick={handleResolve}
-            disabled={!selectedResolution || isResolving}
-          >
+          <Button onClick={handleResolve} disabled={!selectedResolution || isResolving}>
             {isResolving ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -312,5 +286,5 @@ export function ConflictResolutionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-} 
+  )
+}

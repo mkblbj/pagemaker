@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Monitor, 
-  Smartphone, 
-  Wifi, 
-  Cpu, 
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Separator } from '@/components/ui/separator'
+import {
+  Monitor,
+  Smartphone,
+  Wifi,
+  Cpu,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -19,102 +19,105 @@ import {
   Home,
   Globe,
   Settings
-} from 'lucide-react';
-import { 
-  performCompatibilityCheck, 
+} from 'lucide-react'
+import {
+  performCompatibilityCheck,
   generateCompatibilityReport,
   setupCompatibilityMonitoring,
   getBrowserInfo,
   checkScreenResolution,
   checkNetworkConnection,
   checkPerformance,
-  type BrowserInfo 
-} from '@/lib/browserCompatibility';
-import { CompatibilityWarning } from '@/components/common/CompatibilityWarning';
+  type BrowserInfo
+} from '@/lib/browserCompatibility'
+import { CompatibilityWarning } from '@/components/common/CompatibilityWarning'
 
 export default function CompatibilityCheckPage() {
-  const [compatibilityData, setCompatibilityData] = useState<ReturnType<typeof performCompatibilityCheck> | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [monitoringEnabled, setMonitoringEnabled] = useState(false);
-  const [monitoringEvents, setMonitoringEvents] = useState<Array<{
-    event: string;
-    timestamp: Date;
-    data?: any;
-  }>>([]);
+  const [compatibilityData, setCompatibilityData] = useState<ReturnType<typeof performCompatibilityCheck> | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [monitoringEnabled, setMonitoringEnabled] = useState(false)
+  const [monitoringEvents, setMonitoringEvents] = useState<
+    Array<{
+      event: string
+      timestamp: Date
+      data?: any
+    }>
+  >([])
 
   // 在客户端初始化兼容性检查
   useEffect(() => {
-    setCompatibilityData(performCompatibilityCheck());
-  }, []);
+    setCompatibilityData(performCompatibilityCheck())
+  }, [])
 
   useEffect(() => {
-    let cleanup: (() => void) | null = null;
+    let cleanup: (() => void) | null = null
 
     if (monitoringEnabled && compatibilityData) {
       cleanup = setupCompatibilityMonitoring((event, data) => {
-        setMonitoringEvents(prev => [...prev, {
-          event,
-          timestamp: new Date(),
-          data
-        }].slice(-10)); // 只保留最近10个事件
-        
+        setMonitoringEvents(prev =>
+          [
+            ...prev,
+            {
+              event,
+              timestamp: new Date(),
+              data
+            }
+          ].slice(-10)
+        ) // 只保留最近10个事件
+
         // 重新检查兼容性
-        setCompatibilityData(performCompatibilityCheck());
-      });
+        setCompatibilityData(performCompatibilityCheck())
+      })
     }
 
     return () => {
       if (cleanup) {
-        cleanup();
+        cleanup()
       }
-    };
-  }, [monitoringEnabled, compatibilityData]);
+    }
+  }, [monitoringEnabled, compatibilityData])
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
+    setIsRefreshing(true)
     // 模拟刷新延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setCompatibilityData(performCompatibilityCheck());
-    setIsRefreshing(false);
-  };
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setCompatibilityData(performCompatibilityCheck())
+    setIsRefreshing(false)
+  }
 
   const handleDownloadReport = () => {
-    const report = generateCompatibilityReport();
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `compatibility-report-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+    const report = generateCompatibilityReport()
+    const blob = new Blob([report], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `compatibility-report-${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   const getBrowserIcon = (browserName: string) => {
     switch (browserName) {
       case 'chrome':
-        return '🌐';
+        return '🌐'
       case 'firefox':
-        return '🦊';
+        return '🦊'
       case 'safari':
-        return '🧭';
+        return '🧭'
       case 'edge':
-        return '🔷';
+        return '🔷'
       case 'opera':
-        return '🎭';
+        return '🎭'
       default:
-        return '❓';
+        return '❓'
     }
-  };
+  }
 
   const getStatusIcon = (supported: boolean) => {
-    return supported ? (
-      <CheckCircle className="h-4 w-4 text-green-500" />
-    ) : (
-      <XCircle className="h-4 w-4 text-red-500" />
-    );
-  };
+    return supported ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />
+  }
 
   // 加载状态
   if (!compatibilityData) {
@@ -126,7 +129,7 @@ export default function CompatibilityCheckPage() {
           <p className="text-muted-foreground">请稍候，正在分析您的浏览器环境</p>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -136,20 +139,14 @@ export default function CompatibilityCheckPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">浏览器兼容性检测</h1>
-            <p className="text-muted-foreground mt-2">
-              检测您的浏览器是否支持 Pagemaker 编辑器的所有功能
-            </p>
+            <p className="text-muted-foreground mt-2">检测您的浏览器是否支持 Pagemaker 编辑器的所有功能</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => window.location.href = '/'}>
+            <Button variant="outline" onClick={() => (window.location.href = '/')}>
               <Home className="h-4 w-4 mr-2" />
               返回首页
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
+            <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
               {isRefreshing ? (
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -178,15 +175,10 @@ export default function CompatibilityCheckPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
-              <Badge 
-                variant={compatibilityData.overallSupported ? 'default' : 'destructive'}
-                className="text-sm"
-              >
+              <Badge variant={compatibilityData.overallSupported ? 'default' : 'destructive'} className="text-sm">
                 {compatibilityData.overallSupported ? '✅ 完全兼容' : '❌ 存在兼容性问题'}
               </Badge>
-              <div className="text-sm text-muted-foreground">
-                检测时间: {new Date().toLocaleString('zh-CN')}
-              </div>
+              <div className="text-sm text-muted-foreground">检测时间: {new Date().toLocaleString('zh-CN')}</div>
             </div>
 
             {compatibilityData.criticalIssues.length > 0 && (
@@ -286,9 +278,7 @@ export default function CompatibilityCheckPage() {
                     <div className="text-muted-foreground">
                       {window.screen.width}×{window.screen.height}
                     </div>
-                    <div className="text-xs">
-                      {compatibilityData.screen.isSupported ? '✅ 支持' : '❌ 过小'}
-                    </div>
+                    <div className="text-xs">{compatibilityData.screen.isSupported ? '✅ 支持' : '❌ 过小'}</div>
                   </div>
                 </div>
 
@@ -296,12 +286,8 @@ export default function CompatibilityCheckPage() {
                   <Wifi className="h-4 w-4 text-green-500" />
                   <div className="text-sm">
                     <div className="font-medium">网络</div>
-                    <div className="text-muted-foreground">
-                      {compatibilityData.network.isOnline ? '在线' : '离线'}
-                    </div>
-                    <div className="text-xs">
-                      {compatibilityData.network.connectionType || '未知'}
-                    </div>
+                    <div className="text-muted-foreground">{compatibilityData.network.isOnline ? '在线' : '离线'}</div>
+                    <div className="text-xs">{compatibilityData.network.connectionType || '未知'}</div>
                   </div>
                 </div>
 
@@ -309,9 +295,7 @@ export default function CompatibilityCheckPage() {
                   <Cpu className="h-4 w-4 text-purple-500" />
                   <div className="text-sm">
                     <div className="font-medium">CPU</div>
-                    <div className="text-muted-foreground">
-                      {navigator.hardwareConcurrency || '未知'} 核心
-                    </div>
+                    <div className="text-muted-foreground">{navigator.hardwareConcurrency || '未知'} 核心</div>
                   </div>
                 </div>
 
@@ -319,9 +303,7 @@ export default function CompatibilityCheckPage() {
                   <Monitor className="h-4 w-4 text-orange-500" />
                   <div className="text-sm">
                     <div className="font-medium">内存</div>
-                    <div className="text-muted-foreground">
-                      {(navigator as any).deviceMemory || '未知'} GB
-                    </div>
+                    <div className="text-muted-foreground">{(navigator as any).deviceMemory || '未知'} GB</div>
                   </div>
                 </div>
               </div>
@@ -351,11 +333,7 @@ export default function CompatibilityCheckPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>实时监控</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setMonitoringEnabled(!monitoringEnabled)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setMonitoringEnabled(!monitoringEnabled)}>
                 {monitoringEnabled ? '停止监控' : '开始监控'}
               </Button>
             </CardTitle>
@@ -364,9 +342,7 @@ export default function CompatibilityCheckPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${monitoringEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                <span className="text-sm">
-                  {monitoringEnabled ? '监控中 - 检测网络、屏幕变化' : '监控已停止'}
-                </span>
+                <span className="text-sm">{monitoringEnabled ? '监控中 - 检测网络、屏幕变化' : '监控已停止'}</span>
               </div>
 
               {monitoringEvents.length > 0 && (
@@ -376,9 +352,7 @@ export default function CompatibilityCheckPage() {
                     {monitoringEvents.map((event, index) => (
                       <div key={index} className="flex items-center gap-2 text-xs p-2 bg-muted rounded">
                         <span className="font-medium">{event.event}</span>
-                        <span className="text-muted-foreground">
-                          {event.timestamp.toLocaleTimeString()}
-                        </span>
+                        <span className="text-muted-foreground">{event.timestamp.toLocaleTimeString()}</span>
                       </div>
                     ))}
                   </div>
@@ -394,16 +368,11 @@ export default function CompatibilityCheckPage() {
             <CardTitle>兼容性警告组件</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              这是集成在编辑器中的兼容性警告组件的演示:
-            </p>
-            <CompatibilityWarning 
-              showDetails={true}
-              persistent={true}
-            />
+            <p className="text-sm text-muted-foreground mb-4">这是集成在编辑器中的兼容性警告组件的演示:</p>
+            <CompatibilityWarning showDetails={true} persistent={true} />
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-} 
+  )
+}

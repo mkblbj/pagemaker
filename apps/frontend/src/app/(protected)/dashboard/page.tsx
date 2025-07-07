@@ -1,19 +1,17 @@
-'use client';
+'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TestComponent } from "@/components/test-component";
-import { useTranslation } from "@/contexts/I18nContext";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TestComponent } from '@/components/test-component'
+import { useTranslation } from '@/contexts/I18nContext'
 
 export default function DashboardPage() {
-  const { tCommon, tEditor } = useTranslation();
+  const { tCommon, tEditor } = useTranslation()
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{tCommon('仪表板')}</h1>
-        <p className="text-muted-foreground">
-          {tCommon('欢迎使用 Pagemaker CMS，这里是您的内容管理中心')}
-        </p>
+        <p className="text-muted-foreground">{tCommon('欢迎使用 Pagemaker CMS，这里是您的内容管理中心')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -92,5 +90,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

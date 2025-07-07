@@ -1,32 +1,32 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { useTranslation } from "@/contexts/I18nContext";
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from '@/contexts/I18nContext'
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-  const { tCommon } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const { tCommon } = useTranslation()
 
   useEffect(() => {
     const checkAuthAndRedirect = () => {
-      const hasAuth = localStorage.getItem("access_token");
+      const hasAuth = localStorage.getItem('access_token')
 
       if (hasAuth) {
-        router.push("/dashboard");
+        router.push('/dashboard')
       } else {
-        router.push("/login");
+        router.push('/login')
       }
-    };
+    }
 
     // Small delay to prevent flash
     setTimeout(() => {
-      checkAuthAndRedirect();
-      setIsLoading(false);
-    }, 100);
-  }, [router]);
+      checkAuthAndRedirect()
+      setIsLoading(false)
+    }, 100)
+  }, [router])
 
   if (isLoading) {
     return (
@@ -40,8 +40,8 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
-  return null;
+  return null
 }

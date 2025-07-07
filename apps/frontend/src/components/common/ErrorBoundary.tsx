@@ -1,57 +1,57 @@
-'use client';
+'use client'
 
-import React, { Component, ReactNode } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
+import React, { Component, ReactNode } from 'react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react'
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children: ReactNode
+  fallback?: ReactNode
 }
 
 interface State {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
+  hasError: boolean
+  error?: Error
+  errorInfo?: React.ErrorInfo
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
+    super(props)
+    this.state = { hasError: false }
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({
       error,
       errorInfo
-    });
+    })
 
     // 记录错误到控制台
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo)
 
     // 这里可以发送错误报告到监控服务
     // reportError(error, errorInfo);
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-  };
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined })
+  }
 
   handleGoBack = () => {
-    window.history.back();
-  };
+    window.history.back()
+  }
 
   render() {
     if (this.state.hasError) {
       // 如果提供了自定义fallback，使用它
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       // 默认错误UI
@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-muted-foreground mb-6">
               {this.state.error?.message || '页面遇到了一个错误，请尝试刷新页面'}
             </p>
-            
+
             {/* 开发环境显示详细错误信息 */}
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div className="text-left bg-muted p-4 rounded mb-4 text-sm">
@@ -71,9 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   {this.state.error.name}: {this.state.error.message}
                 </p>
                 {this.state.error.stack && (
-                  <pre className="text-xs overflow-auto max-h-32">
-                    {this.state.error.stack}
-                  </pre>
+                  <pre className="text-xs overflow-auto max-h-32">{this.state.error.stack}</pre>
                 )}
               </div>
             )}
@@ -90,10 +88,10 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
           </Card>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
@@ -107,6 +105,6 @@ export function withErrorBoundary<T extends Record<string, unknown>>(
       <ErrorBoundary fallback={fallback}>
         <Component {...props} />
       </ErrorBoundary>
-    );
-  };
-} 
+    )
+  }
+}

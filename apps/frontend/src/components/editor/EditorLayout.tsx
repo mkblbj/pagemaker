@@ -1,29 +1,29 @@
-'use client';
+'use client'
 
-import { useState, useCallback, useEffect } from 'react';
-import { useEditorStore } from '@/stores/useEditorStore';
-import { usePageStore } from '@/stores/usePageStore';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Save, 
-  Eye, 
+import { useState, useCallback, useEffect } from 'react'
+import { useEditorStore } from '@/stores/useEditorStore'
+import { usePageStore } from '@/stores/usePageStore'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Save,
+  Eye,
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen
-} from 'lucide-react';
-import { ModuleList } from './ModuleList';
-import { Canvas } from './Canvas';
-import { PropertyPanel } from './PropertyPanel';
-import { TargetAreaSelector } from './TargetAreaSelector';
-import { usePageEditor } from '@/hooks/usePageEditor';
+} from 'lucide-react'
+import { ModuleList } from './ModuleList'
+import { Canvas } from './Canvas'
+import { PropertyPanel } from './PropertyPanel'
+import { TargetAreaSelector } from './TargetAreaSelector'
+import { usePageEditor } from '@/hooks/usePageEditor'
 
 interface EditorLayoutProps {
-  pageId: string;
+  pageId: string
 }
 
 export function EditorLayout({ pageId }: EditorLayoutProps) {
@@ -38,52 +38,51 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     toggleRightPanel,
     isLoading,
     error
-  } = useEditorStore();
+  } = useEditorStore()
 
-  const { currentPage, hasUnsavedChanges } = usePageStore();
-  const { 
-    isSaving, 
-    savePage, 
-    previewPage 
-  } = usePageEditor();
+  const { currentPage, hasUnsavedChanges } = usePageStore()
+  const { isSaving, savePage, previewPage } = usePageEditor()
 
-  const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null);
+  const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null)
 
   // 处理分割条拖拽
   const handleMouseDown = useCallback((panel: 'left' | 'right') => {
-    setIsResizing(panel);
-  }, []);
+    setIsResizing(panel)
+  }, [])
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing) return;
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return
 
-    const containerWidth = window.innerWidth;
-    const mouseX = e.clientX;
+      const containerWidth = window.innerWidth
+      const mouseX = e.clientX
 
-    if (isResizing === 'left') {
-      const newWidth = Math.max(200, Math.min(400, mouseX));
-      setLeftPanelWidth(newWidth);
-    } else if (isResizing === 'right') {
-      const newWidth = Math.max(250, Math.min(500, containerWidth - mouseX));
-      setRightPanelWidth(newWidth);
-    }
-  }, [isResizing, setLeftPanelWidth, setRightPanelWidth]);
+      if (isResizing === 'left') {
+        const newWidth = Math.max(200, Math.min(400, mouseX))
+        setLeftPanelWidth(newWidth)
+      } else if (isResizing === 'right') {
+        const newWidth = Math.max(250, Math.min(500, containerWidth - mouseX))
+        setRightPanelWidth(newWidth)
+      }
+    },
+    [isResizing, setLeftPanelWidth, setRightPanelWidth]
+  )
 
   const handleMouseUp = useCallback(() => {
-    setIsResizing(null);
-  }, []);
+    setIsResizing(null)
+  }, [])
 
   // 添加全局鼠标事件监听
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
     }
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp])
 
   // 如果正在加载，显示加载指示器
   if (isLoading) {
@@ -96,7 +95,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // 如果有错误，显示错误信息
@@ -112,27 +111,21 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="flex h-screen bg-background" data-testid="editor-layout">
       {/* 左侧面板 - 模块列表 */}
-      <div 
-        className={`bg-card border-r transition-all duration-300 ${
-          isLeftPanelCollapsed ? 'w-0 overflow-hidden' : ''
-        }`}
+      <div
+        className={`bg-card border-r transition-all duration-300 ${isLeftPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
         style={{ width: isLeftPanelCollapsed ? 0 : leftPanelWidth }}
       >
         <div className="h-full flex flex-col">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">模块库</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLeftPanel}
-              >
+              <Button variant="ghost" size="sm" onClick={toggleLeftPanel}>
                 <PanelLeftClose className="h-4 w-4" />
               </Button>
             </div>
@@ -158,23 +151,15 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="flex items-center gap-4">
             {/* 左侧面板切换 */}
             {isLeftPanelCollapsed && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLeftPanel}
-              >
+              <Button variant="ghost" size="sm" onClick={toggleLeftPanel}>
                 <PanelLeftOpen className="h-4 w-4" />
               </Button>
             )}
-            
+
             {/* 页面标题 */}
             <div>
-              <h1 className="text-xl font-semibold">
-                {currentPage?.name || '页面编辑器'}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                页面ID: {pageId}
-              </p>
+              <h1 className="text-xl font-semibold">{currentPage?.name || '页面编辑器'}</h1>
+              <p className="text-sm text-muted-foreground">页面ID: {pageId}</p>
             </div>
 
             {/* 目标区域选择 */}
@@ -190,20 +175,11 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
             )}
 
             {/* 操作按钮 */}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={previewPage}
-            >
+            <Button variant="outline" size="sm" onClick={previewPage}>
               <Eye className="h-4 w-4 mr-2" />
               预览
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              disabled={isSaving}
-              onClick={savePage}
-            >
+            <Button variant="outline" size="sm" disabled={isSaving} onClick={savePage}>
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? '保存中...' : '保存'}
             </Button>
@@ -214,11 +190,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
 
             {/* 右侧面板切换 */}
             {isRightPanelCollapsed && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleRightPanel}
-              >
+              <Button variant="ghost" size="sm" onClick={toggleRightPanel}>
                 <PanelRightOpen className="h-4 w-4" />
               </Button>
             )}
@@ -240,21 +212,15 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       )}
 
       {/* 右侧面板 - 属性编辑 */}
-      <div 
-        className={`bg-card border-l transition-all duration-300 ${
-          isRightPanelCollapsed ? 'w-0 overflow-hidden' : ''
-        }`}
+      <div
+        className={`bg-card border-l transition-all duration-300 ${isRightPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
         style={{ width: isRightPanelCollapsed ? 0 : rightPanelWidth }}
       >
         <div className="h-full flex flex-col">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">属性面板</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleRightPanel}
-              >
+              <Button variant="ghost" size="sm" onClick={toggleRightPanel}>
                 <PanelRightClose className="h-4 w-4" />
               </Button>
             </div>
@@ -265,5 +231,5 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}

@@ -1,22 +1,13 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useEditorStore } from '@/stores/useEditorStore';
-import { usePageStore } from '@/stores/usePageStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { 
-  Type, 
-  Image, 
-  Minus, 
-  Layout, 
-  FileText,
-  Columns,
-  Search,
-  Plus
-} from 'lucide-react';
-import { PageModuleType } from '@pagemaker/shared-types';
+import { useState } from 'react'
+import { useEditorStore } from '@/stores/useEditorStore'
+import { usePageStore } from '@/stores/usePageStore'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Type, Image, Minus, Layout, FileText, Columns, Search, Plus } from 'lucide-react'
+import { PageModuleType } from '@pagemaker/shared-types'
 
 // 可用模块类型定义
 const AVAILABLE_MODULES = [
@@ -62,32 +53,36 @@ const AVAILABLE_MODULES = [
     icon: Columns,
     color: 'text-red-600'
   }
-];
+]
 
 export function ModuleList() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const { setDragging } = useEditorStore();
-  const { addModule } = usePageStore();
+  const [searchTerm, setSearchTerm] = useState('')
+  const { setDragging } = useEditorStore()
+  const { addModule } = usePageStore()
 
   // 过滤模块
-  const filteredModules = AVAILABLE_MODULES.filter(module =>
-    module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    module.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredModules = AVAILABLE_MODULES.filter(
+    module =>
+      module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.description.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   // 处理模块拖拽开始
   const handleDragStart = (e: React.DragEvent, moduleType: PageModuleType) => {
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      type: 'MODULE',
-      moduleType
-    }));
-    setDragging(true, moduleType);
-  };
+    e.dataTransfer.setData(
+      'application/json',
+      JSON.stringify({
+        type: 'MODULE',
+        moduleType
+      })
+    )
+    setDragging(true, moduleType)
+  }
 
   // 处理模块拖拽结束
   const handleDragEnd = () => {
-    setDragging(false);
-  };
+    setDragging(false)
+  }
 
   // 处理模块点击添加
   const handleAddModule = (moduleType: PageModuleType) => {
@@ -113,10 +108,10 @@ export function ModuleList() {
         columns: 2,
         items: []
       })
-    };
+    }
 
-    addModule(newModule);
-  };
+    addModule(newModule)
+  }
 
   return (
     <div className="h-full flex flex-col" data-testid="module-list">
@@ -127,7 +122,7 @@ export function ModuleList() {
           <Input
             placeholder="搜索模块..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -135,14 +130,14 @@ export function ModuleList() {
 
       {/* 模块列表 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {filteredModules.map((module) => {
-          const IconComponent = module.icon;
+        {filteredModules.map(module => {
+          const IconComponent = module.icon
           return (
             <Card
               key={module.type}
               className="cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent hover:border-primary/20"
               draggable
-              onDragStart={(e) => handleDragStart(e, module.type)}
+              onDragStart={e => handleDragStart(e, module.type)}
               onDragEnd={handleDragEnd}
             >
               <CardContent className="p-4">
@@ -152,9 +147,7 @@ export function ModuleList() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm">{module.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {module.description}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{module.description}</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -167,7 +160,7 @@ export function ModuleList() {
                 </div>
               </CardContent>
             </Card>
-          );
+          )
         })}
       </div>
 
@@ -184,10 +177,8 @@ export function ModuleList() {
 
       {/* 使用提示 */}
       <div className="p-4 border-t bg-muted/30">
-        <p className="text-xs text-muted-foreground">
-          💡 拖拽模块到画布中，或点击右侧 + 按钮快速添加
-        </p>
+        <p className="text-xs text-muted-foreground">💡 拖拽模块到画布中，或点击右侧 + 按钮快速添加</p>
       </div>
     </div>
-  );
-} 
+  )
+}

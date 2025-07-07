@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { 
-  AlertTriangle, 
-  XCircle, 
-  Info, 
+import React, { useState, useEffect } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+  AlertTriangle,
+  XCircle,
+  Info,
   X,
   ChevronDown,
   ChevronUp,
@@ -18,80 +18,76 @@ import {
   Cpu,
   HardDrive,
   Globe
-} from 'lucide-react';
-import { 
-  performCompatibilityCheck, 
+} from 'lucide-react'
+import {
+  performCompatibilityCheck,
   generateCompatibilityReport,
   setupCompatibilityMonitoring,
-  type BrowserInfo 
-} from '@/lib/browserCompatibility';
+  type BrowserInfo
+} from '@/lib/browserCompatibility'
 
 interface CompatibilityWarningProps {
-  onClose?: () => void;
-  showDetails?: boolean;
-  persistent?: boolean;
+  onClose?: () => void
+  showDetails?: boolean
+  persistent?: boolean
 }
 
-export function CompatibilityWarning({ 
-  onClose, 
-  showDetails = false, 
-  persistent = false 
-}: CompatibilityWarningProps) {
-  const [compatibilityData, setCompatibilityData] = useState(() => performCompatibilityCheck());
-  const [isOpen, setIsOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+export function CompatibilityWarning({ onClose, showDetails = false, persistent = false }: CompatibilityWarningProps) {
+  const [compatibilityData, setCompatibilityData] = useState(() => performCompatibilityCheck())
+  const [isOpen, setIsOpen] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   useEffect(() => {
     // 设置兼容性监控
     const cleanup = setupCompatibilityMonitoring((event, data) => {
-      console.log('兼容性事件:', event, data);
+      console.log('兼容性事件:', event, data)
       // 重新检查兼容性
-      setCompatibilityData(performCompatibilityCheck());
-    });
+      setCompatibilityData(performCompatibilityCheck())
+    })
 
-    return cleanup;
-  }, []);
+    return cleanup
+  }, [])
 
   // 如果没有问题且不是持久显示，则不显示
   if (!persistent && compatibilityData.overallSupported && compatibilityData.criticalIssues.length === 0) {
-    return null;
+    return null
   }
 
   const handleClose = () => {
-    setIsOpen(false);
-    onClose?.();
-  };
+    setIsOpen(false)
+    onClose?.()
+  }
 
   const getSeverityColor = () => {
     if (compatibilityData.criticalIssues.length > 0) {
-      return 'destructive';
+      return 'destructive'
     }
-    return 'default';
-  };
+    return 'default'
+  }
 
   const getSeverityIcon = () => {
     if (compatibilityData.criticalIssues.length > 0) {
-      return <XCircle className="h-5 w-5 text-red-500" />;
+      return <XCircle className="h-5 w-5 text-red-500" />
     }
-    return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-  };
+    return <AlertTriangle className="h-5 w-5 text-yellow-500" />
+  }
 
   const getBrowserIcon = (browserName: string) => {
     switch (browserName) {
       case 'chrome':
-        return '🌐';
+        return '🌐'
       case 'firefox':
-        return '🦊';
+        return '🦊'
       case 'safari':
-        return '🧭';
+        return '🧭'
       case 'edge':
-        return '🔷';
+        return '🔷'
       case 'opera':
-        return '🎭';
+        return '🎭'
       default:
-        return '❓';
+        return '❓'
     }
-  };
+  }
 
   return (
     <Card className="mb-4 border-l-4 border-l-yellow-500">
@@ -107,12 +103,7 @@ export function CompatibilityWarning({
             </Badge>
           </div>
           {!persistent && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-6 w-6 p-0"
-            >
+            <Button variant="ghost" size="sm" onClick={handleClose} className="h-6 w-6 p-0">
               <X className="h-4 w-4" />
             </Button>
           )}
@@ -178,22 +169,18 @@ export function CompatibilityWarning({
             <Monitor className="h-4 w-4 text-blue-500" />
             <div className="text-xs">
               <div className="font-medium">屏幕</div>
-              <div className="text-muted-foreground">
-                {compatibilityData.screen.isSupported ? '✅' : '❌'}
-              </div>
+              <div className="text-muted-foreground">{compatibilityData.screen.isSupported ? '✅' : '❌'}</div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 p-2 bg-muted rounded">
             <Wifi className="h-4 w-4 text-green-500" />
             <div className="text-xs">
               <div className="font-medium">网络</div>
-              <div className="text-muted-foreground">
-                {compatibilityData.network.isOnline ? '在线' : '离线'}
-              </div>
+              <div className="text-muted-foreground">{compatibilityData.network.isOnline ? '在线' : '离线'}</div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 p-2 bg-muted rounded">
             <Cpu className="h-4 w-4 text-purple-500" />
             <div className="text-xs">
@@ -203,7 +190,7 @@ export function CompatibilityWarning({
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 p-2 bg-muted rounded">
             <Globe className="h-4 w-4 text-orange-500" />
             <div className="text-xs">
@@ -232,9 +219,7 @@ export function CompatibilityWarning({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                   {Object.entries(compatibilityData.browser.features).map(([feature, supported]) => (
                     <div key={feature} className="flex items-center gap-2">
-                      <span className={supported ? 'text-green-500' : 'text-red-500'}>
-                        {supported ? '✅' : '❌'}
-                      </span>
+                      <span className={supported ? 'text-green-500' : 'text-red-500'}>{supported ? '✅' : '❌'}</span>
                       <span className="capitalize">{feature}</span>
                     </div>
                   ))}
@@ -298,17 +283,17 @@ export function CompatibilityWarning({
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /**
  * 简化的兼容性检查组件
  */
 export function SimpleCompatibilityCheck() {
-  const [compatibilityData] = useState(() => performCompatibilityCheck());
+  const [compatibilityData] = useState(() => performCompatibilityCheck())
 
   if (compatibilityData.overallSupported) {
-    return null;
+    return null
   }
 
   return (
@@ -336,5 +321,5 @@ export function SimpleCompatibilityCheck() {
         </div>
       </AlertDescription>
     </Alert>
-  );
-} 
+  )
+}

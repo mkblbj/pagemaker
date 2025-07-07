@@ -1,23 +1,17 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Languages, Globe } from 'lucide-react';
-import { useTranslation } from '@/contexts/I18nContext';
-import { LANGUAGE_NAMES, type SupportedLanguage } from '@pagemaker/shared-i18n';
+import React from 'react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Languages, Globe } from 'lucide-react'
+import { useTranslation } from '@/contexts/I18nContext'
+import { LANGUAGE_NAMES, type SupportedLanguage } from '@pagemaker/shared-i18n'
 
 // 语言选项配置
 const LANGUAGE_OPTIONS: Array<{
-  value: SupportedLanguage;
-  label: string;
-  flag: string;
+  value: SupportedLanguage
+  label: string
+  flag: string
 }> = [
   {
     value: 'zh-CN',
@@ -34,33 +28,29 @@ const LANGUAGE_OPTIONS: Array<{
     label: LANGUAGE_NAMES['en-US'],
     flag: '🇺🇸'
   }
-];
+]
 
 // 组件Props
 interface LanguageSwitcherProps {
-  variant?: 'select' | 'button';
-  size?: 'sm' | 'md' | 'lg';
-  showLabel?: boolean;
-  className?: string;
+  variant?: 'select' | 'button'
+  size?: 'sm' | 'md' | 'lg'
+  showLabel?: boolean
+  className?: string
 }
 
 /**
  * 语言切换组件 - Select版本
  */
-function LanguageSelect({ 
-  size = 'md',
-  showLabel = false,
-  className = ''
-}: Omit<LanguageSwitcherProps, 'variant'>) {
-  const { currentLanguage, setLanguage, tCommon } = useTranslation();
+function LanguageSelect({ size = 'md', showLabel = false, className = '' }: Omit<LanguageSwitcherProps, 'variant'>) {
+  const { currentLanguage, setLanguage, tCommon } = useTranslation()
 
   const handleLanguageChange = (value: string) => {
     if (value === 'zh-CN' || value === 'ja-JP' || value === 'en-US') {
-      setLanguage(value);
+      setLanguage(value)
     }
-  };
+  }
 
-  const currentOption = LANGUAGE_OPTIONS.find(option => option.value === currentLanguage);
+  const currentOption = LANGUAGE_OPTIONS.find(option => option.value === currentLanguage)
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -71,10 +61,12 @@ function LanguageSelect({
         </span>
       )}
       <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-        <SelectTrigger className={`
+        <SelectTrigger
+          className={`
           ${size === 'sm' ? 'h-8 text-xs' : size === 'lg' ? 'h-12 text-base' : 'h-10 text-sm'}
           w-auto min-w-[120px]
-        `}>
+        `}
+        >
           <SelectValue>
             <div className="flex items-center gap-2">
               <span>{currentOption?.flag}</span>
@@ -83,7 +75,7 @@ function LanguageSelect({
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {LANGUAGE_OPTIONS.map((option) => (
+          {LANGUAGE_OPTIONS.map(option => (
             <SelectItem key={option.value} value={option.value}>
               <div className="flex items-center gap-2">
                 <span>{option.flag}</span>
@@ -94,20 +86,16 @@ function LanguageSelect({
         </SelectContent>
       </Select>
     </div>
-  );
+  )
 }
 
 /**
  * 语言切换组件 - Button版本
  */
-function LanguageButtons({ 
-  size = 'md',
-  showLabel = false,
-  className = ''
-}: Omit<LanguageSwitcherProps, 'variant'>) {
-  const { currentLanguage, setLanguage, tCommon } = useTranslation();
+function LanguageButtons({ size = 'md', showLabel = false, className = '' }: Omit<LanguageSwitcherProps, 'variant'>) {
+  const { currentLanguage, setLanguage, tCommon } = useTranslation()
 
-  const buttonSize = size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'default';
+  const buttonSize = size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'default'
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -118,7 +106,7 @@ function LanguageButtons({
         </span>
       )}
       <div className="flex gap-1 rounded-md border p-1">
-        {LANGUAGE_OPTIONS.map((option) => (
+        {LANGUAGE_OPTIONS.map(option => (
           <Button
             key={option.value}
             variant={currentLanguage === option.value ? 'default' : 'ghost'}
@@ -138,19 +126,17 @@ function LanguageButtons({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 /**
  * 紧凑的语言切换组件 - 仅显示国旗
  */
-function LanguageCompact({ 
-  className = ''
-}: { className?: string }) {
-  const { currentLanguage, setLanguage } = useTranslation();
+function LanguageCompact({ className = '' }: { className?: string }) {
+  const { currentLanguage, setLanguage } = useTranslation()
 
-  const currentOption = LANGUAGE_OPTIONS.find(option => option.value === currentLanguage);
-  const [isOpen, setIsOpen] = React.useState(false);
+  const currentOption = LANGUAGE_OPTIONS.find(option => option.value === currentLanguage)
+  const [isOpen, setIsOpen] = React.useState(false)
 
   return (
     <div className={`relative ${className}`}>
@@ -163,15 +149,15 @@ function LanguageCompact({
       >
         <span className="text-lg">{currentOption?.flag}</span>
       </Button>
-      
+
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg z-50">
-          {LANGUAGE_OPTIONS.map((option) => (
+          {LANGUAGE_OPTIONS.map(option => (
             <button
               key={option.value}
               onClick={() => {
-                setLanguage(option.value);
-                setIsOpen(false);
+                setLanguage(option.value)
+                setIsOpen(false)
               }}
               className={`
                 flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100
@@ -184,21 +170,16 @@ function LanguageCompact({
           ))}
         </div>
       )}
-      
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+
+      {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
     </div>
-  );
+  )
 }
 
 /**
  * 主要的语言切换组件
  */
-export function LanguageSwitcher({ 
+export function LanguageSwitcher({
   variant = 'select',
   size = 'md',
   showLabel = false,
@@ -206,25 +187,13 @@ export function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   switch (variant) {
     case 'button':
-      return (
-        <LanguageButtons 
-          size={size}
-          showLabel={showLabel}
-          className={className}
-        />
-      );
+      return <LanguageButtons size={size} showLabel={showLabel} className={className} />
     default:
-      return (
-        <LanguageSelect 
-          size={size}
-          showLabel={showLabel}
-          className={className}
-        />
-      );
+      return <LanguageSelect size={size} showLabel={showLabel} className={className} />
   }
 }
 
 /**
  * 导出紧凑版本
  */
-export { LanguageCompact }; 
+export { LanguageCompact }

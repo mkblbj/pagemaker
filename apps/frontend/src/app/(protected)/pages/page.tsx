@@ -1,109 +1,98 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  FileText,
-  Calendar,
-  Monitor,
-  Smartphone,
-  Globe
-} from 'lucide-react';
-import { pageService } from '@/services/pageService';
-import { PageTemplateListItem } from '@pagemaker/shared-types';
-import { useTranslation } from '@/contexts/I18nContext';
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Globe } from 'lucide-react'
+import { pageService } from '@/services/pageService'
+import { PageTemplateListItem } from '@pagemaker/shared-types'
+import { useTranslation } from '@/contexts/I18nContext'
 
 export default function PagesPage() {
-  const router = useRouter();
-  const { tCommon, tEditor, tError } = useTranslation();
-  const [pages, setPages] = useState<PageTemplateListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
+  const { tCommon, tEditor, tError } = useTranslation()
+  const [pages, setPages] = useState<PageTemplateListItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   // 防抖搜索
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   // 获取页面列表
   const fetchPages = useCallback(async (search?: string) => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       const result = await pageService.getPages({
         search: search || undefined,
         limit: 50
-      });
-      setPages(result.pages);
+      })
+      setPages(result.pages)
     } catch (error) {
-      console.error('获取页面列表失败:', error);
-      setError(error instanceof Error ? error.message : '获取页面列表失败');
+      console.error('获取页面列表失败:', error)
+      setError(error instanceof Error ? error.message : '获取页面列表失败')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   // 当防抖搜索词变化时获取页面
   useEffect(() => {
-    fetchPages(debouncedSearchTerm);
-  }, [debouncedSearchTerm, fetchPages]);
+    fetchPages(debouncedSearchTerm)
+  }, [debouncedSearchTerm, fetchPages])
 
   // 获取目标区域图标
   const getTargetAreaIcon = (area: string) => {
     switch (area) {
       case 'pc':
-        return <Monitor className="h-4 w-4" />;
+        return <Monitor className="h-4 w-4" />
       case 'mobile':
-        return <Smartphone className="h-4 w-4" />;
+        return <Smartphone className="h-4 w-4" />
       default:
-        return <Globe className="h-4 w-4" />;
+        return <Globe className="h-4 w-4" />
     }
-  };
+  }
 
   // 处理编辑页面
   const handleEditPage = (pageId: string) => {
-    router.push(`/editor/${pageId}`);
-  };
+    router.push(`/editor/${pageId}`)
+  }
 
   // 处理预览页面
   const handlePreviewPage = (pageId: string) => {
-    window.open(`/preview/${pageId}`, '_blank');
-  };
+    window.open(`/preview/${pageId}`, '_blank')
+  }
 
   // 处理删除页面
   const handleDeletePage = async (pageId: string) => {
     if (!confirm(tCommon('确定要删除这个页面吗？此操作不可撤销。'))) {
-      return;
+      return
     }
 
     try {
-      await pageService.deletePage(pageId);
-      setPages(pages.filter(page => page.id !== pageId));
+      await pageService.deletePage(pageId)
+      setPages(pages.filter(page => page.id !== pageId))
     } catch (error) {
-      console.error('删除页面失败:', error);
-      alert(tError('删除页面失败，请重试'));
+      console.error('删除页面失败:', error)
+      alert(tError('删除页面失败，请重试'))
     }
-  };
+  }
 
   // 处理创建新页面
   const handleCreatePage = () => {
-    router.push('/editor/new');
-  };
+    router.push('/editor/new')
+  }
 
   // 格式化日期
   const formatDate = (dateString: string) => {
@@ -111,8 +100,8 @@ export default function PagesPage() {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
-    });
-  };
+    })
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -120,9 +109,7 @@ export default function PagesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">{tCommon('页面管理')}</h1>
-          <p className="text-muted-foreground">
-            {tCommon('管理您的页面模板，创建和编辑页面内容')}
-          </p>
+          <p className="text-muted-foreground">{tCommon('管理您的页面模板，创建和编辑页面内容')}</p>
         </div>
         <Button onClick={handleCreatePage}>
           <Plus className="h-4 w-4 mr-2" />
@@ -137,7 +124,7 @@ export default function PagesPage() {
           <Input
             placeholder={tCommon('搜索页面...')}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -186,7 +173,7 @@ export default function PagesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pages.map((page) => (
+          {pages.map(page => (
             <Card key={page.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -195,8 +182,11 @@ export default function PagesPage() {
                     <div className="flex items-center gap-2 mt-1">
                       {getTargetAreaIcon(page.target_area)}
                       <Badge variant="outline" className="text-xs">
-                        {page.target_area === 'pc' ? tCommon('PC端') : 
-                         page.target_area === 'mobile' ? tCommon('移动端') : page.target_area}
+                        {page.target_area === 'pc'
+                          ? tCommon('PC端')
+                          : page.target_area === 'mobile'
+                            ? tCommon('移动端')
+                            : page.target_area}
                       </Badge>
                     </div>
                   </div>
@@ -208,30 +198,25 @@ export default function PagesPage() {
                   <div className="text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      <span>{page.module_count || 0} {tCommon('个模块')}</span>
+                      <span>
+                        {page.module_count || 0} {tCommon('个模块')}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{tCommon('更新于')} {formatDate(page.updated_at)}</span>
+                      <span>
+                        {tCommon('更新于')} {formatDate(page.updated_at)}
+                      </span>
                     </div>
                   </div>
 
                   {/* 操作按钮 */}
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditPage(page.id)}
-                      className="flex-1"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleEditPage(page.id)} className="flex-1">
                       <Edit className="h-4 w-4 mr-1" />
                       {tCommon('编辑')}
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreviewPage(page.id)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handlePreviewPage(page.id)}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button
@@ -257,5 +242,5 @@ export default function PagesPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

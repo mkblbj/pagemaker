@@ -1,14 +1,14 @@
-'use client';
+'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useTranslation } from "@/contexts/I18nContext";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { useTranslation } from '@/contexts/I18nContext'
 
 export default function EditorPage() {
-  const { tEditor, tCommon } = useTranslation();
+  const { tEditor, tCommon } = useTranslation()
 
   return (
     <div className="space-y-6">
@@ -32,26 +32,15 @@ export default function EditorPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="page-title">{tEditor('页面标题')}</Label>
-                <Input
-                  id="page-title"
-                  placeholder={tEditor('输入页面标题')}
-                  defaultValue={tEditor('新页面')}
-                />
+                <Input id="page-title" placeholder={tEditor('输入页面标题')} defaultValue={tEditor('新页面')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="page-description">{tEditor('页面描述')}</Label>
-                <Input
-                  id="page-description"
-                  placeholder={tEditor('输入页面描述（可选）')}
-                />
+                <Input id="page-description" placeholder={tEditor('输入页面描述（可选）')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="page-content">{tEditor('页面内容')}</Label>
-                <Textarea
-                  id="page-content"
-                  placeholder={tEditor('在此编写页面内容...')}
-                  className="min-h-[400px]"
-                />
+                <Textarea id="page-content" placeholder={tEditor('在此编写页面内容...')} className="min-h-[400px]" />
               </div>
             </CardContent>
           </Card>
@@ -80,11 +69,7 @@ export default function EditorPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="page-slug">{tEditor('页面路径')}</Label>
-                <Input
-                  id="page-slug"
-                  placeholder="page-url"
-                  defaultValue="new-page"
-                />
+                <Input id="page-slug" placeholder="page-url" defaultValue="new-page" />
               </div>
             </CardContent>
           </Card>
@@ -96,14 +81,12 @@ export default function EditorPage() {
             <CardContent>
               <div className="border border-border rounded-md p-4 bg-muted/30">
                 <h3 className="font-semibold mb-2">{tEditor('页面预览')}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {tEditor('实时预览功能即将推出...')}
-                </p>
+                <p className="text-sm text-muted-foreground">{tEditor('实时预览功能即将推出...')}</p>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,46 +1,42 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { apiClient } from "@/lib/apiClient";
-import { useTranslation } from "@/contexts/I18nContext";
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Card, CardContent } from '@/components/ui/card'
+import { apiClient } from '@/lib/apiClient'
+import { useTranslation } from '@/contexts/I18nContext'
 
-export default function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const router = useRouter();
-  const { tAuth, tCommon } = useTranslation();
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const router = useRouter()
+  const { tAuth, tCommon } = useTranslation()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("access_token");
-      
+      const token = localStorage.getItem('access_token')
+
       if (!token) {
-        setIsAuthenticated(false);
-        return;
+        setIsAuthenticated(false)
+        return
       }
 
       try {
         // 尝试调用一个需要认证的API来验证token
-        await apiClient.get("/api/v1/pages/");
-        setIsAuthenticated(true);
+        await apiClient.get('/api/v1/pages/')
+        setIsAuthenticated(true)
       } catch (error: any) {
-        console.error("Auth check failed:", error);
-        
-        // Token无效，清除并跳转到登录
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        setIsAuthenticated(false);
-      }
-    };
+        console.error('Auth check failed:', error)
 
-    checkAuth();
-  }, []);
+        // Token无效，清除并跳转到登录
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        setIsAuthenticated(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
 
   // Loading state
   if (isAuthenticated === null) {
@@ -55,12 +51,12 @@ export default function ProtectedLayout({
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   // Not authenticated - redirect to login
   if (!isAuthenticated) {
-    router.push("/login");
+    router.push('/login')
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-96">
@@ -72,7 +68,7 @@ export default function ProtectedLayout({
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   // Authenticated - render protected content
@@ -83,29 +79,20 @@ export default function ProtectedLayout({
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">Pagemaker CMS</h1>
             <nav className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
                 {tCommon('仪表板')}
               </Link>
-              <Link
-                href="/editor"
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Link href="/editor" className="text-muted-foreground hover:text-foreground">
                 {tCommon('编辑器')}
               </Link>
-              <Link
-                href="/pages"
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Link href="/pages" className="text-muted-foreground hover:text-foreground">
                 {tCommon('页面管理')}
               </Link>
               <button
                 onClick={() => {
-                  localStorage.removeItem("access_token");
-                  localStorage.removeItem("refresh_token");
-                  router.push("/login");
+                  localStorage.removeItem('access_token')
+                  localStorage.removeItem('refresh_token')
+                  router.push('/login')
                 }}
                 className="text-muted-foreground hover:text-foreground"
               >
@@ -117,5 +104,5 @@ export default function ProtectedLayout({
       </header>
       <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
-  );
+  )
 }

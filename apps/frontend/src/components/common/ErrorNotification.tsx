@@ -1,29 +1,20 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  AlertTriangle, 
-  XCircle, 
-  AlertCircle, 
-  Info, 
-  X,
-  RefreshCw,
-  LogIn,
-  Home
-} from 'lucide-react';
-import { AppError, ErrorSeverity, ErrorType, getErrorActions } from '@/lib/errorHandler';
+import React, { useState, useEffect } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { AlertTriangle, XCircle, AlertCircle, Info, X, RefreshCw, LogIn, Home } from 'lucide-react'
+import { AppError, ErrorSeverity, ErrorType, getErrorActions } from '@/lib/errorHandler'
 
 interface ErrorNotificationProps {
-  error: AppError | null;
-  onClose?: () => void;
-  onRetry?: () => void;
-  autoClose?: boolean;
-  autoCloseDelay?: number;
-  showDetails?: boolean;
+  error: AppError | null
+  onClose?: () => void
+  onRetry?: () => void
+  autoClose?: boolean
+  autoCloseDelay?: number
+  showDetails?: boolean
 }
 
 export function ErrorNotification({
@@ -34,103 +25,103 @@ export function ErrorNotification({
   autoCloseDelay = 5000,
   showDetails = false
 }: ErrorNotificationProps) {
-  const [isVisible, setIsVisible] = useState(!!error);
-  const [showFullDetails, setShowFullDetails] = useState(false);
+  const [isVisible, setIsVisible] = useState(!!error)
+  const [showFullDetails, setShowFullDetails] = useState(false)
 
   useEffect(() => {
-    setIsVisible(!!error);
-    
+    setIsVisible(!!error)
+
     if (error && autoClose && error.severity === ErrorSeverity.LOW) {
       const timer = setTimeout(() => {
-        handleClose();
-      }, autoCloseDelay);
-      
-      return () => clearTimeout(timer);
+        handleClose()
+      }, autoCloseDelay)
+
+      return () => clearTimeout(timer)
     }
-  }, [error, autoClose, autoCloseDelay]);
+  }, [error, autoClose, autoCloseDelay])
 
   if (!error || !isVisible) {
-    return null;
+    return null
   }
 
   const handleClose = () => {
-    setIsVisible(false);
-    onClose?.();
-  };
+    setIsVisible(false)
+    onClose?.()
+  }
 
   const getIcon = () => {
     switch (error.severity) {
       case ErrorSeverity.CRITICAL:
       case ErrorSeverity.HIGH:
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-red-500" />
       case ErrorSeverity.MEDIUM:
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
       case ErrorSeverity.LOW:
-        return <AlertCircle className="h-5 w-5 text-blue-500" />;
+        return <AlertCircle className="h-5 w-5 text-blue-500" />
       default:
-        return <Info className="h-5 w-5 text-gray-500" />;
+        return <Info className="h-5 w-5 text-gray-500" />
     }
-  };
+  }
 
   const getVariant = () => {
     switch (error.severity) {
       case ErrorSeverity.CRITICAL:
       case ErrorSeverity.HIGH:
-        return 'destructive' as const;
+        return 'destructive' as const
       case ErrorSeverity.MEDIUM:
-        return 'default' as const;
+        return 'default' as const
       case ErrorSeverity.LOW:
-        return 'default' as const;
+        return 'default' as const
       default:
-        return 'default' as const;
+        return 'default' as const
     }
-  };
+  }
 
   const getSeverityColor = () => {
     switch (error.severity) {
       case ErrorSeverity.CRITICAL:
-        return 'bg-red-600 text-white';
+        return 'bg-red-600 text-white'
       case ErrorSeverity.HIGH:
-        return 'bg-red-500 text-white';
+        return 'bg-red-500 text-white'
       case ErrorSeverity.MEDIUM:
-        return 'bg-yellow-500 text-white';
+        return 'bg-yellow-500 text-white'
       case ErrorSeverity.LOW:
-        return 'bg-blue-500 text-white';
+        return 'bg-blue-500 text-white'
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-gray-500 text-white'
     }
-  };
+  }
 
   const getTypeIcon = () => {
     switch (error.type) {
       case ErrorType.NETWORK:
-        return '🌐';
+        return '🌐'
       case ErrorType.AUTHENTICATION:
-        return '🔒';
+        return '🔒'
       case ErrorType.AUTHORIZATION:
-        return '🚫';
+        return '🚫'
       case ErrorType.VALIDATION:
-        return '📝';
+        return '📝'
       case ErrorType.SERVER:
-        return '🖥️';
+        return '🖥️'
       case ErrorType.CONFLICT:
-        return '⚡';
+        return '⚡'
       case ErrorType.NOT_FOUND:
-        return '🔍';
+        return '🔍'
       case ErrorType.TIMEOUT:
-        return '⏱️';
+        return '⏱️'
       default:
-        return '❗';
+        return '❗'
     }
-  };
+  }
 
   const getBuiltInActions = () => {
     const actions: {
-      label: string;
-      icon: React.ReactNode;
-      action: () => void;
-      variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-    }[] = [];
+      label: string
+      icon: React.ReactNode
+      action: () => void
+      variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+    }[] = []
 
     if (error.retryable && onRetry) {
       actions.push({
@@ -138,7 +129,7 @@ export function ErrorNotification({
         icon: <RefreshCw className="h-4 w-4" />,
         action: onRetry,
         variant: 'outline'
-      });
+      })
     }
 
     if (error.type === ErrorType.AUTHENTICATION) {
@@ -147,11 +138,11 @@ export function ErrorNotification({
         icon: <LogIn className="h-4 w-4" />,
         action: () => {
           if (typeof window !== 'undefined') {
-            window.location.href = '/login';
+            window.location.href = '/login'
           }
         },
         variant: 'default'
-      });
+      })
     }
 
     if (error.type === ErrorType.CONFLICT) {
@@ -160,19 +151,19 @@ export function ErrorNotification({
         icon: <RefreshCw className="h-4 w-4" />,
         action: () => {
           if (typeof window !== 'undefined') {
-            window.location.reload();
+            window.location.reload()
           }
         },
         variant: 'outline'
-      });
+      })
     }
 
-    return actions;
-  };
+    return actions
+  }
 
   const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString('zh-CN');
-  };
+    return new Date(timestamp).toLocaleString('zh-CN')
+  }
 
   return (
     <Card className="mb-4 border-l-4 border-l-red-500">
@@ -186,11 +177,9 @@ export function ErrorNotification({
                   <AlertTitle className="text-base font-semibold">
                     {getTypeIcon()} {error.userMessage}
                   </AlertTitle>
-                  <Badge className={`text-xs ${getSeverityColor()}`}>
-                    {error.severity.toUpperCase()}
-                  </Badge>
+                  <Badge className={`text-xs ${getSeverityColor()}`}>{error.severity.toUpperCase()}</Badge>
                 </div>
-                
+
                 <AlertDescription className="text-sm text-muted-foreground">
                   错误代码: {error.code} | 时间: {formatTimestamp(error.timestamp)}
                 </AlertDescription>
@@ -206,7 +195,7 @@ export function ErrorNotification({
                     >
                       {showFullDetails ? '隐藏' : '显示'}详细信息
                     </Button>
-                    
+
                     {showFullDetails && (
                       <div className="p-3 bg-muted rounded-md text-xs space-y-2">
                         <div>
@@ -218,17 +207,13 @@ export function ErrorNotification({
                         {error.context && (
                           <div>
                             <span className="font-medium">上下文:</span>
-                            <pre className="mt-1 text-xs">
-                              {JSON.stringify(error.context, null, 2)}
-                            </pre>
+                            <pre className="mt-1 text-xs">{JSON.stringify(error.context, null, 2)}</pre>
                           </div>
                         )}
                         {error.details && (
                           <div>
                             <span className="font-medium">详细信息:</span>
-                            <pre className="mt-1 text-xs">
-                              {JSON.stringify(error.details, null, 2)}
-                            </pre>
+                            <pre className="mt-1 text-xs">{JSON.stringify(error.details, null, 2)}</pre>
                           </div>
                         )}
                       </div>
@@ -239,13 +224,7 @@ export function ErrorNotification({
                 {/* 操作按钮 */}
                 <div className="flex gap-2 mt-3">
                   {getBuiltInActions().map((action, index) => (
-                    <Button
-                      key={index}
-                      variant={action.variant}
-                      size="sm"
-                      onClick={action.action}
-                      className="text-xs"
-                    >
+                    <Button key={index} variant={action.variant} size="sm" onClick={action.action} className="text-xs">
                       {action.icon}
                       <span className="ml-1">{action.label}</span>
                     </Button>
@@ -255,31 +234,26 @@ export function ErrorNotification({
             </div>
 
             {/* 关闭按钮 */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-6 w-6 p-0 ml-2"
-            >
+            <Button variant="ghost" size="sm" onClick={handleClose} className="h-6 w-6 p-0 ml-2">
               <X className="h-4 w-4" />
             </Button>
           </div>
         </Alert>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 /**
  * 简化的错误提示组件
  */
 interface SimpleErrorAlertProps {
-  error: AppError | null;
-  onClose?: () => void;
+  error: AppError | null
+  onClose?: () => void
 }
 
 export function SimpleErrorAlert({ error, onClose }: SimpleErrorAlertProps) {
-  if (!error) return null;
+  if (!error) return null
 
   return (
     <Alert variant="destructive" className="mb-4">
@@ -294,15 +268,15 @@ export function SimpleErrorAlert({ error, onClose }: SimpleErrorAlertProps) {
         )}
       </AlertDescription>
     </Alert>
-  );
+  )
 }
 
 /**
  * 全局错误边界组件
  */
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error: AppError | null;
+  hasError: boolean
+  error: AppError | null
 }
 
 export class ErrorBoundary extends React.Component<
@@ -310,8 +284,8 @@ export class ErrorBoundary extends React.Component<
   ErrorBoundaryState
 > {
   constructor(props: any) {
-    super(props);
-    this.state = { hasError: false, error: null };
+    super(props)
+    this.state = { hasError: false, error: null }
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -326,21 +300,21 @@ export class ErrorBoundary extends React.Component<
       originalError: error,
       retryable: true,
       actionable: true
-    };
+    }
 
-    return { hasError: true, error: appError };
+    return { hasError: true, error: appError }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('React Error Boundary 捕获到错误:', error, errorInfo);
+    console.error('React Error Boundary 捕获到错误:', error, errorInfo)
   }
 
   render() {
     if (this.state.hasError && this.state.error) {
-      const FallbackComponent = this.props.fallback;
-      
+      const FallbackComponent = this.props.fallback
+
       if (FallbackComponent) {
-        return <FallbackComponent error={this.state.error} />;
+        return <FallbackComponent error={this.state.error} />
       }
 
       return (
@@ -350,22 +324,14 @@ export class ErrorBoundary extends React.Component<
               <XCircle className="h-12 w-12 text-red-500 mx-auto" />
               <div>
                 <h2 className="text-lg font-semibold">页面出错了</h2>
-                <p className="text-muted-foreground mt-1">
-                  {this.state.error.userMessage}
-                </p>
+                <p className="text-muted-foreground mt-1">{this.state.error.userMessage}</p>
               </div>
               <div className="flex gap-2 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                >
+                <Button variant="outline" onClick={() => window.location.reload()}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   刷新页面
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.href = '/'}
-                >
+                <Button variant="outline" onClick={() => (window.location.href = '/')}>
                   <Home className="h-4 w-4 mr-2" />
                   返回首页
                 </Button>
@@ -373,9 +339,9 @@ export class ErrorBoundary extends React.Component<
             </CardContent>
           </Card>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
-} 
+}
