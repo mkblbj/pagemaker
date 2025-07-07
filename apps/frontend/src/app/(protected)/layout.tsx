@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { apiClient } from '@/lib/apiClient'
 import { useTranslation } from '@/contexts/I18nContext'
+import { LanguageCompact } from '@/components/common/LanguageSwitcher'
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -88,6 +89,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               <Link href="/pages" className="text-muted-foreground hover:text-foreground">
                 {tCommon('页面管理')}
               </Link>
+              <LanguageCompact />
               <button
                 onClick={() => {
                   localStorage.removeItem('access_token')

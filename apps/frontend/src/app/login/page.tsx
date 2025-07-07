@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { apiClient } from '@/lib/apiClient'
 import { useTranslation } from '@/contexts/I18nContext'
+import { LanguageCompact } from '@/components/common/LanguageSwitcher'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -56,6 +57,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
+      {/* 语言切换器 - 固定在右上角 */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageCompact />
+      </div>
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">{tAuth('登录 Pagemaker CMS')}</CardTitle>

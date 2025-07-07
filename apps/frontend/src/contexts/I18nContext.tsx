@@ -25,29 +25,41 @@ const LANGUAGE_STORAGE_KEY = 'pagemaker-language'
 /**
  * 多语言Context Provider
  */
-export function I18nProvider({ children, defaultLanguage }: I18nProviderProps) {
-  // 初始化语言：优先级 localStorage > 浏览器语言 > 默认语言
-  const getInitialLanguage = (): SupportedLanguage => {
+export function I18nProvider({ children, defaultLanguage = 'zh-CN' }: I18nProviderProps) {
+  // 服务端和客户端都使用相同的默认语言，避免水合不一致
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>(defaultLanguage)
+  const [translator, setTranslator] = useState(() => createTranslator(defaultLanguage))
+  const [isClient, setIsClient] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  // 客户端初始化语言设置
+  useEffect(() => {
+    setIsClient(true)
+    
+    // 优先级：localStorage > 浏览器语言 > 默认语言
+    let initialLanguage = defaultLanguage
+    
     // 检查本地存储
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
-      if (stored && isSupportedLanguage(stored)) {
-        return stored
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
+    if (stored && isSupportedLanguage(stored)) {
+      initialLanguage = stored
+    } else {
+      // 检查浏览器语言
+      const browserLang = getBrowserLanguage()
+      if (browserLang) {
+        initialLanguage = browserLang
       }
     }
-
-    // 检查浏览器语言
-    const browserLang = getBrowserLanguage()
-    if (browserLang) {
-      return browserLang
+    
+    // 只有当语言不同时才更新，避免不必要的重渲染
+    if (initialLanguage !== currentLanguage) {
+      setCurrentLanguage(initialLanguage)
+      setTranslator(() => createTranslator(initialLanguage))
     }
-
-    // 使用默认语言
-    return defaultLanguage || 'zh-CN'
-  }
-
-  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>(getInitialLanguage)
-  const [translator, setTranslator] = useState(() => createTranslator(currentLanguage))
+    
+    // 标记初始化完成
+    setIsInitialized(true)
+  }, [defaultLanguage, currentLanguage])
 
   // 切换语言函数
   const setLanguage = (language: SupportedLanguage) => {
@@ -82,7 +94,19 @@ export function I18nProvider({ children, defaultLanguage }: I18nProviderProps) {
     t
   }
 
-  return <I18nContext.Provider value={contextValue}>{children}</I18nContext.Provider>
+  return (
+    <I18nContext.Provider value={contextValue}>
+      <div 
+        suppressHydrationWarning={!isClient}
+        style={{ 
+          opacity: isInitialized ? 1 : 0,
+          transition: 'opacity 0.1s ease-in-out'
+        }}
+      >
+        {children}
+      </div>
+    </I18nContext.Provider>
+  )
 }
 
 /**
