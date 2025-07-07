@@ -125,14 +125,19 @@ export function ErrorNotification({
   };
 
   const getBuiltInActions = () => {
-    const actions = [];
+    const actions: {
+      label: string;
+      icon: React.ReactNode;
+      action: () => void;
+      variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+    }[] = [];
 
     if (error.retryable && onRetry) {
       actions.push({
         label: '重试',
         icon: <RefreshCw className="h-4 w-4" />,
         action: onRetry,
-        variant: 'outline' as const
+        variant: 'outline'
       });
     }
 
@@ -145,7 +150,7 @@ export function ErrorNotification({
             window.location.href = '/login';
           }
         },
-        variant: 'default' as const
+        variant: 'default'
       });
     }
 
@@ -158,7 +163,7 @@ export function ErrorNotification({
             window.location.reload();
           }
         },
-        variant: 'outline' as const
+        variant: 'outline'
       });
     }
 
