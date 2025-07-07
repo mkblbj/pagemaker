@@ -209,8 +209,14 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       
+    - name: Build shared-types dependency
+      run: cd ../../packages/shared-types && pnpm build
+      
     - name: Build package
       run: pnpm build
       
     - name: TypeScript check
       run: pnpm tsc --noEmit
+      
+    - name: Run tests
+      run: pnpm test

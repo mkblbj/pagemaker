@@ -61,7 +61,7 @@ export default function LoginPage() {
       <div className="fixed top-4 right-4 z-50">
         <LanguageCompact />
       </div>
-      
+
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">{tAuth('登录 Pagemaker CMS')}</CardTitle>

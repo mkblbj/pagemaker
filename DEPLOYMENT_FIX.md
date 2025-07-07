@@ -160,4 +160,121 @@ cd pagemaker
 
 **修复状态**: ✅ 已完成
 **推荐方案**: ✅ 手动克隆（最简单）
-**文档状态**: ✅ 已更新 
+**文档状态**: ✅ 已更新
+
+# GitHub Actions 部署修复说明
+
+## 问题描述
+
+GitHub Actions 部署时遇到构建错误：
+
+```
+Module not found: Can't resolve '@pagemaker/shared-i18n'
+```
+
+## 根本原因
+
+在 GitHub Actions 的构建流程中，`@pagemaker/shared-i18n` 包没有在前端构建之前被正确构建，导致 Next.js 无法解析该模块。
+
+## 修复内容
+
+### 1. 更新部署工作流 (`.github/workflows/deploy.yml`)
+
+**修复前：**
+```yaml
+- name: Build shared-types package
+  run: cd ../../packages/shared-types && pnpm build
+
+- name: Build frontend
+  run: pnpm build
+```
+
+**修复后：**
+```yaml
+- name: Build shared packages
+  run: |
+    cd ../../packages/shared-types && pnpm build
+    cd ../shared-i18n && pnpm build
+
+- name: Build frontend
+  run: pnpm build
+```
+
+### 2. 更新根目录构建脚本 (`package.json`)
+
+**修复前：**
+```json
+"build": "pnpm --filter frontend run build && cd apps/backend && make build"
+```
+
+**修复后：**
+```json
+"build": "pnpm --filter @pagemaker/shared-types run build && pnpm --filter @pagemaker/shared-i18n run build && pnpm --filter frontend run build && cd apps/backend && make build"
+```
+
+### 3. 完善 CI 工作流 (`.github/workflows/ci.yml`)
+
+为 `shared-i18n` 包添加了完整的测试步骤：
+
+```yaml
+- name: Build shared-types dependency
+  run: cd ../../packages/shared-types && pnpm build
+
+- name: Build package
+  run: pnpm build
+
+- name: TypeScript check
+  run: pnpm tsc --noEmit
+
+- name: Run tests
+  run: pnpm test
+```
+
+## 验证结果
+
+- ✅ 本地构建测试通过
+- ✅ 前端构建成功，无模块解析错误
+- ✅ 所有 shared packages 正确构建
+- ✅ CI/CD 流程包含完整的依赖构建
+
+## 构建顺序
+
+正确的构建顺序现在是：
+1. `@pagemaker/shared-types` - 基础类型定义
+2. `@pagemaker/shared-i18n` - 国际化支持（依赖 shared-types）
+3. `frontend` - 前端应用（依赖两个 shared packages）
+4. `backend` - 后端应用
+
+## 注意事项
+
+- 在 monorepo 环境中，必须确保所有依赖包在使用它们的应用之前被构建
+- GitHub Actions 的工作目录设置需要正确处理相对路径
+- pnpm workspace 的依赖关系需要在构建脚本中显式声明
+
+## 测试命令
+
+本地测试完整构建流程：
+```bash
+pnpm build
+```
+
+单独测试前端构建：
+```bash
+cd apps/frontend && pnpm build
+```
+
+### 额外修复：shared-i18n 测试文件
+
+在修复过程中发现 `@pagemaker/shared-i18n` 包缺少测试文件，已补充：
+
+**新增文件：**
+- `packages/shared-i18n/src/index.test.ts` - 完整的单元测试套件
+- `packages/shared-i18n/vitest.config.ts` - Vitest 配置文件
+
+**测试覆盖：**
+- ✅ 15个测试用例全部通过
+- ✅ 覆盖所有主要API功能
+- ✅ 支持多语言翻译测试
+- ✅ 错误处理和边界情况测试
+
+现在GitHub Actions应该能够成功构建和部署项目了！🚀 

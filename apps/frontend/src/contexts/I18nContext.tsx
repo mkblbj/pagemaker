@@ -35,10 +35,10 @@ export function I18nProvider({ children, defaultLanguage = 'zh-CN' }: I18nProvid
   // 客户端初始化语言设置
   useEffect(() => {
     setIsClient(true)
-    
+
     // 优先级：localStorage > 浏览器语言 > 默认语言
     let initialLanguage = defaultLanguage
-    
+
     // 检查本地存储
     const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
     if (stored && isSupportedLanguage(stored)) {
@@ -50,13 +50,13 @@ export function I18nProvider({ children, defaultLanguage = 'zh-CN' }: I18nProvid
         initialLanguage = browserLang
       }
     }
-    
+
     // 只有当语言不同时才更新，避免不必要的重渲染
     if (initialLanguage !== currentLanguage) {
       setCurrentLanguage(initialLanguage)
       setTranslator(() => createTranslator(initialLanguage))
     }
-    
+
     // 标记初始化完成
     setIsInitialized(true)
   }, [defaultLanguage, currentLanguage])
@@ -96,9 +96,9 @@ export function I18nProvider({ children, defaultLanguage = 'zh-CN' }: I18nProvid
 
   return (
     <I18nContext.Provider value={contextValue}>
-      <div 
+      <div
         suppressHydrationWarning={!isClient}
-        style={{ 
+        style={{
           opacity: isInitialized ? 1 : 0,
           transition: 'opacity 0.1s ease-in-out'
         }}

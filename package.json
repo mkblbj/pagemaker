@@ -16,7 +16,7 @@
     "dev": "pnpm dev:frontend & cd apps/backend && make dev",
     "dev:frontend": "pnpm --filter frontend run dev",
     "dev:backend": "cd apps/backend && make dev",
-    "build": "pnpm --filter frontend run build && cd apps/backend && make build",
+    "build": "pnpm --filter @pagemaker/shared-types run build && pnpm --filter @pagemaker/shared-i18n run build && pnpm --filter frontend run build && cd apps/backend && make build",
     "test": "pnpm test:frontend && pnpm test:shared && cd apps/backend && make test",
     "test:frontend": "pnpm --filter frontend run test",
     "test:backend": "cd apps/backend && make test",

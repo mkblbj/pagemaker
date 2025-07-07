@@ -69,8 +69,10 @@ jobs:
     - name: Install dependencies (root level)
       run: cd ../.. && pnpm install --frozen-lockfile
       
-    - name: Build shared-types package
-      run: cd ../../packages/shared-types && pnpm build
+    - name: Build shared packages
+      run: |
+        cd ../../packages/shared-types && pnpm build
+        cd ../shared-i18n && pnpm build
       
     - name: Build frontend
       run: pnpm build
