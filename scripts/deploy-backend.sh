@@ -233,6 +233,10 @@ run_migrations() {
     # 运行迁移
     python manage.py migrate || error_exit "数据库迁移失败"
     
+    # 创建默认管理员（如果不存在）
+    log "检查并创建默认管理员账号..."
+    python manage.py create_admin || log "管理员账号已存在或创建失败"
+    
     log "数据库迁移完成"
 }
 
