@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { pageService } from '@/services/pageService'
-import { useRequest } from 'ahooks'
+
 
 interface AutoSaveOptions {
   interval?: number // 自动保存间隔（毫秒）
@@ -117,7 +117,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
       window.removeEventListener('beforeunload', handleBeforeUnload)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [hasUnsavedChanges, autoSave])
+  }, [hasUnsavedChanges, autoSave, currentPage])
 
   return {
     autoSave,

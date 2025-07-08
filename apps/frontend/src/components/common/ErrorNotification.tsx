@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, XCircle, AlertCircle, Info, X, RefreshCw, LogIn, Home } from 'lucide-react'
-import { AppError, ErrorSeverity, ErrorType, getErrorActions } from '@/lib/errorHandler'
+import { AppError, ErrorSeverity, ErrorType } from '@/lib/errorHandler'
 
 interface ErrorNotificationProps {
   error: AppError | null
@@ -28,6 +28,11 @@ export function ErrorNotification({
   const [isVisible, setIsVisible] = useState(!!error)
   const [showFullDetails, setShowFullDetails] = useState(false)
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false)
+    onClose?.()
+  }, [onClose])
+
   useEffect(() => {
     setIsVisible(!!error)
 
@@ -38,15 +43,10 @@ export function ErrorNotification({
 
       return () => clearTimeout(timer)
     }
-  }, [error, autoClose, autoCloseDelay])
+  }, [error, autoClose, autoCloseDelay, handleClose])
 
   if (!error || !isVisible) {
     return null
-  }
-
-  const handleClose = () => {
-    setIsVisible(false)
-    onClose?.()
   }
 
   const getIcon = () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import { PageModule, PageModuleType } from '@pagemaker/shared-types'
-import { Card, CardContent } from '@/components/ui/card'
+
 import { Badge } from '@/components/ui/badge'
 import { Type, FileText, Image, Minus, Layout, Columns, AlertTriangle } from 'lucide-react'
 

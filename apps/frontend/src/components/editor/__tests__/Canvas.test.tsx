@@ -29,8 +29,8 @@ describe('Canvas', () => {
     render(<Canvas />)
 
     expect(screen.getByTestId('canvas')).toBeInTheDocument()
-    expect(screen.getByText('开始创建您的页面')).toBeInTheDocument()
-    expect(screen.getByText('从左侧模块库拖拽模块到此处，或点击下方按钮添加模块')).toBeInTheDocument()
+    expect(screen.getByText('画布为空')).toBeInTheDocument()
+    expect(screen.getByText('从左侧模块列表中拖拽模块到此处，或点击下方按钮开始创建页面内容。')).toBeInTheDocument()
   })
 
   it('应该渲染页面模块', () => {
@@ -83,7 +83,7 @@ describe('Canvas', () => {
     render(<Canvas />)
 
     const moduleElement = screen.getByTestId('module-title-1')
-    expect(moduleElement).toHaveClass('ring-2', 'ring-primary')
+    expect(moduleElement).toHaveClass('border-primary', 'bg-primary/5')
   })
 
   it('应该处理模块点击选择', () => {
@@ -120,7 +120,7 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
-    expect(screen.getByText('开始创建您的页面')).toBeInTheDocument()
+    expect(screen.getByText('画布为空')).toBeInTheDocument()
   })
 
   it('应该处理多个模块', () => {
@@ -257,7 +257,7 @@ describe('Canvas', () => {
     render(<Canvas />)
 
     const canvas = screen.getByTestId('canvas')
-    expect(canvas).toHaveClass('h-full', 'bg-gray-50', 'p-6')
+    expect(canvas).toHaveClass('h-full', 'overflow-y-auto', 'p-4')
   })
 
   it('应该处理长列表的模块', () => {
@@ -308,10 +308,10 @@ describe('Canvas', () => {
 
     // 第一个模块应该被选中
     const firstModule = screen.getByTestId('module-text-1')
-    expect(firstModule).toHaveClass('ring-2', 'ring-primary')
+    expect(firstModule).toHaveClass('border-primary', 'bg-primary/5')
 
     // 第二个模块不应该被选中
     const secondModule = screen.getByText('第二个文本').closest('div')
-    expect(secondModule).not.toHaveClass('ring-2', 'ring-blue-500')
+    expect(secondModule).not.toHaveClass('border-primary', 'bg-primary/5')
   })
 })

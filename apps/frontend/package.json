@@ -15,8 +15,12 @@
     "clean": "rm -rf .next dist coverage"
   },
   "dependencies": {
-    "@pagemaker/shared-types": "workspace:*",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@pagemaker/shared-i18n": "workspace:*",
+    "@pagemaker/shared-types": "workspace:*",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",

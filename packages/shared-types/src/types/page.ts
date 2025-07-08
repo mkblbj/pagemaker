@@ -10,6 +10,19 @@ export enum PageModuleType {
   MULTI_COLUMN = 'multiColumn',
 }
 
+// 模块元数据接口
+export interface ModuleMetadata {
+  type: PageModuleType;
+  name: string;
+  description: string;
+  icon: string; // Lucide icon name
+  category: 'basic' | 'advanced' | 'layout';
+  color: string; // Tailwind color class
+  defaultConfig: Partial<PageModule>;
+  isEnabled: boolean;
+  sortOrder: number;
+}
+
 // 页面模块接口
 export interface PageModule {
   id: string; // 模块实例的唯一ID
