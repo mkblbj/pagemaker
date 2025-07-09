@@ -8,51 +8,36 @@ import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { getModuleMetadata } from '@/lib/moduleRegistry'
 import { Button } from '@/components/ui/button'
 
-import { 
-  MoveUp, 
-  MoveDown, 
-  Copy, 
-  Trash2, 
-  Plus,
-  FileX,
-  GripVertical
-} from 'lucide-react'
+import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical } from 'lucide-react'
 import { DroppableCanvas } from './dnd/DroppableCanvas'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 // 可排序的模块容器组件
-function SortableModuleContainer({ 
-  module, 
-  index, 
-  isSelected, 
-  onSelect, 
-  onDelete, 
-  onCopy, 
-  onMoveUp, 
+function SortableModuleContainer({
+  module,
+  index,
+  isSelected,
+  onSelect,
+  onDelete,
+  onCopy,
+  onMoveUp,
   onMoveDown,
   isFirst,
   isLast,
   isDeleting = false
 }: any) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: module.id,
     data: {
       type: 'REORDER',
-      index,
-    },
+      index
+    }
   })
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDeleting ? 'opacity 0.3s ease-out, transform 0.3s ease-out' : transition,
+    transition: isDeleting ? 'opacity 0.3s ease-out, transform 0.3s ease-out' : transition
   }
 
   return (
@@ -63,7 +48,7 @@ function SortableModuleContainer({
       className={`
         group relative border-2 rounded-lg p-4 transition-all
         ${isSelected ? 'border-primary bg-primary/5' : 'border-transparent hover:border-gray-200'}
-        ${isDragging ? 'opacity-50 shadow-lg' : ''}
+        ${isDragging ? 'opacity-60' : ''}
         ${isDeleting ? 'opacity-0 scale-95' : ''}
       `}
       onClick={() => onSelect(module.id)}
@@ -88,7 +73,7 @@ function SortableModuleContainer({
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onMoveUp()
             }}
@@ -101,7 +86,7 @@ function SortableModuleContainer({
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onMoveDown()
             }}
@@ -114,7 +99,7 @@ function SortableModuleContainer({
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onCopy()
             }}
@@ -126,7 +111,7 @@ function SortableModuleContainer({
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onDelete()
             }}
@@ -142,14 +127,7 @@ function SortableModuleContainer({
 }
 
 export function Canvas() {
-  const { 
-    currentPage, 
-    selectedModuleId, 
-    setSelectedModule, 
-    deleteModule, 
-    reorderModules,
-    addModule 
-  } = usePageStore()
+  const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, addModule } = usePageStore()
   const { markUnsaved, hasUnsavedChanges } = useEditorStore()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -225,9 +203,7 @@ export function Canvas() {
           <div className="max-w-md mx-auto">
             <FileX className="h-16 w-16 mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">画布为空</h3>
-            <p className="text-gray-500 mb-6">
-              从左侧模块列表中拖拽模块到此处，或点击下方按钮开始创建页面内容。
-            </p>
+            <p className="text-gray-500 mb-6">从左侧模块列表中拖拽模块到此处，或点击下方按钮开始创建页面内容。</p>
             <div className="flex items-center justify-center gap-2">
               <Plus className="h-4 w-4" />
               <span className="text-sm">从左侧拖拽模块到此处</span>
@@ -260,13 +236,10 @@ export function Canvas() {
       <div className="mt-8 p-4 bg-muted/30 rounded-lg border border-dashed">
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            页面模块数量: {modules.length} | 
-            页面ID: {currentPage?.id} | 
-            最后更新: {currentPage?.updated_at ? new Date(currentPage.updated_at).toLocaleString() : '未知'}
+            页面模块数量: {modules.length} | 页面ID: {currentPage?.id} | 最后更新:{' '}
+            {currentPage?.updated_at ? new Date(currentPage.updated_at).toLocaleString() : '未知'}
           </p>
-          {hasUnsavedChanges && (
-            <p className="text-xs text-orange-600 mt-1">有未保存的更改</p>
-          )}
+          {hasUnsavedChanges && <p className="text-xs text-orange-600 mt-1">有未保存的更改</p>}
         </div>
       </div>
 

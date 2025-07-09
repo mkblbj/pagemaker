@@ -12,15 +12,12 @@ interface DroppableCanvasProps {
 export function DroppableCanvas({ children, className = '' }: DroppableCanvasProps) {
   const { isDragging } = useEditorStore()
   const containerRef = useRef<HTMLDivElement>(null)
-  
-  const {
-    isOver,
-    setNodeRef,
-  } = useDroppable({
+
+  const { isOver, setNodeRef } = useDroppable({
     id: 'canvas',
     data: {
-      type: 'CANVAS',
-    },
+      type: 'CANVAS'
+    }
   })
 
   // 自动滚动功能
@@ -51,8 +48,10 @@ export function DroppableCanvas({ children, className = '' }: DroppableCanvasPro
         scrollDirection = -scrollSpeed
       }
       // 检查是否需要向下滚动
-      else if (containerBottom - mouseY < scrollThreshold && 
-               container.scrollTop < container.scrollHeight - container.clientHeight) {
+      else if (
+        containerBottom - mouseY < scrollThreshold &&
+        container.scrollTop < container.scrollHeight - container.clientHeight
+      ) {
         shouldScroll = true
         scrollDirection = scrollSpeed
       }
@@ -78,30 +77,28 @@ export function DroppableCanvas({ children, className = '' }: DroppableCanvasPro
 
   return (
     <div
-      ref={(node) => {
+      ref={node => {
         setNodeRef(node)
         containerRef.current = node
       }}
       data-testid="canvas"
       className={`
         ${className}
-        ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''}
-        ${isOver ? 'bg-blue-100 border-blue-400' : ''}
+        ${isDragging ? 'bg-blue-50/30 border-2 border-dashed border-blue-300/50' : ''}
+        ${isOver ? 'bg-blue-100/50 border-blue-400/70' : ''}
         transition-colors duration-200
       `}
     >
       {children}
-      
+
       {/* 拖拽提示 */}
-      {isDragging && (
+      {isDragging && isOver && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-blue-200">
-            <div className="text-blue-600 font-medium text-center">
-              拖拽模块到此处添加
-            </div>
+            <div className="text-blue-600 font-medium text-center">拖拽模块到此处添加</div>
           </div>
         </div>
       )}
     </div>
   )
-} 
+}

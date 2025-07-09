@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Input } from '@/components/ui/input'
@@ -10,31 +10,29 @@ import { getAvailableModules, createModuleInstance } from '@/lib/moduleRegistry'
 import { DraggableModuleItem } from './dnd/DraggableModuleItem'
 
 export function ModuleList() {
+  const { selectedModuleId, addModule } = usePageStore()
+  const { markUnsaved } = useEditorStore()
+
   const [searchTerm, setSearchTerm] = useState('')
-  const { addModule } = usePageStore()
 
-  // 获取所有可用模块
-  const availableModules = getAvailableModules()
-
-  // 过滤模块
-  const filteredModules = availableModules.filter(
-    module =>
-      module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      module.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  // 处理模块点击添加
-  const handleAddModule = (moduleType: PageModuleType) => {
-    try {
+  const handleAddModule = useCallback(
+    (moduleType: PageModuleType) => {
       const newModule = createModuleInstance(moduleType)
       addModule(newModule)
-    } catch (error) {
-      console.error('创建模块实例失败:', error)
-    }
-  }
+    },
+    [addModule]
+  )
+
+  const filteredModules = useMemo(() => {
+    return getAvailableModules().filter(
+      module =>
+        module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [searchTerm])
 
   return (
-    <div className="h-full flex flex-col" data-testid="module-list">
+    <div className="h-full flex flex-col overflow-x-hidden" data-testid="module-list">
       {/* 搜索框 */}
       <div className="p-4 border-b">
         <div className="relative">
@@ -49,13 +47,9 @@ export function ModuleList() {
       </div>
 
       {/* 模块列表 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-2">
         {filteredModules.map(module => (
-          <DraggableModuleItem
-            key={module.type}
-            module={module}
-            onAddModule={handleAddModule}
-          />
+          <DraggableModuleItem key={module.type} module={module} onAddModule={handleAddModule} />
         ))}
       </div>
 

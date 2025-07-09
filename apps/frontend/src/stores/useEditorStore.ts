@@ -70,10 +70,10 @@ export const useEditorStore = create<EditorState>()(
 
       // UI Actions
       setLeftPanelWidth: width =>
-        set({ leftPanelWidth: Math.max(200, Math.min(400, width)) }, false, 'setLeftPanelWidth'),
+        set({ leftPanelWidth: Math.max(200, Math.min(500, width)) }, false, 'setLeftPanelWidth'),
 
       setRightPanelWidth: width =>
-        set({ rightPanelWidth: Math.max(250, Math.min(500, width)) }, false, 'setRightPanelWidth'),
+        set({ rightPanelWidth: Math.max(250, Math.min(600, width)) }, false, 'setRightPanelWidth'),
 
       toggleLeftPanel: () =>
         set(state => ({ isLeftPanelCollapsed: !state.isLeftPanelCollapsed }), false, 'toggleLeftPanel'),

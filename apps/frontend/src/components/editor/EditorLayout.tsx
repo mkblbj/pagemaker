@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ import { TargetAreaSelector } from './TargetAreaSelector'
 import { usePageEditor } from '@/hooks/usePageEditor'
 import { DragProvider } from './dnd/DragContext'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
+import { KeyboardShortcutsHelp, KeyboardShortcutsHelpRef } from './KeyboardShortcutsHelp'
 
 interface EditorLayoutProps {
   pageId: string
@@ -46,45 +47,76 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
   const { isSaving, savePage, previewPage } = usePageEditor()
 
   const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null)
+  const [dragStartX, setDragStartX] = useState(0)
+  const [dragStartWidth, setDragStartWidth] = useState(0)
 
-  // 处理分割条拖拽
-  const handleMouseDown = useCallback((panel: 'left' | 'right') => {
-    setIsResizing(panel)
+  // 键盘快捷键帮助对话框状态
+  const helpDialogRef = useRef<KeyboardShortcutsHelpRef | null>(null)
+
+  // 处理显示帮助对话框
+  const handleShowHelp = useCallback(() => {
+    helpDialogRef.current?.openDialog()
   }, [])
+
+  // 处理分割条拖拽开始
+  const handleMouseDown = useCallback(
+    (panel: 'left' | 'right', e: React.MouseEvent) => {
+      e.preventDefault()
+      setIsResizing(panel)
+      setDragStartX(e.clientX)
+
+      if (panel === 'left') {
+        setDragStartWidth(leftPanelWidth)
+      } else {
+        setDragStartWidth(rightPanelWidth)
+      }
+    },
+    [leftPanelWidth, rightPanelWidth]
+  )
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return
 
-      const containerWidth = window.innerWidth
-      const mouseX = e.clientX
+      e.preventDefault()
+      const deltaX = e.clientX - dragStartX
 
       if (isResizing === 'left') {
-        const newWidth = Math.max(200, Math.min(400, mouseX))
+        const newWidth = Math.max(200, Math.min(500, dragStartWidth + deltaX))
         setLeftPanelWidth(newWidth)
       } else if (isResizing === 'right') {
-        const newWidth = Math.max(250, Math.min(500, containerWidth - mouseX))
+        const newWidth = Math.max(250, Math.min(600, dragStartWidth - deltaX))
         setRightPanelWidth(newWidth)
       }
     },
-    [isResizing, setLeftPanelWidth, setRightPanelWidth]
+    [isResizing, dragStartX, dragStartWidth, setLeftPanelWidth, setRightPanelWidth]
   )
 
   const handleMouseUp = useCallback(() => {
     setIsResizing(null)
+    setDragStartX(0)
+    setDragStartWidth(0)
   }, [])
 
   // 添加全局鼠标事件监听
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isResizing && typeof window !== 'undefined') {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('selectstart', preventDefault) // 防止文本选择
+
       return () => {
         document.removeEventListener('mousemove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('selectstart', preventDefault)
       }
     }
-  }, [handleMouseMove, handleMouseUp])
+  }, [isResizing, handleMouseMove, handleMouseUp])
+
+  // 防止默认事件
+  const preventDefault = useCallback((e: Event) => {
+    e.preventDefault()
+  }, [])
 
   // 如果正在加载，显示加载指示器
   if (isLoading) {
@@ -118,11 +150,12 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
 
   return (
     <DragProvider>
-      <KeyboardShortcuts />
+      <KeyboardShortcuts onShowHelp={handleShowHelp} />
+      <KeyboardShortcutsHelp ref={helpDialogRef} />
       <div className="flex h-screen bg-background" data-testid="editor-layout">
         {/* 左侧面板 - 模块列表 */}
         <div
-          className={`bg-card border-r transition-all duration-300 ${isLeftPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
+          className={`bg-card border-r transition-all duration-300 overflow-x-hidden ${isLeftPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
           style={{ width: isLeftPanelCollapsed ? 0 : leftPanelWidth }}
         >
           <div className="h-full flex flex-col">
@@ -143,8 +176,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         {/* 左侧分割条 */}
         {!isLeftPanelCollapsed && (
           <div
-            className="w-1 bg-border hover:bg-primary/20 cursor-col-resize transition-colors"
-            onMouseDown={() => handleMouseDown('left')}
+            className={`w-1 bg-border hover:bg-primary/20 cursor-col-resize transition-colors select-none ${isResizing === 'left' ? 'bg-primary/30' : ''}`}
+            onMouseDown={e => handleMouseDown('left', e)}
           />
         )}
 
@@ -187,9 +220,9 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 <Save className="h-4 w-4 mr-2" />
                 {isSaving ? '保存中...' : '保存'}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleShowHelp}>
                 <Settings className="h-4 w-4 mr-2" />
-                设置
+                帮助
               </Button>
 
               {/* 右侧面板切换 */}
@@ -210,8 +243,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         {/* 右侧分割条 */}
         {!isRightPanelCollapsed && (
           <div
-            className="w-1 bg-border hover:bg-primary/20 cursor-col-resize transition-colors"
-            onMouseDown={() => handleMouseDown('right')}
+            className={`w-1 bg-border hover:bg-primary/20 cursor-col-resize transition-colors select-none ${isResizing === 'right' ? 'bg-primary/30' : ''}`}
+            onMouseDown={e => handleMouseDown('right', e)}
           />
         )}
 

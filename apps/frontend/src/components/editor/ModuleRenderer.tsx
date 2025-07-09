@@ -49,27 +49,15 @@ export function ModuleRenderer({ module }: ModuleRendererProps) {
         )
 
       case PageModuleType.IMAGE:
+        const imageModule = module as { src?: string; alt?: string }
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Image className="h-4 w-4 text-purple-600" />
-              <Badge variant="secondary">图片模块</Badge>
-            </div>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-              {(module as any).src ? (
-                <img
-                  src={(module as any).src}
-                  alt={(module as any).alt || '图片'}
-                  className="max-w-full h-auto mx-auto rounded"
-                />
-              ) : (
-                <div className="text-gray-500">
-                  <Image className="h-12 w-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
-                  <p className="text-sm">点击上传图片</p>
-                  <p className="text-xs text-muted-foreground mt-1">{(module as any).alt || '图片描述'}</p>
-                </div>
-              )}
-            </div>
+          <div className="text-center">
+            <img
+              src={imageModule.src || ''}
+              alt={imageModule.alt || '图片'}
+              className="max-w-full h-auto mx-auto rounded-lg shadow-sm"
+            />
+            {imageModule.alt && <p className="text-sm text-gray-600 mt-2">{imageModule.alt}</p>}
           </div>
         )
 

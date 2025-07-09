@@ -34,7 +34,7 @@ const mockPageStore = {
         text: '测试标题'
       },
       {
-        id: 'module-2', 
+        id: 'module-2',
         type: PageModuleType.TEXT,
         text: '测试文本'
       }
@@ -61,7 +61,7 @@ describe('Canvas 模块操作', () => {
 
   it('应该渲染所有模块', () => {
     render(<Canvas />)
-    
+
     expect(screen.getByTestId('module-module-1')).toBeInTheDocument()
     expect(screen.getByTestId('module-module-2')).toBeInTheDocument()
   })
@@ -69,10 +69,10 @@ describe('Canvas 模块操作', () => {
   it('应该能够选择模块', async () => {
     const user = userEvent.setup()
     render(<Canvas />)
-    
+
     const moduleElement = screen.getByTestId('module-module-1')
     await user.click(moduleElement)
-    
+
     expect(mockPageStore.setSelectedModule).toHaveBeenCalledWith('module-1')
   })
 
@@ -82,12 +82,12 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-1'
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     // 应该显示删除按钮
     expect(screen.getByRole('button', { name: /删除/i })).toBeInTheDocument()
-    // 应该显示复制按钮  
+    // 应该显示复制按钮
     expect(screen.getByRole('button', { name: /复制/i })).toBeInTheDocument()
   })
 
@@ -98,12 +98,12 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-1'
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     const deleteButton = screen.getByRole('button', { name: /删除/i })
     await user.click(deleteButton)
-    
+
     // 应该显示删除确认对话框
     expect(screen.getByText('删除模块确认')).toBeInTheDocument()
   })
@@ -115,12 +115,12 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-1'
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     const copyButton = screen.getByRole('button', { name: /复制/i })
     await user.click(copyButton)
-    
+
     expect(mockPageStore.addModule).toHaveBeenCalled()
     expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
   })
@@ -132,12 +132,12 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-2' // 选择第二个模块
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     const moveUpButton = screen.getByRole('button', { name: '上移模块' })
     await user.click(moveUpButton)
-    
+
     expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 0)
     expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
   })
@@ -149,12 +149,12 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-1' // 选择第一个模块
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     const moveDownButton = screen.getByRole('button', { name: '下移模块' })
     await user.click(moveDownButton)
-    
+
     expect(mockPageStore.reorderModules).toHaveBeenCalledWith(0, 1)
     expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
   })
@@ -165,9 +165,9 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-1' // 选择第一个模块
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     const moveUpButton = screen.getByRole('button', { name: '上移模块' })
     expect(moveUpButton).toBeDisabled()
   })
@@ -178,9 +178,9 @@ describe('Canvas 模块操作', () => {
       selectedModuleId: 'module-2' // 选择最后一个模块
     }
     ;(usePageStore as any).mockReturnValue(selectedStore)
-    
+
     render(<Canvas />)
-    
+
     const moveDownButton = screen.getByRole('button', { name: '下移模块' })
     expect(moveDownButton).toBeDisabled()
   })
@@ -194,9 +194,9 @@ describe('Canvas 模块操作', () => {
       }
     }
     ;(usePageStore as any).mockReturnValue(emptyStore)
-    
+
     render(<Canvas />)
-    
+
     expect(screen.getByText('画布为空')).toBeInTheDocument()
     expect(screen.getByText(/从左侧模块列表中拖拽模块到此处/)).toBeInTheDocument()
   })
@@ -217,14 +217,14 @@ describe('DeleteConfirmDialog', () => {
 
   it('应该显示删除确认对话框', () => {
     render(<DeleteConfirmDialog {...defaultProps} />)
-    
+
     expect(screen.getByText('删除模块确认')).toBeInTheDocument()
     expect(screen.getByText(/您确定要删除这个模块吗/)).toBeInTheDocument()
   })
 
   it('应该显示模块信息', () => {
     render(<DeleteConfirmDialog {...defaultProps} />)
-    
+
     expect(screen.getByText('类型：标题')).toBeInTheDocument()
     expect(screen.getByText('名称：测试模块')).toBeInTheDocument()
   })
@@ -232,27 +232,27 @@ describe('DeleteConfirmDialog', () => {
   it('点击取消应该关闭对话框', async () => {
     const user = userEvent.setup()
     render(<DeleteConfirmDialog {...defaultProps} />)
-    
+
     const cancelButton = screen.getByRole('button', { name: /取消/i })
     await user.click(cancelButton)
-    
+
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
   })
 
   it('点击确认删除应该调用确认回调', async () => {
     const user = userEvent.setup()
     render(<DeleteConfirmDialog {...defaultProps} />)
-    
+
     const confirmButton = screen.getByRole('button', { name: /确认删除/i })
     await user.click(confirmButton)
-    
+
     expect(defaultProps.onConfirm).toHaveBeenCalled()
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
   })
 
   it('不显示对话框时不应该渲染内容', () => {
     render(<DeleteConfirmDialog {...defaultProps} open={false} />)
-    
+
     expect(screen.queryByText('删除模块确认')).not.toBeInTheDocument()
   })
 })

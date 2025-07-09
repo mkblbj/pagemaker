@@ -18,11 +18,11 @@ vi.mock('@dnd-kit/core', () => ({
     attributes: {},
     listeners: {},
     setNodeRef: vi.fn(),
-    transform: null,
+    transform: null
   }),
   useDroppable: () => ({
     setNodeRef: vi.fn(),
-    isOver: false,
+    isOver: false
   }),
   useSensors: () => [],
   useSensor: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock('@dnd-kit/core', () => ({
   TouchSensor: vi.fn(),
   DragOverlay: ({ children }: any) => <div data-testid="drag-overlay">{children}</div>,
   pointerWithin: vi.fn(),
-  rectIntersection: vi.fn(),
+  rectIntersection: vi.fn()
 }))
 
 vi.mock('@dnd-kit/sortable', () => ({
@@ -42,10 +42,10 @@ vi.mock('@dnd-kit/sortable', () => ({
     setNodeRef: vi.fn(),
     transform: null,
     transition: null,
-    isDragging: false,
+    isDragging: false
   }),
   verticalListSortingStrategy: vi.fn(),
-  sortableKeyboardCoordinates: vi.fn(),
+  sortableKeyboardCoordinates: vi.fn()
 }))
 
 // Mock components
@@ -76,26 +76,21 @@ vi.mock('lucide-react', () => ({
   Layout: () => <div data-testid="layout-icon" />,
   Columns: () => <div data-testid="columns-icon" />,
   HelpCircle: () => <div data-testid="help-circle-icon" />,
+  XIcon: () => <div data-testid="x-icon" />,
+  X: () => <div data-testid="x-icon" />
 }))
 
 // Mock UI components
 vi.mock('@/components/ui/button', () => ({
   Button: ({ children, onClick, disabled, className, ...props }: any) => (
-    <button 
-      onClick={onClick} 
-      disabled={disabled} 
-      className={className}
-      {...props}
-    >
+    <button onClick={onClick} disabled={disabled} className={className} {...props}>
       {children}
     </button>
   )
 }))
 
 vi.mock('@/components/ui/badge', () => ({
-  Badge: ({ children, className }: any) => (
-    <span className={className}>{children}</span>
-  )
+  Badge: ({ children, className }: any) => <span className={className}>{children}</span>
 }))
 
 const mockUsePageStore = vi.mocked(usePageStore)
@@ -109,7 +104,7 @@ const generateLargeModuleList = (count: number) => {
     title: index % 3 === 0 ? `标题 ${index + 1}` : undefined,
     text: index % 3 === 1 ? `文本内容 ${index + 1}` : undefined,
     alt: index % 3 === 2 ? `图片 ${index + 1}` : undefined,
-    src: index % 3 === 2 ? `https://example.com/image-${index + 1}.jpg` : undefined,
+    src: index % 3 === 2 ? `https://example.com/image-${index + 1}.jpg` : undefined
   }))
 }
 
@@ -126,40 +121,40 @@ describe('Canvas 性能测试', () => {
         id: 'test-page',
         title: '测试页面',
         content: [],
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: null,
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     mockUseEditorStore.mockReturnValue({
       markUnsaved: vi.fn(),
-      hasUnsavedChanges: false,
+      hasUnsavedChanges: false
     })
   })
 
   it('应该能够高效渲染100个模块', () => {
     const largeModuleList = generateLargeModuleList(100)
-    
+
     mockUsePageStore.mockReturnValue({
       currentPage: {
         id: 'test-page',
         title: '测试页面',
         content: largeModuleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: null,
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     const startTime = performance.now()
-    
+
     render(
       <DragProvider>
         <Canvas />
@@ -173,25 +168,26 @@ describe('Canvas 性能测试', () => {
     expect(renderTime).toBeLessThan(1000)
 
     // 验证所有模块都被渲染
-    expect(screen.getAllByTestId(/^module-/)).toHaveLength(100)
+    const modules = screen.getAllByTestId(/^module-module-/)
+    expect(modules).toHaveLength(100)
   })
 
   it('应该能够高效处理模块选择操作', async () => {
     const largeModuleList = generateLargeModuleList(50)
     const setSelectedModule = vi.fn()
-    
+
     mockUsePageStore.mockReturnValue({
       currentPage: {
         id: 'test-page',
         title: '测试页面',
         content: largeModuleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: null,
       setSelectedModule,
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     render(
@@ -219,19 +215,19 @@ describe('Canvas 性能测试', () => {
   it('应该能够高效处理模块排序操作', async () => {
     const moduleList = generateLargeModuleList(20)
     const reorderModules = vi.fn()
-    
+
     mockUsePageStore.mockReturnValue({
       currentPage: {
         id: 'test-page',
         title: '测试页面',
         content: moduleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: 'module-1',
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules,
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     render(
@@ -259,19 +255,19 @@ describe('Canvas 性能测试', () => {
   it('应该能够高效处理模块复制操作', async () => {
     const moduleList = generateLargeModuleList(10)
     const addModule = vi.fn()
-    
+
     mockUsePageStore.mockReturnValue({
       currentPage: {
         id: 'test-page',
         title: '测试页面',
         content: moduleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: 'module-1',
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule,
+      addModule
     })
 
     render(
@@ -299,19 +295,19 @@ describe('Canvas 性能测试', () => {
   it('应该能够高效处理大量模块的删除操作', async () => {
     const moduleList = generateLargeModuleList(30)
     const deleteModule = vi.fn()
-    
+
     mockUsePageStore.mockReturnValue({
       currentPage: {
         id: 'test-page',
         title: '测试页面',
         content: moduleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: 'module-1',
       setSelectedModule: vi.fn(),
       deleteModule,
       reorderModules: vi.fn(),
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     render(
@@ -331,30 +327,30 @@ describe('Canvas 性能测试', () => {
 
     // 操作时间应该在合理范围内
     expect(operationTime).toBeLessThan(200)
-    
+
     // 验证确认对话框出现
     expect(screen.getByText('确认删除')).toBeInTheDocument()
   })
 
   it('应该能够在大量模块下保持滚动性能', () => {
     const largeModuleList = generateLargeModuleList(200)
-    
+
     mockUsePageStore.mockReturnValue({
       currentPage: {
         id: 'test-page',
         title: '测试页面',
         content: largeModuleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: null,
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     const startTime = performance.now()
-    
+
     render(
       <DragProvider>
         <Canvas />
@@ -374,7 +370,7 @@ describe('Canvas 性能测试', () => {
 
   it('应该能够高效处理模块状态更新', () => {
     const moduleList = generateLargeModuleList(50)
-    
+
     const { rerender } = render(
       <DragProvider>
         <Canvas />
@@ -386,17 +382,17 @@ describe('Canvas 性能测试', () => {
         id: 'test-page',
         title: '测试页面',
         content: moduleList,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: 'module-25', // 选中中间的模块
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn(),
+      addModule: vi.fn()
     })
 
     const startTime = performance.now()
-    
+
     // 重新渲染以触发状态更新
     rerender(
       <DragProvider>
@@ -409,9 +405,9 @@ describe('Canvas 性能测试', () => {
 
     // 状态更新时间应该在合理范围内
     expect(updateTime).toBeLessThan(300)
-    
+
     // 验证选中的模块有正确的样式
     const selectedModule = screen.getByTestId('module-module-25')
     expect(selectedModule).toHaveClass('border-primary', 'bg-primary/5')
   })
-}) 
+})

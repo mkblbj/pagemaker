@@ -17,7 +17,7 @@ vi.mock('@/stores/useEditorStore')
 // Mock window.confirm
 Object.defineProperty(window, 'confirm', {
   value: vi.fn(() => true),
-  writable: true,
+  writable: true
 })
 
 const mockPageStore = {
@@ -67,17 +67,17 @@ describe('KeyboardShortcuts', () => {
   describe('箭头键导航', () => {
     it('按下键选择第一个模块', () => {
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowDown' })
-      
+
       expect(mockPageStore.setSelectedModule).toHaveBeenCalledWith('module-1')
     })
 
     it('按上键选择最后一个模块（当没有选中模块时）', () => {
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowUp' })
-      
+
       expect(mockPageStore.setSelectedModule).toHaveBeenCalledWith('module-3')
     })
 
@@ -87,11 +87,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowDown' })
-      
+
       expect(mockPageStore.setSelectedModule).toHaveBeenCalledWith('module-2')
     })
 
@@ -101,11 +101,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-2'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowUp' })
-      
+
       expect(mockPageStore.setSelectedModule).toHaveBeenCalledWith('module-1')
     })
 
@@ -115,11 +115,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowUp' })
-      
+
       expect(mockPageStore.setSelectedModule).not.toHaveBeenCalled()
     })
 
@@ -129,11 +129,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-3'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowDown' })
-      
+
       expect(mockPageStore.setSelectedModule).not.toHaveBeenCalled()
     })
   })
@@ -145,11 +145,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-2'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'Delete' })
-      
+
       expect(window.confirm).toHaveBeenCalledWith('确定要删除选中的模块吗？')
       expect(mockPageStore.deleteModule).toHaveBeenCalledWith('module-2')
       expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
@@ -161,11 +161,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'Backspace' })
-      
+
       expect(window.confirm).toHaveBeenCalledWith('确定要删除选中的模块吗？')
       expect(mockPageStore.deleteModule).toHaveBeenCalledWith('module-1')
       expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
@@ -173,17 +173,17 @@ describe('KeyboardShortcuts', () => {
 
     it('用户取消删除时不应该删除模块', () => {
       ;(window.confirm as any).mockReturnValue(false)
-      
+
       const selectedStore = {
         ...mockPageStore,
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'Delete' })
-      
+
       expect(window.confirm).toHaveBeenCalled()
       expect(mockPageStore.deleteModule).not.toHaveBeenCalled()
       expect(mockEditorStore.markUnsaved).not.toHaveBeenCalled()
@@ -191,9 +191,9 @@ describe('KeyboardShortcuts', () => {
 
     it('没有选中模块时不应该删除', () => {
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'Delete' })
-      
+
       expect(window.confirm).not.toHaveBeenCalled()
       expect(mockPageStore.deleteModule).not.toHaveBeenCalled()
     })
@@ -206,11 +206,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-2' // 选择第二个模块
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowUp', shiftKey: true })
-      
+
       expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 0)
       expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
     })
@@ -221,11 +221,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-2' // 选择第二个模块
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowDown', shiftKey: true })
-      
+
       expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 2)
       expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
     })
@@ -236,11 +236,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1' // 选择第一个模块
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowUp', shiftKey: true })
-      
+
       expect(mockPageStore.reorderModules).not.toHaveBeenCalled()
     })
 
@@ -250,11 +250,11 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-3' // 选择最后一个模块
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'ArrowDown', shiftKey: true })
-      
+
       expect(mockPageStore.reorderModules).not.toHaveBeenCalled()
     })
   })
@@ -266,28 +266,28 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'Escape' })
-      
+
       expect(mockPageStore.setSelectedModule).toHaveBeenCalledWith(null)
     })
 
     it('按Enter键不应该有副作用', () => {
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: 'Enter' })
-      
+
       // 应该阻止默认行为但不执行其他操作
       expect(mockPageStore.setSelectedModule).not.toHaveBeenCalled()
     })
 
     it('按空格键不应该有副作用', () => {
       render(<KeyboardShortcuts />)
-      
+
       fireEvent.keyDown(document, { key: ' ' })
-      
+
       // 应该阻止默认行为但不执行其他操作
       expect(mockPageStore.setSelectedModule).not.toHaveBeenCalled()
     })
@@ -300,31 +300,31 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       const input = document.createElement('input')
       document.body.appendChild(input)
       input.focus()
-      
+
       fireEvent.keyDown(input, { key: 'Delete' })
-      
+
       expect(mockPageStore.deleteModule).not.toHaveBeenCalled()
-      
+
       document.body.removeChild(input)
     })
 
     it('在textarea中按箭头键不应该导航模块', () => {
       render(<KeyboardShortcuts />)
-      
+
       const textarea = document.createElement('textarea')
       document.body.appendChild(textarea)
       textarea.focus()
-      
+
       fireEvent.keyDown(textarea, { key: 'ArrowDown' })
-      
+
       expect(mockPageStore.setSelectedModule).not.toHaveBeenCalled()
-      
+
       document.body.removeChild(textarea)
     })
 
@@ -334,18 +334,18 @@ describe('KeyboardShortcuts', () => {
         selectedModuleId: 'module-1'
       }
       ;(usePageStore as any).mockReturnValue(selectedStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       const div = document.createElement('div')
       div.contentEditable = 'true'
       document.body.appendChild(div)
       div.focus()
-      
+
       fireEvent.keyDown(div, { key: 'Delete' })
-      
+
       expect(mockPageStore.deleteModule).not.toHaveBeenCalled()
-      
+
       document.body.removeChild(div)
     })
   })
@@ -360,9 +360,9 @@ describe('KeyboardShortcuts', () => {
         }
       }
       ;(usePageStore as any).mockReturnValue(emptyStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       expect(() => {
         fireEvent.keyDown(document, { key: 'ArrowDown' })
         fireEvent.keyDown(document, { key: 'ArrowUp' })
@@ -375,9 +375,9 @@ describe('KeyboardShortcuts', () => {
         currentPage: null
       }
       ;(usePageStore as any).mockReturnValue(nullStore)
-      
+
       render(<KeyboardShortcuts />)
-      
+
       expect(() => {
         fireEvent.keyDown(document, { key: 'ArrowDown' })
         fireEvent.keyDown(document, { key: 'Delete' })
@@ -385,4 +385,4 @@ describe('KeyboardShortcuts', () => {
       }).not.toThrow()
     })
   })
-}) 
+})

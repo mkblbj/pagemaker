@@ -14,18 +14,12 @@ interface DraggableModuleItemProps {
 }
 
 export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `module-${module.type}`,
     data: {
       type: 'MODULE_TYPE',
-      moduleType: module.type,
-    },
+      moduleType: module.type
+    }
   })
 
   // 获取图标组件
@@ -36,9 +30,14 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
 
   const IconComponent = getIconComponent(module.icon)
 
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined
+  // 拖拽时不应用transform，保持原始位置避免其他元素重新布局
+  const style = isDragging
+    ? undefined
+    : transform
+      ? {
+          transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`
+        }
+      : undefined
 
   return (
     <Card
@@ -47,7 +46,7 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
       className={`
         cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent 
         hover:border-primary/20 group
-        ${isDragging ? 'opacity-50 shadow-lg' : ''}
+        ${isDragging ? 'opacity-60' : ''}
       `}
       {...listeners}
       {...attributes}
@@ -64,7 +63,7 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onAddModule(module.type)
             }}
@@ -76,4 +75,4 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
       </CardContent>
     </Card>
   )
-} 
+}

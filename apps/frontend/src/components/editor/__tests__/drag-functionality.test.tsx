@@ -18,11 +18,11 @@ vi.mock('@dnd-kit/core', () => ({
     listeners: {},
     setNodeRef: vi.fn(),
     transform: null,
-    isDragging: false,
+    isDragging: false
   }),
   useDroppable: () => ({
     setNodeRef: vi.fn(),
-    isOver: false,
+    isOver: false
   }),
   useSensors: () => [],
   useSensor: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock('@dnd-kit/core', () => ({
   TouchSensor: vi.fn(),
   DragOverlay: ({ children }: any) => <div data-testid="drag-overlay">{children}</div>,
   closestCenter: vi.fn(),
-  rectIntersection: vi.fn(),
+  rectIntersection: vi.fn()
 }))
 
 vi.mock('@dnd-kit/sortable', () => ({
@@ -42,10 +42,10 @@ vi.mock('@dnd-kit/sortable', () => ({
     setNodeRef: vi.fn(),
     transform: null,
     transition: null,
-    isDragging: false,
+    isDragging: false
   }),
   verticalListSortingStrategy: vi.fn(),
-  sortableKeyboardCoordinates: vi.fn(),
+  sortableKeyboardCoordinates: vi.fn()
 }))
 
 // Mock lucide-react
@@ -67,28 +67,19 @@ vi.mock('lucide-react', () => ({
   Trash2: () => <div data-testid="trash-icon" />,
   AlertTriangle: () => <div data-testid="alert-triangle-icon" />,
   X: () => <div data-testid="x-icon" />,
-  XIcon: () => <div data-testid="x-icon" />,
+  XIcon: () => <div data-testid="x-icon" />
 }))
 
 // Mock UI components
 vi.mock('@/components/ui/input', () => ({
   Input: ({ placeholder, value, onChange, className }: any) => (
-    <input
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      className={className}
-    />
+    <input placeholder={placeholder} value={value} onChange={onChange} className={className} />
   )
 }))
 
 vi.mock('@/components/ui/card', () => ({
-  Card: ({ children, className }: any) => (
-    <div className={className}>{children}</div>
-  ),
-  CardContent: ({ children, className }: any) => (
-    <div className={className}>{children}</div>
-  )
+  Card: ({ children, className }: any) => <div className={className}>{children}</div>,
+  CardContent: ({ children, className }: any) => <div className={className}>{children}</div>
 }))
 
 vi.mock('@/components/ui/button', () => ({
@@ -144,7 +135,7 @@ describe('拖拽功能测试', () => {
         id: 'test-page',
         name: '测试页面',
         content: [],
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       selectedModuleId: null,
       setSelectedModule: vi.fn(),
@@ -153,7 +144,7 @@ describe('拖拽功能测试', () => {
       addModule: vi.fn(),
       updateModule: vi.fn(),
       markSaved: vi.fn(),
-      hasUnsavedChanges: false,
+      hasUnsavedChanges: false
     })
 
     mockUseEditorStore.mockReturnValue({
@@ -161,7 +152,7 @@ describe('拖拽功能测试', () => {
       hasUnsavedChanges: false,
       isDragging: false,
       draggedModuleType: null,
-      setDragging: vi.fn(),
+      setDragging: vi.fn()
     })
   })
 
@@ -206,7 +197,7 @@ describe('拖拽功能测试', () => {
       hasUnsavedChanges: false,
       isDragging: true,
       draggedModuleType: 'title',
-      setDragging: vi.fn(),
+      setDragging: vi.fn()
     })
 
     render(
@@ -219,4 +210,4 @@ describe('拖拽功能测试', () => {
     const canvas = screen.getByTestId('canvas')
     expect(canvas).toHaveClass('bg-blue-50')
   })
-}) 
+})

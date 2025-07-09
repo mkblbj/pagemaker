@@ -147,6 +147,15 @@ export function PropertyPanel() {
               <Image className="h-4 w-4 mr-2" />
               上传图片
             </Button>
+            {(selectedModule as any).src && (
+              <div className="mt-4">
+                <img
+                  src={(selectedModule as any).src}
+                  alt={(selectedModule as any).alt || '预览图片'}
+                  className="max-w-full h-auto rounded-lg shadow-sm"
+                />
+              </div>
+            )}
           </div>
         )
 
