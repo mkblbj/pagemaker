@@ -25,6 +25,7 @@ import { DragProvider } from './dnd/DragContext'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
 import { KeyboardShortcutsHelp, KeyboardShortcutsHelpRef } from './KeyboardShortcutsHelp'
 import { useTranslation } from '@/contexts/I18nContext'
+import { HtmlExportButton } from '@/components/feature/HtmlExportButton'
 
 interface EditorLayoutProps {
   pageId: string
@@ -224,6 +225,12 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 <Save className="h-4 w-4 mr-2" />
                 {isSaving ? tEditor('保存中...') : tEditor('保存')}
               </Button>
+              <HtmlExportButton
+                modules={currentPage?.content || []}
+                pageTitle={currentPage?.name}
+                variant="outline"
+                size="sm"
+              />
               <Button variant="outline" size="sm" onClick={handleShowHelp}>
                 <Settings className="h-4 w-4 mr-2" />
                 {tEditor('帮助')}

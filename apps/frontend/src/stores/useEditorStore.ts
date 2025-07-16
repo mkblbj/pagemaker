@@ -22,6 +22,10 @@ interface EditorState {
   isDragging: boolean
   draggedModuleType: string | null
 
+  // HTML导出状态
+  isExporting: boolean
+  exportError: string | null
+
   // Actions
   setLoading: (loading: boolean) => void
   setSaving: (saving: boolean) => void
@@ -37,6 +41,10 @@ interface EditorState {
 
   // 拖拽 Actions
   setDragging: (isDragging: boolean, moduleType?: string) => void
+
+  // HTML导出 Actions
+  setExporting: (exporting: boolean) => void
+  setExportError: (error: string | null) => void
 
   // 重置状态
   reset: () => void
@@ -56,6 +64,8 @@ export const useEditorStore = create<EditorState>()(
       isRightPanelCollapsed: false,
       isDragging: false,
       draggedModuleType: null,
+      isExporting: false,
+      exportError: null,
 
       // Actions
       setLoading: loading => set({ isLoading: loading }, false, 'setLoading'),
@@ -92,6 +102,11 @@ export const useEditorStore = create<EditorState>()(
           'setDragging'
         ),
 
+      // HTML导出 Actions
+      setExporting: exporting => set({ isExporting: exporting }, false, 'setExporting'),
+
+      setExportError: error => set({ exportError: error }, false, 'setExportError'),
+
       // 重置状态
       reset: () =>
         set(
@@ -101,7 +116,9 @@ export const useEditorStore = create<EditorState>()(
             hasUnsavedChanges: false,
             error: null,
             isDragging: false,
-            draggedModuleType: null
+            draggedModuleType: null,
+            isExporting: false,
+            exportError: null
           },
           false,
           'reset'
