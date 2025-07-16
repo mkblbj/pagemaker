@@ -49,26 +49,35 @@ vi.mock('@dnd-kit/sortable', () => ({
 }))
 
 // Mock lucide-react
-vi.mock('lucide-react', () => ({
-  Search: () => <div data-testid="search-icon" />,
-  Plus: () => <div data-testid="plus-icon" />,
-  FileX: () => <div data-testid="file-x-icon" />,
-  Type: () => <div data-testid="type-icon" />,
-  FileText: () => <div data-testid="text-icon" />,
-  Image: () => <div data-testid="image-icon" />,
-  Minus: () => <div data-testid="minus-icon" />,
-  Layout: () => <div data-testid="layout-icon" />,
-  Columns: () => <div data-testid="columns-icon" />,
-  HelpCircle: () => <div data-testid="help-circle-icon" />,
-  GripVertical: () => <div data-testid="grip-icon" />,
-  MoveUp: () => <div data-testid="move-up-icon" />,
-  MoveDown: () => <div data-testid="move-down-icon" />,
-  Copy: () => <div data-testid="copy-icon" />,
-  Trash2: () => <div data-testid="trash-icon" />,
-  AlertTriangle: () => <div data-testid="alert-triangle-icon" />,
-  X: () => <div data-testid="x-icon" />,
-  XIcon: () => <div data-testid="x-icon" />
-}))
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal() as any
+  
+  const mockIcons = {
+    Search: () => <div data-testid="search-icon" />,
+    Plus: () => <div data-testid="plus-icon" />,
+    FileX: () => <div data-testid="file-x-icon" />,
+    Type: () => <div data-testid="type-icon" />,
+    FileText: () => <div data-testid="text-icon" />,
+    Image: () => <div data-testid="image-icon" />,
+    Minus: () => <div data-testid="minus-icon" />,
+    Layout: () => <div data-testid="layout-icon" />,
+    Columns: () => <div data-testid="columns-icon" />,
+    HelpCircle: () => <div data-testid="help-circle-icon" />,
+    GripVertical: () => <div data-testid="grip-icon" />,
+    MoveUp: () => <div data-testid="move-up-icon" />,
+    MoveDown: () => <div data-testid="move-down-icon" />,
+    Copy: () => <div data-testid="copy-icon" />,
+    Trash2: () => <div data-testid="trash-icon" />,
+    AlertTriangle: () => <div data-testid="alert-triangle-icon" />,
+    X: () => <div data-testid="x-icon" />,
+    XIcon: () => <div data-testid="x-icon" />
+  }
+  
+  return {
+    ...actual,
+    ...mockIcons
+  }
+})
 
 // Mock UI components
 vi.mock('@/components/ui/input', () => ({
@@ -115,7 +124,27 @@ vi.mock('@/lib/moduleRegistry', () => ({
     type,
     text: type === 'title' ? '新标题' : '新文本'
   }),
-  getModuleMetadata: () => ({ name: '模块' })
+  getModuleMetadata: (type: string) => {
+    const modules = {
+      title: {
+        type: 'title',
+        name: '标题',
+        description: '添加标题文本',
+        icon: 'Type',
+        category: 'basic',
+        color: 'text-blue-600'
+      },
+      text: {
+        type: 'text',
+        name: '文本',
+        description: '添加段落文本',
+        icon: 'FileText',
+        category: 'basic',
+        color: 'text-green-600'
+      }
+    }
+    return modules[type as keyof typeof modules] || null
+  }
 }))
 
 // Mock DeleteConfirmDialog
@@ -208,6 +237,6 @@ describe('拖拽功能测试', () => {
 
     // Canvas应该显示拖拽状态的样式
     const canvas = screen.getByTestId('canvas')
-    expect(canvas).toHaveClass('bg-blue-50')
+    expect(canvas).toHaveClass('bg-blue-50/30')
   })
 })

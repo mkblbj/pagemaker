@@ -104,10 +104,10 @@ describe('useEditorStore', () => {
     expect(result.current.leftPanelWidth).toBe(200) // 应该被限制为最小值
 
     act(() => {
-      result.current.setLeftPanelWidth(500) // 大于最大值
+      result.current.setLeftPanelWidth(600) // 大于最大值
     })
 
-    expect(result.current.leftPanelWidth).toBe(400) // 应该被限制为最大值
+    expect(result.current.leftPanelWidth).toBe(500) // 应该被限制为最大值
   })
 
   it('应该正确设置右侧面板宽度', () => {
@@ -127,10 +127,10 @@ describe('useEditorStore', () => {
     expect(result.current.rightPanelWidth).toBe(250) // 应该被限制为最小值
 
     act(() => {
-      result.current.setRightPanelWidth(600) // 大于最大值
+      result.current.setRightPanelWidth(700) // 大于最大值
     })
 
-    expect(result.current.rightPanelWidth).toBe(500) // 应该被限制为最大值
+    expect(result.current.rightPanelWidth).toBe(600) // 应该被限制为最大值
   })
 
   it('应该正确切换面板折叠状态', () => {
