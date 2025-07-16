@@ -45,17 +45,17 @@ export class HtmlExportService {
    */
   static generateHTML(modules: PageModule[], options: HtmlExportOptions = {}): string {
     const opts = { ...DEFAULT_OPTIONS, ...options }
-    
+
     const htmlContent = this.generateModulesHTML(modules)
-    
+
     // 如果只需要内容部分，直接返回模块HTML
     if (!opts.fullDocument) {
       return opts.minify ? this.minifyHTML(htmlContent) : htmlContent
     }
-    
+
     // 生成完整HTML文档
     const styles = opts.includeStyles ? this.generateCSS() : ''
-    
+
     const html = `<!DOCTYPE html>
 <html lang="${opts.language}">
 <head>
@@ -117,7 +117,7 @@ ${htmlContent}
     const level = getStringProp(module, 'level', 'h2')
     const alignment = getStringProp(module, 'alignment', 'left')
     const color = getStringProp(module, 'color', '#000000')
-    
+
     const styles = this.generateInlineStyles({
       'text-align': alignment,
       color: color,
@@ -142,7 +142,7 @@ ${htmlContent}
     const fontSize = getStringProp(module, 'fontSize', '16px')
     const lineHeight = getStringProp(module, 'lineHeight', '1.6')
     const color = getStringProp(module, 'color', '#000000')
-    
+
     const styles = this.generateInlineStyles({
       'text-align': alignment,
       'font-size': fontSize,
@@ -172,7 +172,7 @@ ${htmlContent}
     const width = getStringProp(module, 'width', 'auto')
     const height = getStringProp(module, 'height', 'auto')
     const alignment = getStringProp(module, 'alignment', 'center')
-    
+
     if (!src) {
       return `        <div class="pm-image-placeholder" style="text-align: ${alignment}; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
             <p style="margin: 0; color: #666;">图片未设置</p>
@@ -209,7 +209,7 @@ ${htmlContent}
     const color = getStringProp(module, 'color', '#e0e0e0')
     const thickness = getNumberProp(module, 'thickness', 1)
     const width = getStringProp(module, 'width', '100%')
-    
+
     const styles = this.generateInlineStyles({
       'border-top': `${thickness}px ${style} ${color}`,
       width: width,
@@ -228,7 +228,7 @@ ${htmlContent}
   private static generateKeyValueHTML(module: PageModule): string {
     const items = getArrayProp(module, 'items')
     const layout = getStringProp(module, 'layout', 'horizontal')
-    
+
     const containerStyles = this.generateInlineStyles({
       'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
       'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
@@ -239,22 +239,24 @@ ${htmlContent}
       'background-color': getStringProp(module, 'backgroundColor')
     })
 
-    const itemsHTML = items.map((item: any) => {
-      const key = this.escapeHtml(String(item?.key || ''))
-      const value = this.escapeHtml(String(item?.value || ''))
-      
-      if (layout === 'vertical') {
-        return `            <div class="pm-kv-item" style="margin-bottom: 8px;">
+    const itemsHTML = items
+      .map((item: any) => {
+        const key = this.escapeHtml(String(item?.key || ''))
+        const value = this.escapeHtml(String(item?.value || ''))
+
+        if (layout === 'vertical') {
+          return `            <div class="pm-kv-item" style="margin-bottom: 8px;">
                 <div class="pm-kv-key" style="font-weight: bold; margin-bottom: 4px;">${key}</div>
                 <div class="pm-kv-value">${value}</div>
             </div>`
-      } else {
-        return `            <div class="pm-kv-item" style="display: flex; margin-bottom: 8px;">
+        } else {
+          return `            <div class="pm-kv-item" style="display: flex; margin-bottom: 8px;">
                 <div class="pm-kv-key" style="font-weight: bold; margin-right: 16px; min-width: 120px;">${key}</div>
                 <div class="pm-kv-value" style="flex: 1;">${value}</div>
             </div>`
-      }
-    }).join('\n')
+        }
+      })
+      .join('\n')
 
     return `        <div class="pm-key-value" style="${containerStyles}">
 ${itemsHTML}
@@ -267,7 +269,7 @@ ${itemsHTML}
   private static generateMultiColumnHTML(module: PageModule): string {
     const columns = getArrayProp(module, 'columns')
     const gap = getNumberProp(module, 'gap', 16)
-    
+
     const containerStyles = this.generateInlineStyles({
       display: 'flex',
       gap: `${gap}px`,
@@ -281,20 +283,22 @@ ${itemsHTML}
       'flex-wrap': 'wrap'
     })
 
-    const columnsHTML = columns.map((column: any) => {
-      const width = String(column?.width || 'auto')
-      const content = this.escapeHtml(String(column?.content || ''))
-      
-      const columnStyles = this.generateInlineStyles({
-        flex: width === 'auto' ? '1' : 'none',
-        width: width !== 'auto' ? width : undefined,
-        'min-width': '0'
-      })
+    const columnsHTML = columns
+      .map((column: any) => {
+        const width = String(column?.width || 'auto')
+        const content = this.escapeHtml(String(column?.content || ''))
 
-      return `            <div class="pm-column" style="${columnStyles}">
+        const columnStyles = this.generateInlineStyles({
+          flex: width === 'auto' ? '1' : 'none',
+          width: width !== 'auto' ? width : undefined,
+          'min-width': '0'
+        })
+
+        return `            <div class="pm-column" style="${columnStyles}">
                 ${content.replace(/\n/g, '<br>')}
             </div>`
-    }).join('\n')
+      })
+      .join('\n')
 
     return `        <div class="pm-multi-column" style="${containerStyles}">
 ${columnsHTML}
@@ -408,7 +412,7 @@ ${columnsHTML}
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#x27;')
     }
-    
+
     const div = document.createElement('div')
     div.textContent = text
     return div.innerHTML
@@ -437,4 +441,4 @@ export function generateHTML(modules: PageModule[], options?: HtmlExportOptions)
  */
 export function generatePreviewHTML(modules: PageModule[]): string {
   return HtmlExportService['generateModulesHTML'](modules)
-} 
+}

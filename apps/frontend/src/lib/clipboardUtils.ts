@@ -12,9 +12,7 @@ export interface ClipboardResult {
  */
 export function isClipboardSupported(): boolean {
   return (
-    typeof navigator !== 'undefined' &&
-    'clipboard' in navigator &&
-    typeof navigator.clipboard.writeText === 'function'
+    typeof navigator !== 'undefined' && 'clipboard' in navigator && typeof navigator.clipboard.writeText === 'function'
   )
 }
 
@@ -24,9 +22,9 @@ export function isClipboardSupported(): boolean {
 export function isSecureContext(): boolean {
   return (
     typeof window !== 'undefined' &&
-    (window.location.protocol === 'https:' || 
-     window.location.hostname === 'localhost' ||
-     window.location.hostname === '127.0.0.1')
+    (window.location.protocol === 'https:' ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1')
   )
 }
 
@@ -57,7 +55,7 @@ function copyWithLegacyMethod(text: string): ClipboardResult {
     // 创建临时文本区域
     const textArea = document.createElement('textarea')
     textArea.value = text
-    
+
     // 设置样式使其不可见
     textArea.style.position = 'fixed'
     textArea.style.top = '-9999px'
@@ -65,20 +63,20 @@ function copyWithLegacyMethod(text: string): ClipboardResult {
     textArea.style.opacity = '0'
     textArea.style.pointerEvents = 'none'
     textArea.setAttribute('readonly', '')
-    
+
     // 添加到DOM
     document.body.appendChild(textArea)
-    
+
     // 选择文本
     textArea.select()
     textArea.setSelectionRange(0, text.length)
-    
+
     // 执行复制命令
     const successful = document.execCommand('copy')
-    
+
     // 清理
     document.body.removeChild(textArea)
-    
+
     if (successful) {
       return {
         success: true,
@@ -180,7 +178,7 @@ export function showCopyFeedback(result: ClipboardResult, duration = 3000): void
   // 创建反馈元素
   const feedback = document.createElement('div')
   feedback.textContent = result.message
-  
+
   // 设置样式
   feedback.style.cssText = `
     position: fixed;
@@ -195,20 +193,21 @@ export function showCopyFeedback(result: ClipboardResult, duration = 3000): void
     pointer-events: none;
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
-    ${result.success 
-      ? 'background-color: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);' 
-      : 'background-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);'
+    ${
+      result.success
+        ? 'background-color: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);'
+        : 'background-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);'
     }
   `
-  
+
   // 添加到页面
   document.body.appendChild(feedback)
-  
+
   // 显示动画
   requestAnimationFrame(() => {
     feedback.style.transform = 'translateX(0)'
   })
-  
+
   // 自动移除
   setTimeout(() => {
     feedback.style.transform = 'translateX(100%)'
@@ -233,8 +232,8 @@ export async function copyTextWithFeedback(text: string, duration?: number): Pro
  * 便捷函数：复制HTML并显示反馈
  */
 export async function copyHTMLWithFeedback(
-  html: string, 
-  plainText?: string, 
+  html: string,
+  plainText?: string,
   duration?: number
 ): Promise<ClipboardResult> {
   const result = await copyHTMLToClipboard(html, plainText)
@@ -253,11 +252,11 @@ export function getClipboardCapabilities(): {
 } {
   const hasClipboardAPI = isClipboardSupported()
   const isSecure = isSecureContext()
-  
+
   return {
     hasClipboardAPI,
     isSecureContext: isSecure,
     canCopyHTML: hasClipboardAPI && isSecure && typeof ClipboardItem !== 'undefined',
     canCopyText: hasClipboardAPI || typeof document !== 'undefined'
   }
-} 
+}

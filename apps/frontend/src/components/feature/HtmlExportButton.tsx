@@ -8,21 +8,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-  Download,
-  Copy,
-  Check,
-  Code,
-  Eye,
-  Settings,
-  AlertCircle,
-  Info
-} from 'lucide-react'
+import { Download, Copy, Check, Code, Eye, Settings, AlertCircle, Info } from 'lucide-react'
 import { generateHTML, type HtmlExportOptions } from '@/services/htmlExportService'
 import { copyTextWithFeedback, getClipboardCapabilities } from '@/lib/clipboardUtils'
 import type { PageModule } from '@pagemaker/shared-types'
@@ -67,7 +58,7 @@ export function HtmlExportButton({
     try {
       // 模拟短暂延迟以显示加载状态
       await new Promise(resolve => setTimeout(resolve, 300))
-      
+
       const html = generateHTML(modules, exportOptions)
       setGeneratedHTML(html)
     } catch (error) {
@@ -125,12 +116,7 @@ export function HtmlExportButton({
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={variant}
-          size={size}
-          className={className}
-          disabled={disabled || modules.length === 0}
-        >
+        <Button variant={variant} size={size} className={className} disabled={disabled || modules.length === 0}>
           <Download className="h-4 w-4 mr-2" />
           {tEditor('导出HTML')}
         </Button>
@@ -142,9 +128,7 @@ export function HtmlExportButton({
             <Code className="h-5 w-5" />
             {tEditor('导出页面HTML')}
           </DialogTitle>
-          <DialogDescription>
-            {tEditor('生成完整的HTML代码，可直接粘贴到乐天店铺后台使用')}
-          </DialogDescription>
+          <DialogDescription>{tEditor('生成完整的HTML代码，可直接粘贴到乐天店铺后台使用')}</DialogDescription>
         </DialogHeader>
 
         {/* 可滚动内容区域 */}
@@ -157,21 +141,21 @@ export function HtmlExportButton({
             <Badge variant="outline" className="text-xs">
               {getHTMLSize()}
             </Badge>
-                      {exportOptions.fullDocument && (
-            <Badge variant="secondary" className="text-xs">
-              {tEditor('完整文档')}
-            </Badge>
-          )}
-          {exportOptions.includeStyles && exportOptions.fullDocument && (
-            <Badge variant="secondary" className="text-xs">
-              {tEditor('包含样式')}
-            </Badge>
-          )}
-          {exportOptions.minify && (
-            <Badge variant="secondary" className="text-xs">
-              {tEditor('已压缩')}
-            </Badge>
-          )}
+            {exportOptions.fullDocument && (
+              <Badge variant="secondary" className="text-xs">
+                {tEditor('完整文档')}
+              </Badge>
+            )}
+            {exportOptions.includeStyles && exportOptions.fullDocument && (
+              <Badge variant="secondary" className="text-xs">
+                {tEditor('包含样式')}
+              </Badge>
+            )}
+            {exportOptions.minify && (
+              <Badge variant="secondary" className="text-xs">
+                {tEditor('已压缩')}
+              </Badge>
+            )}
           </div>
 
           <Separator />
@@ -184,10 +168,12 @@ export function HtmlExportButton({
                 <input
                   type="checkbox"
                   checked={exportOptions.fullDocument}
-                  onChange={(e) => setExportOptions(prev => ({
-                    ...prev,
-                    fullDocument: e.target.checked
-                  }))}
+                  onChange={e =>
+                    setExportOptions(prev => ({
+                      ...prev,
+                      fullDocument: e.target.checked
+                    }))
+                  }
                   className="rounded"
                 />
                 <span className="text-sm">{tEditor('完整HTML文档')}</span>
@@ -196,10 +182,12 @@ export function HtmlExportButton({
                 <input
                   type="checkbox"
                   checked={exportOptions.includeStyles}
-                  onChange={(e) => setExportOptions(prev => ({
-                    ...prev,
-                    includeStyles: e.target.checked
-                  }))}
+                  onChange={e =>
+                    setExportOptions(prev => ({
+                      ...prev,
+                      includeStyles: e.target.checked
+                    }))
+                  }
                   className="rounded"
                   disabled={!exportOptions.fullDocument}
                 />
@@ -209,10 +197,12 @@ export function HtmlExportButton({
                 <input
                   type="checkbox"
                   checked={exportOptions.minify}
-                  onChange={(e) => setExportOptions(prev => ({
-                    ...prev,
-                    minify: e.target.checked
-                  }))}
+                  onChange={e =>
+                    setExportOptions(prev => ({
+                      ...prev,
+                      minify: e.target.checked
+                    }))
+                  }
                   className="rounded"
                 />
                 <span className="text-sm">{tEditor('压缩HTML代码')}</span>
@@ -227,12 +217,7 @@ export function HtmlExportButton({
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium">{tEditor('生成的HTML代码')}</h4>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerateHTML}
-                  disabled={isGenerating}
-                >
+                <Button variant="outline" size="sm" onClick={handleGenerateHTML} disabled={isGenerating}>
                   <Settings className="h-4 w-4 mr-1" />
                   {isGenerating ? tEditor('生成中...') : tEditor('重新生成')}
                 </Button>
@@ -251,11 +236,7 @@ export function HtmlExportButton({
                   onClick={handleCopyHTML}
                   disabled={!generatedHTML || isCopying || isGenerating}
                 >
-                  {isCopying ? (
-                    <Check className="h-4 w-4 mr-1" />
-                  ) : (
-                    <Copy className="h-4 w-4 mr-1" />
-                  )}
+                  {isCopying ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
                   {isCopying ? tEditor('已复制') : tEditor('复制代码')}
                 </Button>
               </div>
@@ -324,4 +305,4 @@ export function HtmlExportButton({
   )
 }
 
-export default HtmlExportButton 
+export default HtmlExportButton

@@ -36,7 +36,7 @@ describe('HtmlExportButton', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     mockModules = [
       {
         id: 'title-1',
@@ -53,34 +53,34 @@ describe('HtmlExportButton', () => {
 
   it('应该渲染导出按钮', () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     expect(button).toBeInTheDocument()
   })
 
   it('应该在没有模块时禁用按钮', () => {
     render(<HtmlExportButton modules={[]} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     expect(button).toBeDisabled()
   })
 
   it('应该在点击按钮时打开对话框', async () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     expect(screen.getByText('导出页面HTML')).toBeInTheDocument()
     expect(screen.getByText('生成完整的HTML代码，可直接粘贴到乐天店铺后台使用')).toBeInTheDocument()
   })
 
   it('应该显示模块数量和文件大小信息', async () => {
     render(<HtmlExportButton modules={mockModules} pageTitle="测试页面" />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(screen.getByText('2 个模块')).toBeInTheDocument()
     })
@@ -88,21 +88,21 @@ describe('HtmlExportButton', () => {
 
   it('应该支持导出选项配置', async () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     // 等待对话框内容加载
     await waitFor(() => {
       expect(screen.getByText('导出选项')).toBeInTheDocument()
     })
-    
+
     const includeStylesCheckbox = screen.getByLabelText('包含CSS样式')
     const minifyCheckbox = screen.getByLabelText('压缩HTML代码')
-    
+
     expect(includeStylesCheckbox).toBeChecked()
     expect(minifyCheckbox).not.toBeChecked()
-    
+
     // 测试选项切换
     await user.click(minifyCheckbox)
     expect(minifyCheckbox).toBeChecked()
@@ -110,12 +110,12 @@ describe('HtmlExportButton', () => {
 
   it('应该在对话框打开时自动生成HTML', async () => {
     const { generateHTML } = await import('@/services/htmlExportService')
-    
+
     render(<HtmlExportButton modules={mockModules} pageTitle="测试页面" />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(generateHTML).toHaveBeenCalledWith(
         mockModules,
@@ -131,10 +131,10 @@ describe('HtmlExportButton', () => {
 
   it('应该显示生成的HTML代码', async () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       const textarea = screen.getByDisplayValue(/<html><body><h1>测试HTML<\/h1><\/body><\/html>/)
       expect(textarea).toBeInTheDocument()
@@ -144,55 +144,55 @@ describe('HtmlExportButton', () => {
 
   it('应该支持复制HTML代码', async () => {
     const { copyTextWithFeedback } = await import('@/lib/clipboardUtils')
-    
+
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(screen.getByDisplayValue(/<html>/)).toBeInTheDocument()
     })
-    
+
     const copyButton = screen.getByRole('button', { name: /复制代码/i })
     await user.click(copyButton)
-    
+
     expect(copyTextWithFeedback).toHaveBeenCalledWith('<html><body><h1>测试HTML</h1></body></html>')
   })
 
   it('应该支持预览HTML', async () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(screen.getByDisplayValue(/<html>/)).toBeInTheDocument()
     })
-    
+
     const previewButton = screen.getByRole('button', { name: /预览/i })
     await user.click(previewButton)
-    
+
     expect(window.open).toHaveBeenCalledWith('', '_blank', 'width=1200,height=800')
   })
 
   it('应该支持重新生成HTML', async () => {
     const { generateHTML } = await import('@/services/htmlExportService')
-    
+
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(screen.getByDisplayValue(/<html>/)).toBeInTheDocument()
     })
-    
+
     vi.clearAllMocks()
-    
+
     const regenerateButton = screen.getByRole('button', { name: /重新生成/i })
     await user.click(regenerateButton)
-    
+
     await waitFor(() => {
       expect(generateHTML).toHaveBeenCalled()
     })
@@ -200,10 +200,10 @@ describe('HtmlExportButton', () => {
 
   it('应该显示使用说明', async () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(screen.getByText('使用说明')).toBeInTheDocument()
       expect(screen.getByText('默认导出纯内容HTML，适合直接粘贴到乐天店铺后台')).toBeInTheDocument()
@@ -212,7 +212,7 @@ describe('HtmlExportButton', () => {
 
   it('应该在浏览器不支持复制时显示兼容性警告', async () => {
     const { getClipboardCapabilities } = await import('@/lib/clipboardUtils')
-    
+
     // Mock不支持复制的情况
     vi.mocked(getClipboardCapabilities).mockReturnValue({
       hasClipboardAPI: false,
@@ -220,12 +220,12 @@ describe('HtmlExportButton', () => {
       canCopyHTML: false,
       canCopyText: false
     })
-    
+
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       expect(screen.getByText('浏览器兼容性提示')).toBeInTheDocument()
       expect(screen.getByText('您的浏览器可能不完全支持自动复制功能，请手动选择代码并复制')).toBeInTheDocument()
@@ -243,7 +243,7 @@ describe('HtmlExportButton', () => {
         disabled={true}
       />
     )
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     expect(button).toHaveClass('custom-class')
     expect(button).toBeDisabled()
@@ -253,28 +253,31 @@ describe('HtmlExportButton', () => {
     // Mock延迟的HTML生成
     const { generateHTML } = await import('@/services/htmlExportService')
     vi.mocked(generateHTML).mockImplementation(() => '<html><body>延迟HTML</body></html>')
-    
+
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     // 等待生成完成，检查textarea的value属性包含mocked的HTML
-    await waitFor(() => {
-      const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
-      expect(textarea.value).toContain('延迟HTML')
-    }, { timeout: 1000 })
+    await waitFor(
+      () => {
+        const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
+        expect(textarea.value).toContain('延迟HTML')
+      },
+      { timeout: 1000 }
+    )
   })
 
   it('应该正确计算HTML文件大小', async () => {
     render(<HtmlExportButton modules={mockModules} />)
-    
+
     const button = screen.getByRole('button', { name: /导出HTML/i })
     await user.click(button)
-    
+
     await waitFor(() => {
       // 检查是否显示文件大小（具体数值可能因HTML内容而异）
       expect(screen.getByText(/\d+(\.\d+)?\s*(B|KB)/)).toBeInTheDocument()
     })
   })
-}) 
+})

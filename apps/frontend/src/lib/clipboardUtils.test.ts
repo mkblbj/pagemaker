@@ -28,12 +28,12 @@ Object.defineProperty(document, 'execCommand', {
 })
 
 // Mock ClipboardItem
-global.ClipboardItem = vi.fn().mockImplementation((data) => ({ data })) as any
+global.ClipboardItem = vi.fn().mockImplementation(data => ({ data })) as any
 
 describe('clipboardUtils', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // 重置location.protocol为https以模拟安全上下文
     Object.defineProperty(window, 'location', {
       value: {
@@ -57,9 +57,9 @@ describe('clipboardUtils', () => {
       const originalClipboard = navigator.clipboard
       // @ts-ignore
       delete navigator.clipboard
-      
+
       expect(isClipboardSupported()).toBe(false)
-      
+
       // 恢复
       Object.defineProperty(navigator, 'clipboard', {
         value: originalClipboard,
@@ -148,7 +148,7 @@ describe('clipboardUtils', () => {
         setSelectionRange: vi.fn(),
         setAttribute: vi.fn()
       }
-      
+
       const mockAppendChild = vi.fn()
       const mockRemoveChild = vi.fn()
       const mockCreateElement = vi.fn().mockReturnValue(mockTextArea)
@@ -157,12 +157,12 @@ describe('clipboardUtils', () => {
         value: mockCreateElement,
         configurable: true
       })
-      
+
       Object.defineProperty(document.body, 'appendChild', {
         value: mockAppendChild,
         configurable: true
       })
-      
+
       Object.defineProperty(document.body, 'removeChild', {
         value: mockRemoveChild,
         configurable: true
@@ -225,9 +225,10 @@ describe('clipboardUtils', () => {
   describe('getClipboardCapabilities', () => {
     it('应该返回正确的能力信息', () => {
       // Mock ClipboardItem with supports method
-      global.ClipboardItem = vi.fn().mockImplementation((data) => ({ data })) as any
-      global.ClipboardItem.supports = vi.fn().mockReturnValue(true)
-      
+      const MockClipboardItem = vi.fn().mockImplementation(data => ({ data })) as any
+      MockClipboardItem.supports = vi.fn().mockReturnValue(true)
+      global.ClipboardItem = MockClipboardItem
+
       const capabilities = getClipboardCapabilities()
 
       expect(capabilities.hasClipboardAPI).toBe(true)
@@ -266,4 +267,4 @@ describe('clipboardUtils', () => {
       })
     })
   })
-}) 
+})
