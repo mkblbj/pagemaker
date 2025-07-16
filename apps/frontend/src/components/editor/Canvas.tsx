@@ -131,7 +131,7 @@ function SortableModuleContainer({
 export function Canvas() {
   const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, addModule } = usePageStore()
   const { markUnsaved, hasUnsavedChanges } = useEditorStore()
-  const { tEditor } = useTranslation()
+  const { tEditor, currentLanguage } = useTranslation()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [moduleToDelete, setModuleToDelete] = useState<any>(null)
@@ -255,7 +255,7 @@ export function Canvas() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDeleteModule}
         moduleName={moduleToDelete?.text || moduleToDelete?.title || moduleToDelete?.alt}
-        moduleType={getModuleMetadata(moduleToDelete?.type, tEditor)?.name || moduleToDelete?.type}
+        moduleType={getModuleMetadata(moduleToDelete?.type, currentLanguage)?.name || moduleToDelete?.type}
       />
     </DroppableCanvas>
   )

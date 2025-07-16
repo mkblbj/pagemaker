@@ -127,7 +127,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         <div className="flex items-center justify-center w-full">
           <div className="text-center" data-testid="loading-indicator">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-muted-foreground">加载中...</p>
+            <p className="text-muted-foreground">{tEditor('加载中')}...</p>
           </div>
         </div>
       </div>
@@ -142,7 +142,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="text-center" data-testid="error-message">
             <p className="text-destructive mb-2">{error}</p>
             <Button variant="outline" onClick={() => window.location.reload()}>
-              重新加载
+              {tEditor('重新加载')}
             </Button>
           </div>
         </div>
@@ -197,7 +197,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
 
               {/* 页面标题 */}
               <div>
-                <h1 className="text-xl font-semibold">{currentPage?.name || '页面编辑器'}</h1>
+                <h1 className="text-xl font-semibold">{currentPage?.name || tEditor('页面编辑器')}</h1>
                 <p className="text-sm text-muted-foreground">
                   {tEditor('页面ID')}: {pageId}
                 </p>

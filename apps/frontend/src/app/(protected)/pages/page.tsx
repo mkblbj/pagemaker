@@ -183,9 +183,9 @@ export default function PagesPage() {
                       {getTargetAreaIcon(page.target_area)}
                       <Badge variant="outline" className="text-xs">
                         {page.target_area === 'pc'
-                          ? tCommon('PC端')
+                          ? tEditor('PC端')
                           : page.target_area === 'mobile'
-                            ? tCommon('移动端')
+                            ? tEditor('移动端')
                             : page.target_area}
                       </Badge>
                     </div>

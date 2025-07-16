@@ -224,7 +224,17 @@
     "级别": "Level",
     "键盘快捷键帮助 (F1 或 ?)": "Keyboard shortcuts help (F1 or ?)",
     "快捷键在输入框中不会生效，确保焦点在编辑器主区域。": "Shortcuts don't work in input fields, make sure focus is in the main editor area.",
-    "上传图片": "Upload Image"
+    "上传图片": "Upload Image",
+    "拖拽模块到此处添加": "Drag modules here to add",
+    "目标区域": "Target Area",
+    "选择区域": "Select Area",
+    "当前编辑": "Current Edit",
+    "加载中": "Loading",
+    "PC端": "PC",
+    "移动端": "Mobile",
+    "重新加载": "Reload",
+    "保存": "Save",
+    "保存中...": "Saving..."
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",

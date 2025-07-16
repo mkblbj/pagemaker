@@ -13,25 +13,25 @@ import { useTranslation } from '@/contexts/I18nContext'
 export function ModuleList() {
   const { selectedModuleId, addModule } = usePageStore()
   const { markUnsaved } = useEditorStore()
-  const { tEditor, tCommon } = useTranslation()
+  const { tEditor, tCommon, currentLanguage } = useTranslation()
 
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleAddModule = useCallback(
     (moduleType: PageModuleType) => {
-      const newModule = createModuleInstance(moduleType, tEditor)
+      const newModule = createModuleInstance(moduleType, currentLanguage)
       addModule(newModule)
     },
-    [addModule, tEditor]
+    [addModule, currentLanguage]
   )
 
   const filteredModules = useMemo(() => {
-    return getAvailableModules(tEditor).filter(
+    return getAvailableModules(currentLanguage).filter(
       module =>
         module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [searchTerm, tEditor])
+  }, [searchTerm, currentLanguage])
 
   return (
     <div className="h-full flex flex-col overflow-x-hidden" data-testid="module-list">

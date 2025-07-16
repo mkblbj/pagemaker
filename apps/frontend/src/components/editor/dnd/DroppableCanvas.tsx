@@ -3,6 +3,7 @@
 import React, { ReactNode, useEffect, useRef } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { useEditorStore } from '@/stores/useEditorStore'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface DroppableCanvasProps {
   children: ReactNode
@@ -12,7 +13,7 @@ interface DroppableCanvasProps {
 export function DroppableCanvas({ children, className = '' }: DroppableCanvasProps) {
   const { isDragging } = useEditorStore()
   const containerRef = useRef<HTMLDivElement>(null)
-
+  const { tEditor } = useTranslation()
   const { isOver, setNodeRef } = useDroppable({
     id: 'canvas',
     data: {
@@ -95,7 +96,7 @@ export function DroppableCanvas({ children, className = '' }: DroppableCanvasPro
       {isDragging && isOver && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-blue-200">
-            <div className="text-blue-600 font-medium text-center">拖拽模块到此处添加</div>
+            <div className="text-blue-600 font-medium text-center">{tEditor('拖拽模块到此处添加')}</div>
           </div>
         </div>
       )}

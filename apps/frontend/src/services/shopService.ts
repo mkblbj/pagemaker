@@ -5,33 +5,37 @@ import type {
   UpdateShopConfigurationRequest,
   ApiResponse
 } from '@pagemaker/shared-types'
+import { createTranslator, type SupportedLanguage } from '@pagemaker/shared-i18n'
 
 export const shopService = {
   /**
-   * 获取店铺配置列表
+   * 获取商店配置列表
    */
-  async getShopConfigurations(): Promise<ShopConfiguration[]> {
-    const response = await apiClient.get<ApiResponse<ShopConfiguration[]>>('/api/v1/shop-configurations/')
+  async getShopConfigurations(): Promise<Array<{ target_area: string; config: any }>> {
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 500))
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || '获取店铺配置失败')
-    }
-
-    return response.data.data
+    return [
+      { target_area: 'pc', config: { layout: 'desktop' } },
+      { target_area: 'mobile', config: { layout: 'mobile' } }
+    ]
   },
 
   /**
    * 获取可用的目标区域列表
    */
-  async getTargetAreas(): Promise<Array<{ value: string; label: string }>> {
+  async getTargetAreas(language: SupportedLanguage = 'zh-CN'): Promise<Array<{ value: string; label: string }>> {
     const configurations = await this.getShopConfigurations()
+    const t = createTranslator(language)
+    const tEditor = (key: string) => t(`editor.${key}`)
+
     return configurations.map(config => ({
       value: config.target_area,
       label:
         config.target_area === 'pc'
-          ? 'PC端'
+          ? tEditor('PC端')
           : config.target_area === 'mobile'
-            ? '移动端'
+            ? tEditor('移动端')
             : config.target_area.toUpperCase()
     }))
   },

@@ -4,19 +4,29 @@
  */
 
 import { PageModuleType, ModuleMetadata, PageModule } from '@pagemaker/shared-types'
+import { createTranslator, getBrowserLanguage, type SupportedLanguage } from '@pagemaker/shared-i18n'
 
-// 基础模块注册表 - 多语言版本
-function createModuleRegistry(t: (key: string) => string): Record<PageModuleType, ModuleMetadata> {
+// 动态创建翻译函数
+function createTEditor(language?: SupportedLanguage) {
+  const lang = language || getBrowserLanguage()
+  const t = createTranslator(lang)
+  return (key: string) => t(`editor.${key}`)
+}
+
+// 动态创建基础模块注册表
+function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleType, ModuleMetadata> {
+  const tEditor = createTEditor(language)
+
   return {
     [PageModuleType.TITLE]: {
       type: PageModuleType.TITLE,
-      name: t('editor.标题'),
-      description: t('editor.添加标题文本'),
+      name: tEditor('标题'),
+      description: tEditor('添加标题文本'),
       icon: 'Type',
       category: 'basic',
       color: 'text-blue-600',
       defaultConfig: {
-        text: t('editor.标题文本'),
+        text: tEditor('标题文本'),
         level: 1,
         alignment: 'left',
         color: '#000000'
@@ -26,13 +36,13 @@ function createModuleRegistry(t: (key: string) => string): Record<PageModuleType
     },
     [PageModuleType.TEXT]: {
       type: PageModuleType.TEXT,
-      name: t('editor.文本'),
-      description: t('editor.添加文本内容'),
+      name: tEditor('文本'),
+      description: tEditor('添加文本内容'),
       icon: 'FileText',
       category: 'basic',
       color: 'text-green-600',
       defaultConfig: {
-        text: t('editor.输入文本内容'),
+        text: tEditor('输入文本内容'),
         fontSize: 14,
         alignment: 'left',
         color: '#000000'
@@ -42,14 +52,14 @@ function createModuleRegistry(t: (key: string) => string): Record<PageModuleType
     },
     [PageModuleType.IMAGE]: {
       type: PageModuleType.IMAGE,
-      name: t('editor.图片'),
-      description: t('editor.添加图片'),
+      name: tEditor('图片'),
+      description: tEditor('添加图片'),
       icon: 'Image',
       category: 'basic',
       color: 'text-purple-600',
       defaultConfig: {
         src: '',
-        alt: t('editor.图片描述'),
+        alt: tEditor('图片描述'),
         width: 100,
         alignment: 'center'
       },
@@ -58,8 +68,8 @@ function createModuleRegistry(t: (key: string) => string): Record<PageModuleType
     },
     [PageModuleType.SEPARATOR]: {
       type: PageModuleType.SEPARATOR,
-      name: t('editor.分隔线'),
-      description: t('editor.添加分隔线'),
+      name: tEditor('分隔线'),
+      description: tEditor('添加分隔线'),
       icon: 'Minus',
       category: 'basic',
       color: 'text-gray-600',
@@ -73,13 +83,13 @@ function createModuleRegistry(t: (key: string) => string): Record<PageModuleType
     },
     [PageModuleType.KEY_VALUE]: {
       type: PageModuleType.KEY_VALUE,
-      name: t('editor.键值对'),
-      description: t('editor.添加键值对'),
+      name: tEditor('键值对'),
+      description: tEditor('添加键值对'),
       icon: 'Layout',
       category: 'basic',
       color: 'text-orange-600',
       defaultConfig: {
-        pairs: [{ key: t('editor.键'), value: t('editor.值') }],
+        pairs: [{ key: tEditor('键'), value: tEditor('值') }],
         itemStyle: 'default',
         keyColor: '#374151',
         valueColor: '#6b7280'
@@ -89,8 +99,8 @@ function createModuleRegistry(t: (key: string) => string): Record<PageModuleType
     },
     [PageModuleType.MULTI_COLUMN]: {
       type: PageModuleType.MULTI_COLUMN,
-      name: t('editor.多列布局'),
-      description: t('editor.添加多列布局'),
+      name: tEditor('多列布局'),
+      description: tEditor('添加多列布局'),
       icon: 'Columns',
       category: 'layout',
       color: 'text-red-600',
@@ -107,8 +117,8 @@ function createModuleRegistry(t: (key: string) => string): Record<PageModuleType
 /**
  * 获取所有可用模块
  */
-export function getAvailableModules(t: (key: string) => string): ModuleMetadata[] {
-  const registry = createModuleRegistry(t)
+export function getAvailableModules(language?: SupportedLanguage): ModuleMetadata[] {
+  const registry = createModuleRegistry(language)
   return Object.values(registry)
     .filter(module => module.isEnabled)
     .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -119,52 +129,24 @@ export function getAvailableModules(t: (key: string) => string): ModuleMetadata[
  */
 export function getModulesByCategory(
   category: 'basic' | 'advanced' | 'layout',
-  t: (key: string) => string
+  language?: SupportedLanguage
 ): ModuleMetadata[] {
-  return getAvailableModules(t).filter(module => module.category === category)
+  return getAvailableModules(language).filter(module => module.category === category)
 }
 
 /**
  * 获取特定模块的元数据
  */
-export function getModuleMetadata(type: PageModuleType, t?: (key: string) => string): ModuleMetadata | undefined {
-  if (!t) {
-    // 如果没有提供翻译函数，返回英文默认值
-    const fallbackT = (key: string) => {
-      const keyMap: Record<string, string> = {
-        'editor.标题': 'Title',
-        'editor.文本': 'Text',
-        'editor.图片': 'Image',
-        'editor.分隔线': 'Separator',
-        'editor.键值对': 'Key-Value',
-        'editor.多列布局': 'Multi-Column',
-        'editor.添加标题文本': 'Add title text',
-        'editor.添加文本内容': 'Add text content',
-        'editor.添加图片': 'Add image',
-        'editor.添加分隔线': 'Add separator',
-        'editor.添加键值对': 'Add key-value pairs',
-        'editor.添加多列布局': 'Add multi-column layout',
-        'editor.标题文本': 'Title text',
-        'editor.输入文本内容': 'Enter text content',
-        'editor.图片描述': 'Image description',
-        'editor.键': 'Key',
-        'editor.值': 'Value'
-      }
-      return keyMap[key] || key
-    }
-    const registry = createModuleRegistry(fallbackT)
-    return registry[type]
-  }
-
-  const registry = createModuleRegistry(t)
+export function getModuleMetadata(type: PageModuleType, language?: SupportedLanguage): ModuleMetadata | undefined {
+  const registry = createModuleRegistry(language)
   return registry[type]
 }
 
 /**
  * 创建新的模块实例
  */
-export function createModuleInstance(type: PageModuleType, t?: (key: string) => string): PageModule {
-  const metadata = getModuleMetadata(type, t)
+export function createModuleInstance(type: PageModuleType, language?: SupportedLanguage): PageModule {
+  const metadata = getModuleMetadata(type, language)
   if (!metadata) {
     throw new Error(`Unknown module type: ${type}`)
   }
@@ -187,14 +169,14 @@ export function isValidModuleType(type: string): type is PageModuleType {
  * 注册新的模块类型（用于扩展）
  */
 export function registerModule(metadata: ModuleMetadata): void {
-  // 注册功能需要重新设计以支持多语言
-  console.warn('registerModule needs to be redesigned for i18n support')
+  // 这个功能需要重新设计以支持动态注册
+  console.warn('registerModule needs to be redesigned for dynamic registration')
 }
 
 /**
  * 禁用/启用模块类型
  */
 export function toggleModuleEnabled(type: PageModuleType, enabled: boolean): void {
-  // 这个功能需要重新设计以支持多语言
-  console.warn('toggleModuleEnabled needs to be redesigned for i18n support')
+  // 这个功能需要重新设计以支持动态切换
+  console.warn('toggleModuleEnabled needs to be redesigned for dynamic toggling')
 }

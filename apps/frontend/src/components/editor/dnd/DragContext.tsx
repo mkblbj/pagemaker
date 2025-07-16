@@ -24,6 +24,7 @@ import { createModuleInstance, getModuleMetadata } from '@/lib/moduleRegistry'
 import { PageModuleType } from '@pagemaker/shared-types'
 import { Card, CardContent } from '@/components/ui/card'
 import * as LucideIcons from 'lucide-react'
+import { useTranslation } from '@/contexts/I18nContext'
 
 // 优化的碰撞检测算法
 const customCollisionDetection: CollisionDetection = args => {
@@ -78,6 +79,7 @@ interface DragProviderProps {
 export function DragProvider({ children }: DragProviderProps) {
   const { addModule, reorderModules, currentPage } = usePageStore()
   const { setDragging, markUnsaved, draggedModuleType } = useEditorStore()
+  const { currentLanguage } = useTranslation()
 
   // 配置传感器，优化触摸和键盘支持
   const sensors = useSensors(
@@ -133,7 +135,7 @@ export function DragProvider({ children }: DragProviderProps) {
           over.id === 'canvas'
         ) {
           const moduleType = active.data.current.moduleType as PageModuleType
-          const newModule = createModuleInstance(moduleType)
+          const newModule = createModuleInstance(moduleType, currentLanguage)
 
           addModule(newModule)
           markUnsaved()
@@ -165,7 +167,7 @@ export function DragProvider({ children }: DragProviderProps) {
   const renderDragOverlay = () => {
     if (!draggedModuleType) return null
 
-    const moduleMetadata = getModuleMetadata(draggedModuleType as PageModuleType)
+    const moduleMetadata = getModuleMetadata(draggedModuleType as PageModuleType, currentLanguage)
     if (!moduleMetadata) return null
 
     const getIconComponent = (iconName: string) => {

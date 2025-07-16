@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Monitor, Smartphone, Globe } from 'lucide-react'
 import { shopService } from '@/services/shopService'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface TargetArea {
   value: string
@@ -17,7 +18,7 @@ interface TargetArea {
 export function TargetAreaSelector() {
   const { targetArea, setTargetArea } = usePageStore()
   const { setError, setLoading } = useEditorStore()
-
+  const { tEditor, currentLanguage } = useTranslation()
   const [targetAreas, setTargetAreas] = useState<TargetArea[]>([])
   const [isLoadingAreas, setIsLoadingAreas] = useState(true)
 
@@ -26,15 +27,15 @@ export function TargetAreaSelector() {
     const fetchTargetAreas = async () => {
       try {
         setIsLoadingAreas(true)
-        const areas = await shopService.getTargetAreas()
+        const areas = await shopService.getTargetAreas(currentLanguage)
         setTargetAreas(areas)
       } catch (error) {
         console.error('获取目标区域失败:', error)
         setError('获取目标区域失败')
         // 设置默认目标区域
         setTargetAreas([
-          { value: 'pc', label: 'PC端' },
-          { value: 'mobile', label: '移动端' }
+          { value: 'pc', label: tEditor('PC端') },
+          { value: 'mobile', label: tEditor('移动端') }
         ])
       } finally {
         setIsLoadingAreas(false)
@@ -42,7 +43,7 @@ export function TargetAreaSelector() {
     }
 
     fetchTargetAreas()
-  }, [setError])
+  }, [setError, tEditor, currentLanguage])
 
   // 处理目标区域切换
   const handleTargetAreaChange = (newTargetArea: string) => {
@@ -71,11 +72,11 @@ export function TargetAreaSelector() {
 
   return (
     <div className="flex items-center gap-3" data-testid="target-area-selector">
-      <Label className="text-sm font-medium">目标区域:</Label>
+      <Label className="text-sm font-medium">{tEditor('目标区域')}:</Label>
 
       {isLoadingAreas ? (
         <Badge variant="outline" className="animate-pulse">
-          加载中...
+          {tEditor('加载中')}...
         </Badge>
       ) : (
         <div className="flex items-center gap-2">
@@ -90,7 +91,7 @@ export function TargetAreaSelector() {
           {/* 目标区域选择器 */}
           <Select value={targetArea} onValueChange={handleTargetAreaChange}>
             <SelectTrigger className="w-32 h-8">
-              <SelectValue placeholder="选择区域" />
+              <SelectValue placeholder={tEditor('选择区域')} />
             </SelectTrigger>
             <SelectContent>
               {targetAreas?.map(area => (
@@ -107,7 +108,9 @@ export function TargetAreaSelector() {
       )}
 
       {/* 提示信息 */}
-      <div className="text-xs text-muted-foreground">当前编辑: {currentTargetArea?.label || targetArea}</div>
+      <div className="text-xs text-muted-foreground">
+        {tEditor('当前编辑')}: {currentTargetArea?.label || targetArea}
+      </div>
     </div>
   )
 }
