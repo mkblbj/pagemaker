@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface KeyboardShortcutsProps {
   onShowHelp?: () => void
@@ -11,6 +12,7 @@ interface KeyboardShortcutsProps {
 export function KeyboardShortcuts({ onShowHelp }: KeyboardShortcutsProps) {
   const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules } = usePageStore()
   const { markUnsaved } = useEditorStore()
+  const { tEditor } = useTranslation()
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -74,7 +76,7 @@ export function KeyboardShortcuts({ onShowHelp }: KeyboardShortcutsProps) {
         case 'Delete':
         case 'Backspace':
           event.preventDefault()
-          if (selectedModuleId && confirm('确定要删除选中的模块吗？')) {
+          if (selectedModuleId && confirm(tEditor('确定要删除选中的模块吗？'))) {
             deleteModule(selectedModuleId)
             markUnsaved()
           }
@@ -127,7 +129,16 @@ export function KeyboardShortcuts({ onShowHelp }: KeyboardShortcutsProps) {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [currentPage?.content, selectedModuleId, setSelectedModule, deleteModule, reorderModules, markUnsaved, onShowHelp])
+  }, [
+    currentPage?.content,
+    selectedModuleId,
+    setSelectedModule,
+    deleteModule,
+    reorderModules,
+    markUnsaved,
+    onShowHelp,
+    tEditor
+  ])
 
   return null // 这是一个无UI的功能组件
 }

@@ -24,12 +24,14 @@ import { usePageEditor } from '@/hooks/usePageEditor'
 import { DragProvider } from './dnd/DragContext'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
 import { KeyboardShortcutsHelp, KeyboardShortcutsHelpRef } from './KeyboardShortcutsHelp'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface EditorLayoutProps {
   pageId: string
 }
 
 export function EditorLayout({ pageId }: EditorLayoutProps) {
+  const { tEditor } = useTranslation()
   const {
     leftPanelWidth,
     rightPanelWidth,
@@ -161,7 +163,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="h-full flex flex-col">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">模块库</h2>
+                <h2 className="text-lg font-semibold">{tEditor('模块库')}</h2>
                 <Button variant="ghost" size="sm" onClick={toggleLeftPanel}>
                   <PanelLeftClose className="h-4 w-4" />
                 </Button>
@@ -196,7 +198,9 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
               {/* 页面标题 */}
               <div>
                 <h1 className="text-xl font-semibold">{currentPage?.name || '页面编辑器'}</h1>
-                <p className="text-sm text-muted-foreground">页面ID: {pageId}</p>
+                <p className="text-sm text-muted-foreground">
+                  {tEditor('页面ID')}: {pageId}
+                </p>
               </div>
 
               {/* 目标区域选择 */}
@@ -207,22 +211,22 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
               {/* 保存状态指示 */}
               {hasUnsavedChanges && (
                 <span className="text-sm text-muted-foreground" data-testid="unsaved-indicator">
-                  未保存的更改
+                  {tEditor('未保存的更改')}
                 </span>
               )}
 
               {/* 操作按钮 */}
               <Button variant="outline" size="sm" onClick={previewPage}>
                 <Eye className="h-4 w-4 mr-2" />
-                预览
+                {tEditor('预览')}
               </Button>
               <Button variant="outline" size="sm" disabled={isSaving} onClick={savePage}>
                 <Save className="h-4 w-4 mr-2" />
-                {isSaving ? '保存中...' : '保存'}
+                {isSaving ? tEditor('保存中...') : tEditor('保存')}
               </Button>
               <Button variant="outline" size="sm" onClick={handleShowHelp}>
                 <Settings className="h-4 w-4 mr-2" />
-                帮助
+                {tEditor('帮助')}
               </Button>
 
               {/* 右侧面板切换 */}
@@ -256,7 +260,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="h-full flex flex-col">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">属性面板</h2>
+                <h2 className="text-lg font-semibold">{tEditor('属性面板')}</h2>
                 <Button variant="ghost" size="sm" onClick={toggleRightPanel}>
                   <PanelRightClose className="h-4 w-4" />
                 </Button>

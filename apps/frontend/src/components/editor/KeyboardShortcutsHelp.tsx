@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { HelpCircle, Keyboard } from 'lucide-react'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface ShortcutItem {
   keys: string[]
@@ -16,80 +17,82 @@ export interface KeyboardShortcutsHelpRef {
   openDialog: () => void
 }
 
-const shortcuts: ShortcutItem[] = [
-  // 模块导航
-  {
-    keys: ['↑'],
-    description: '选择上一个模块',
-    category: '模块导航'
-  },
-  {
-    keys: ['↓'],
-    description: '选择下一个模块',
-    category: '模块导航'
-  },
-  {
-    keys: ['Esc'],
-    description: '取消选择',
-    category: '模块导航'
-  },
+function getShortcuts(tEditor: (key: string) => string): ShortcutItem[] {
+  return [
+    // 模块导航
+    {
+      keys: ['↑'],
+      description: tEditor('选择上一个模块'),
+      category: tEditor('模块导航')
+    },
+    {
+      keys: ['↓'],
+      description: tEditor('选择下一个模块'),
+      category: tEditor('模块导航')
+    },
+    {
+      keys: ['Esc'],
+      description: tEditor('取消选择'),
+      category: tEditor('模块导航')
+    },
 
-  // 模块操作
-  {
-    keys: ['Shift', '↑'],
-    description: '向上移动选中模块',
-    category: '模块操作'
-  },
-  {
-    keys: ['Shift', '↓'],
-    description: '向下移动选中模块',
-    category: '模块操作'
-  },
-  {
-    keys: ['Delete'],
-    description: '删除选中模块',
-    category: '模块操作'
-  },
-  {
-    keys: ['Backspace'],
-    description: '删除选中模块',
-    category: '模块操作'
-  },
+    // 模块操作
+    {
+      keys: ['Shift', '↑'],
+      description: tEditor('向上移动选中模块'),
+      category: tEditor('模块操作')
+    },
+    {
+      keys: ['Shift', '↓'],
+      description: tEditor('向下移动选中模块'),
+      category: tEditor('模块操作')
+    },
+    {
+      keys: ['Delete'],
+      description: tEditor('删除选中模块'),
+      category: tEditor('模块操作')
+    },
+    {
+      keys: ['Backspace'],
+      description: tEditor('删除选中模块'),
+      category: tEditor('模块操作')
+    },
 
-  // 编辑操作（预留）
-  {
-    keys: ['Ctrl', 'C'],
-    description: '复制模块（开发中）',
-    category: '编辑操作'
-  },
-  {
-    keys: ['Ctrl', 'V'],
-    description: '粘贴模块（开发中）',
-    category: '编辑操作'
-  },
-  {
-    keys: ['Ctrl', 'Z'],
-    description: '撤销操作（开发中）',
-    category: '编辑操作'
-  },
-  {
-    keys: ['Ctrl', 'Y'],
-    description: '重做操作（开发中）',
-    category: '编辑操作'
-  },
+    // 编辑操作（预留）
+    {
+      keys: ['Ctrl', 'C'],
+      description: tEditor('复制模块（开发中）'),
+      category: tEditor('编辑操作')
+    },
+    {
+      keys: ['Ctrl', 'V'],
+      description: tEditor('粘贴模块（开发中）'),
+      category: tEditor('编辑操作')
+    },
+    {
+      keys: ['Ctrl', 'Z'],
+      description: tEditor('撤销操作（开发中）'),
+      category: tEditor('编辑操作')
+    },
+    {
+      keys: ['Ctrl', 'Y'],
+      description: tEditor('重做操作（开发中）'),
+      category: tEditor('编辑操作')
+    },
 
-  // 帮助
-  {
-    keys: ['F1'],
-    description: '显示快捷键帮助',
-    category: '帮助'
-  },
-  {
-    keys: ['?'],
-    description: '显示快捷键帮助',
-    category: '帮助'
-  }
-]
+    // 帮助
+    {
+      keys: ['F1'],
+      description: tEditor('显示快捷键帮助'),
+      category: tEditor('帮助')
+    },
+    {
+      keys: ['?'],
+      description: tEditor('显示快捷键帮助'),
+      category: tEditor('帮助')
+    }
+  ]
+}
 
 function KeyBadge({ keyName }: { keyName: string }) {
   const getKeyDisplay = (key: string) => {
@@ -139,12 +142,14 @@ function ShortcutRow({ shortcut }: { shortcut: ShortcutItem }) {
 
 export const KeyboardShortcutsHelp = forwardRef<KeyboardShortcutsHelpRef>((props, ref) => {
   const [open, setOpen] = useState(false)
+  const { tEditor, tCommon } = useTranslation()
 
   useImperativeHandle(ref, () => ({
     openDialog: () => setOpen(true)
   }))
 
   // 按类别分组快捷键
+  const shortcuts = getShortcuts(tEditor)
   const groupedShortcuts = shortcuts.reduce(
     (acc, shortcut) => {
       if (!acc[shortcut.category]) {
@@ -159,7 +164,7 @@ export const KeyboardShortcutsHelp = forwardRef<KeyboardShortcutsHelpRef>((props
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="键盘快捷键帮助 (F1 或 ?)">
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title={tEditor('键盘快捷键帮助 (F1 或 ?)')}>
           <HelpCircle className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -168,7 +173,7 @@ export const KeyboardShortcutsHelp = forwardRef<KeyboardShortcutsHelpRef>((props
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Keyboard className="h-5 w-5" />
-            键盘快捷键
+            {tEditor('键盘快捷键')}
           </DialogTitle>
         </DialogHeader>
 
@@ -187,7 +192,8 @@ export const KeyboardShortcutsHelp = forwardRef<KeyboardShortcutsHelpRef>((props
 
         <div className="mt-6 p-4 bg-muted/30 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            💡 <strong>提示：</strong>快捷键在输入框中不会生效，确保焦点在编辑器主区域。
+            💡 <strong>{tCommon('提示')}：</strong>
+            {tEditor('快捷键在输入框中不会生效，确保焦点在编辑器主区域。')}
           </p>
         </div>
       </DialogContent>

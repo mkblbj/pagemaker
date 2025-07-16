@@ -49,9 +49,9 @@ vi.mock('@dnd-kit/sortable', () => ({
 }))
 
 // Mock lucide-react
-vi.mock('lucide-react', async (importOriginal) => {
-  const actual = await importOriginal() as any
-  
+vi.mock('lucide-react', async importOriginal => {
+  const actual = (await importOriginal()) as any
+
   const mockIcons = {
     Search: () => <div data-testid="search-icon" />,
     Plus: () => <div data-testid="plus-icon" />,
@@ -72,7 +72,7 @@ vi.mock('lucide-react', async (importOriginal) => {
     X: () => <div data-testid="x-icon" />,
     XIcon: () => <div data-testid="x-icon" />
   }
-  
+
   return {
     ...actual,
     ...mockIcons

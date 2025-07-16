@@ -7,6 +7,7 @@ import { ModuleRenderer } from './ModuleRenderer'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { getModuleMetadata } from '@/lib/moduleRegistry'
 import { Button } from '@/components/ui/button'
+import { useTranslation } from '@/contexts/I18nContext'
 
 import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical } from 'lucide-react'
 import { DroppableCanvas } from './dnd/DroppableCanvas'
@@ -25,7 +26,8 @@ function SortableModuleContainer({
   onMoveDown,
   isFirst,
   isLast,
-  isDeleting = false
+  isDeleting = false,
+  t
 }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: module.id,
@@ -79,7 +81,7 @@ function SortableModuleContainer({
             }}
             disabled={isFirst}
             className="h-6 w-6 p-0"
-            aria-label="上移模块"
+            aria-label={t('editor.上移模块')}
           >
             <MoveUp className="h-3 w-3" />
           </Button>
@@ -92,7 +94,7 @@ function SortableModuleContainer({
             }}
             disabled={isLast}
             className="h-6 w-6 p-0"
-            aria-label="下移模块"
+            aria-label={t('editor.下移模块')}
           >
             <MoveDown className="h-3 w-3" />
           </Button>
@@ -104,7 +106,7 @@ function SortableModuleContainer({
               onCopy()
             }}
             className="h-6 w-6 p-0"
-            aria-label="复制模块"
+            aria-label={t('editor.复制模块')}
           >
             <Copy className="h-3 w-3" />
           </Button>
@@ -116,7 +118,7 @@ function SortableModuleContainer({
               onDelete()
             }}
             className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-            aria-label="删除模块"
+            aria-label={t('editor.删除模块')}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -129,6 +131,7 @@ function SortableModuleContainer({
 export function Canvas() {
   const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, addModule } = usePageStore()
   const { markUnsaved, hasUnsavedChanges } = useEditorStore()
+  const { tEditor } = useTranslation()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [moduleToDelete, setModuleToDelete] = useState<any>(null)
@@ -202,11 +205,13 @@ export function Canvas() {
         <div className="h-full flex items-center justify-center text-center">
           <div className="max-w-md mx-auto">
             <FileX className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">画布为空</h3>
-            <p className="text-gray-500 mb-6">从左侧模块列表中拖拽模块到此处，或点击下方按钮开始创建页面内容。</p>
+            <h3 className="text-lg font-medium text-gray-600 mb-2">{tEditor('画布为空')}</h3>
+            <p className="text-gray-500 mb-6">
+              {tEditor('从左侧模块列表中拖拽模块到此处，或点击下方按钮开始创建页面内容。')}
+            </p>
             <div className="flex items-center justify-center gap-2">
               <Plus className="h-4 w-4" />
-              <span className="text-sm">从左侧拖拽模块到此处</span>
+              <span className="text-sm">{tEditor('从左侧拖拽模块到此处')}</span>
             </div>
           </div>
         </div>
@@ -227,6 +232,7 @@ export function Canvas() {
               isFirst={index === 0}
               isLast={index === modules.length - 1}
               isDeleting={deletingModuleId === module.id}
+              t={tEditor}
             />
           ))}
         </div>
@@ -236,10 +242,10 @@ export function Canvas() {
       <div className="mt-8 p-4 bg-muted/30 rounded-lg border border-dashed">
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            页面模块数量: {modules.length} | 页面ID: {currentPage?.id} | 最后更新:{' '}
-            {currentPage?.updated_at ? new Date(currentPage.updated_at).toLocaleString() : '未知'}
+            {tEditor('页面模块数量')}: {modules.length} | {tEditor('页面ID')}: {currentPage?.id} | {tEditor('最后更新')}
+            : {currentPage?.updated_at ? new Date(currentPage.updated_at).toLocaleString() : tEditor('未知')}
           </p>
-          {hasUnsavedChanges && <p className="text-xs text-orange-600 mt-1">有未保存的更改</p>}
+          {hasUnsavedChanges && <p className="text-xs text-orange-600 mt-1">{tEditor('有未保存的更改')}</p>}
         </div>
       </div>
 
@@ -249,7 +255,7 @@ export function Canvas() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDeleteModule}
         moduleName={moduleToDelete?.text || moduleToDelete?.title || moduleToDelete?.alt}
-        moduleType={getModuleMetadata(moduleToDelete?.type)?.name || moduleToDelete?.type}
+        moduleType={getModuleMetadata(moduleToDelete?.type, tEditor)?.name || moduleToDelete?.type}
       />
     </DroppableCanvas>
   )

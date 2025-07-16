@@ -11,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { Settings, Image, Plus, Trash2 } from 'lucide-react'
 import { PageModuleType } from '@pagemaker/shared-types'
+import { useTranslation } from '@/contexts/I18nContext'
 
 export function PropertyPanel() {
   const { currentPage, selectedModuleId, updateModule } = usePageStore()
   const { markUnsaved } = useEditorStore()
+  const { tEditor } = useTranslation()
 
   const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)
 
@@ -39,7 +41,7 @@ export function PropertyPanel() {
   const handleAddKeyValue = () => {
     if (selectedModule) {
       const currentPairs = (selectedModule as any).pairs || []
-      const newPairs = [...currentPairs, { key: '新键', value: '新值' }]
+      const newPairs = [...currentPairs, { key: tEditor('新键'), value: tEditor('新值') }]
       handlePropertyUpdate('pairs', newPairs)
     }
   }
@@ -58,14 +60,14 @@ export function PropertyPanel() {
         <div className="p-4 border-b">
           <div className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            <h3 className="font-semibold">属性设置</h3>
+            <h3 className="font-semibold">{tEditor('properties')}</h3>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center text-center p-8">
           <div className="text-muted-foreground">
             <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-sm">选择一个模块</p>
-            <p className="text-xs mt-1">点击画布中的模块来编辑其属性</p>
+            <p className="text-sm">{tEditor('未选择模块')}</p>
+            <p className="text-xs mt-1">{tEditor('请在画布中选择一个模块以编辑其属性')}</p>
           </div>
         </div>
       </div>
@@ -78,16 +80,16 @@ export function PropertyPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title-text">标题文本</Label>
+              <Label htmlFor="title-text">{tEditor('标题文本')}</Label>
               <Input
                 id="title-text"
                 value={(selectedModule as any).text || ''}
                 onChange={e => handlePropertyUpdate('text', e.target.value)}
-                placeholder="输入标题文本"
+                placeholder={tEditor('输入标题文本')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="title-level">标题级别</Label>
+              <Label htmlFor="title-level">{tEditor('标题级别')}</Label>
               <Select
                 value={String((selectedModule as any).level || 1)}
                 onValueChange={value => handlePropertyUpdate('level', parseInt(value))}
@@ -110,12 +112,12 @@ export function PropertyPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="text-content">文本内容</Label>
+              <Label htmlFor="text-content">{tEditor('文本内容')}</Label>
               <Textarea
                 id="text-content"
                 value={(selectedModule as any).text || ''}
                 onChange={e => handlePropertyUpdate('text', e.target.value)}
-                placeholder="输入文本内容"
+                placeholder={tEditor('输入文本内容')}
                 rows={6}
               />
             </div>
@@ -126,26 +128,26 @@ export function PropertyPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="image-src">图片URL</Label>
+              <Label htmlFor="image-src">{tEditor('图片URL')}</Label>
               <Input
                 id="image-src"
                 value={(selectedModule as any).src || ''}
                 onChange={e => handlePropertyUpdate('src', e.target.value)}
-                placeholder="输入图片URL或点击上传"
+                placeholder={tEditor('输入图片URL')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="image-alt">图片描述</Label>
+              <Label htmlFor="image-alt">{tEditor('图片描述')}</Label>
               <Input
                 id="image-alt"
                 value={(selectedModule as any).alt || ''}
                 onChange={e => handlePropertyUpdate('alt', e.target.value)}
-                placeholder="输入图片描述文本"
+                placeholder={tEditor('输入图片描述')}
               />
             </div>
             <Button variant="outline" className="w-full">
               <Image className="h-4 w-4 mr-2" />
-              上传图片
+              {tEditor('上传图片')}
             </Button>
             {(selectedModule as any).src && (
               <div className="mt-4">

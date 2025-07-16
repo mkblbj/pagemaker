@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Trash2, AlertTriangle } from 'lucide-react'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface DeleteConfirmDialogProps {
   open: boolean
@@ -27,6 +28,8 @@ export function DeleteConfirmDialog({
   moduleName,
   moduleType
 }: DeleteConfirmDialogProps) {
+  const { tEditor } = useTranslation()
+
   const handleConfirm = () => {
     onConfirm()
     onOpenChange(false)
@@ -45,8 +48,8 @@ export function DeleteConfirmDialog({
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <DialogTitle>删除模块确认</DialogTitle>
-              <DialogDescription className="mt-1">此操作无法撤销，请确认是否继续。</DialogDescription>
+              <DialogTitle>{tEditor('删除模块确认')}</DialogTitle>
+              <DialogDescription className="mt-1">{tEditor('此操作无法撤销，请确认是否继续。')}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -54,25 +57,35 @@ export function DeleteConfirmDialog({
         <div className="py-4">
           <Alert>
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>您确定要删除这个模块吗？删除后将无法恢复。</AlertDescription>
+            <AlertDescription>{tEditor('您确定要删除这个模块吗？删除后将无法恢复。')}</AlertDescription>
           </Alert>
 
           {(moduleName || moduleType) && (
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-              <div className="font-medium text-gray-700 mb-1">模块信息：</div>
-              {moduleType && <div>类型：{moduleType}</div>}
-              {moduleName && <div>名称：{moduleName}</div>}
+              <div className="font-medium text-gray-700 mb-1">{tEditor('模块信息：')}</div>
+              {moduleType && (
+                <div>
+                  {tEditor('类型：')}
+                  {moduleType}
+                </div>
+              )}
+              {moduleName && (
+                <div>
+                  {tEditor('名称：')}
+                  {moduleName}
+                </div>
+              )}
             </div>
           )}
         </div>
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={handleCancel}>
-            取消
+            {tEditor('取消')}
           </Button>
           <Button variant="destructive" onClick={handleConfirm} className="gap-2">
             <Trash2 className="h-4 w-4" />
-            确认删除
+            {tEditor('确认删除')}
           </Button>
         </DialogFooter>
       </DialogContent>
