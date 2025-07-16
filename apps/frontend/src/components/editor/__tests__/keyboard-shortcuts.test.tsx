@@ -59,8 +59,6 @@ describe('KeyboardShortcuts', () => {
     ;(window.confirm as any).mockReturnValue(true)
   })
 
-
-
   describe('箭头键导航', () => {
     it('按下键选择第一个模块', () => {
       render(<KeyboardShortcuts />)

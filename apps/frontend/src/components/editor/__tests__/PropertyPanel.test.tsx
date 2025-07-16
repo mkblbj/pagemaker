@@ -25,8 +25,6 @@ describe('PropertyPanel', () => {
     })
   })
 
-
-
   it('应该显示标题模块的属性编辑器', () => {
     const titleModule = {
       id: 'title-1',
