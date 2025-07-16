@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@/test-utils'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
 import { Canvas } from '../Canvas'
 import { usePageStore } from '@/stores/usePageStore'
