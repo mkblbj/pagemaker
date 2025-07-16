@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup } from '@/test-utils'
 import { userEvent } from '@testing-library/user-event'
 import { Canvas } from '../Canvas'
 import { usePageStore } from '@/stores/usePageStore'

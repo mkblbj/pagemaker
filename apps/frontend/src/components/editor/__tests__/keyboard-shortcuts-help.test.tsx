@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@/test-utils'
 import { vi } from 'vitest'
 import { createRef } from 'react'
 import { KeyboardShortcutsHelp, KeyboardShortcutsHelpRef } from '../KeyboardShortcutsHelp'

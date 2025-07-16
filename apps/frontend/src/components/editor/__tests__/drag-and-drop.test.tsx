@@ -3,7 +3,7 @@
  * 测试模块的拖拽添加和排序功能
  */
 
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent } from '@/test-utils'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { DragProvider } from '../dnd/DragContext'
 import { ModuleList } from '../ModuleList'

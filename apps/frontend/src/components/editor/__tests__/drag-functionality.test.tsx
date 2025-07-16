@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-utils'
 import { DragProvider } from '../dnd/DragContext'
 import { ModuleList } from '../ModuleList'
 import { Canvas } from '../Canvas'

@@ -27,7 +27,7 @@ function SortableModuleContainer({
   isFirst,
   isLast,
   isDeleting = false,
-  t
+  tEditor
 }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: module.id,
@@ -81,7 +81,7 @@ function SortableModuleContainer({
             }}
             disabled={isFirst}
             className="h-6 w-6 p-0"
-            aria-label={t('editor.上移模块')}
+            aria-label={tEditor('上移模块')}
           >
             <MoveUp className="h-3 w-3" />
           </Button>
@@ -94,7 +94,7 @@ function SortableModuleContainer({
             }}
             disabled={isLast}
             className="h-6 w-6 p-0"
-            aria-label={t('editor.下移模块')}
+            aria-label={tEditor('下移模块')}
           >
             <MoveDown className="h-3 w-3" />
           </Button>
@@ -106,7 +106,7 @@ function SortableModuleContainer({
               onCopy()
             }}
             className="h-6 w-6 p-0"
-            aria-label={t('editor.复制模块')}
+            aria-label={tEditor('复制模块')}
           >
             <Copy className="h-3 w-3" />
           </Button>
@@ -118,7 +118,7 @@ function SortableModuleContainer({
               onDelete()
             }}
             className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-            aria-label={t('editor.删除模块')}
+            aria-label={tEditor('删除模块')}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -232,7 +232,7 @@ export function Canvas() {
               isFirst={index === 0}
               isLast={index === modules.length - 1}
               isDeleting={deletingModuleId === module.id}
-              t={tEditor}
+              tEditor={tEditor}
             />
           ))}
         </div>

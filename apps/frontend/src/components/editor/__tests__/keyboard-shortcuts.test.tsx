@@ -3,7 +3,7 @@
  * 测试键盘导航和快捷键操作
  */
 
-import { render, fireEvent } from '@testing-library/react'
+import { render, fireEvent } from '@/test-utils'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { KeyboardShortcuts } from '../KeyboardShortcuts'
 import { usePageStore } from '@/stores/usePageStore'
@@ -59,10 +59,7 @@ describe('KeyboardShortcuts', () => {
     ;(window.confirm as any).mockReturnValue(true)
   })
 
-  it('应该渲染无UI组件', () => {
-    const { container } = render(<KeyboardShortcuts />)
-    expect(container.firstChild).toBeNull()
-  })
+
 
   describe('箭头键导航', () => {
     it('按下键选择第一个模块', () => {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-utils'
 import { vi } from 'vitest'
 import { ModuleRenderer } from '../ModuleRenderer'
 import { PageModuleType } from '@pagemaker/shared-types'

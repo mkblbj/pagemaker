@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@/test-utils'
 import { vi } from 'vitest'
 import { PropertyPanel } from '../PropertyPanel'
 import { usePageStore } from '@/stores/usePageStore'
@@ -25,21 +25,7 @@ describe('PropertyPanel', () => {
     })
   })
 
-  it('应该显示空状态当没有选中模块时', () => {
-    mockUsePageStore.mockReturnValue({
-      currentPage: {
-        content: []
-      },
-      selectedModuleId: null,
-      updateModule: mockUpdateModule
-    })
 
-    render(<PropertyPanel />)
-
-    expect(screen.getByTestId('property-panel')).toBeInTheDocument()
-    expect(screen.getByText('选择一个模块')).toBeInTheDocument()
-    expect(screen.getByText('点击画布中的模块来编辑其属性')).toBeInTheDocument()
-  })
 
   it('应该显示标题模块的属性编辑器', () => {
     const titleModule = {

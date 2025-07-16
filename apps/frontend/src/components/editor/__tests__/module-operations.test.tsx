@@ -3,7 +3,7 @@
  * 测试模块的添加、删除、排序等核心功能
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { Canvas } from '../Canvas'

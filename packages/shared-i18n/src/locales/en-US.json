@@ -234,7 +234,8 @@
     "移动端": "Mobile",
     "重新加载": "Reload",
     "保存": "Save",
-    "保存中...": "Saving..."
+    "保存中...": "Saving...",
+    "属性面板": "Properties Panel"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",
