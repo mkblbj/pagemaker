@@ -18,7 +18,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     onError
   } = options
 
-  const { currentPage, hasUnsavedChanges, markSaved } = usePageStore()
+  const { currentPage, hasUnsavedChanges, markSaved, setPage } = usePageStore()
 
   const { setSaving, setError } = useEditorStore()
 
@@ -41,6 +41,8 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
       })
 
       markSaved()
+      // 更新页面信息，包括updated_at时间
+      setPage(updatedPage)
       lastSaveTime.current = Date.now()
 
       console.log('自动保存成功')
@@ -56,7 +58,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     } finally {
       setSaving(false)
     }
-  }, [currentPage, hasUnsavedChanges, setSaving, markSaved, setError, onSave, onError])
+  }, [currentPage, hasUnsavedChanges, setSaving, markSaved, setPage, setError, onSave, onError])
 
   // 设置自动保存定时器
   useEffect(() => {

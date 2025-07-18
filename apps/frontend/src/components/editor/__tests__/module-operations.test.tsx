@@ -44,11 +44,11 @@ const mockPageStore = {
   setSelectedModule: vi.fn(),
   deleteModule: vi.fn(),
   reorderModules: vi.fn(),
-  addModule: vi.fn()
+  addModule: vi.fn(),
+  markUnsaved: vi.fn()
 }
 
 const mockEditorStore = {
-  markUnsaved: vi.fn(),
   hasUnsavedChanges: false
 }
 
@@ -122,7 +122,7 @@ describe('Canvas 模块操作', () => {
     await user.click(copyButton)
 
     expect(mockPageStore.addModule).toHaveBeenCalled()
-    expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+    expect(mockPageStore.markUnsaved).toHaveBeenCalled()
   })
 
   it('应该能够上移模块', async () => {
@@ -139,7 +139,7 @@ describe('Canvas 模块操作', () => {
     await user.click(moveUpButton)
 
     expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 0)
-    expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+    expect(mockPageStore.markUnsaved).toHaveBeenCalled()
   })
 
   it('应该能够下移模块', async () => {
@@ -156,7 +156,7 @@ describe('Canvas 模块操作', () => {
     await user.click(moveDownButton)
 
     expect(mockPageStore.reorderModules).toHaveBeenCalledWith(0, 1)
-    expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+    expect(mockPageStore.markUnsaved).toHaveBeenCalled()
   })
 
   it('第一个模块的上移按钮应该被禁用', () => {

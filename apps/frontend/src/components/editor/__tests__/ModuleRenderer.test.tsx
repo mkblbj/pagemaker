@@ -20,8 +20,7 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={titleModule} />)
 
     expect(screen.getByText('测试标题')).toBeInTheDocument()
-    expect(screen.getByText('标题模块')).toBeInTheDocument()
-    expect(screen.getByText('级别: H1')).toBeInTheDocument()
+    expect(screen.getByText('标题模块 (H1)')).toBeInTheDocument()
   })
 
   it('应该渲染不同级别的标题', () => {
@@ -35,7 +34,7 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={titleModule} />)
 
     expect(screen.getByText('二级标题')).toBeInTheDocument()
-    expect(screen.getByText('级别: H2')).toBeInTheDocument()
+    expect(screen.getByText('标题模块 (H2)')).toBeInTheDocument()
   })
 
   it('应该渲染文本模块', () => {
@@ -173,7 +172,7 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={titleModule} />)
 
     expect(screen.getByText('标题文本')).toBeInTheDocument()
-    expect(screen.getByText('标题模块')).toBeInTheDocument()
+    expect(screen.getByText('标题模块 (H1)')).toBeInTheDocument()
   })
 
   it('应该渲染没有文本的文本模块', () => {
@@ -225,7 +224,7 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={titleModule} />)
 
     const titleElement = screen.getByText('大标题')
-    expect(titleElement).toHaveClass('text-2xl')
+    expect(titleElement).toHaveClass('text-3xl')
   })
 
   it('应该为H2标题应用正确的样式', () => {
@@ -239,7 +238,7 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={titleModule} />)
 
     const titleElement = screen.getByText('中标题')
-    expect(titleElement).toHaveClass('text-xl')
+    expect(titleElement).toHaveClass('text-2xl')
   })
 
   it('应该为H3标题应用正确的样式', () => {
@@ -253,6 +252,6 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={titleModule} />)
 
     const titleElement = screen.getByText('小标题')
-    expect(titleElement).toHaveClass('text-lg')
+    expect(titleElement).toHaveClass('text-xl')
   })
 })

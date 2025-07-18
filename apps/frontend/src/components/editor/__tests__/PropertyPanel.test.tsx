@@ -20,9 +20,7 @@ describe('PropertyPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockUseEditorStore.mockReturnValue({
-      markUnsaved: mockMarkUnsaved
-    })
+    mockUseEditorStore.mockReturnValue({})
   })
 
   it('应该显示标题模块的属性编辑器', () => {
@@ -38,7 +36,8 @@ describe('PropertyPanel', () => {
         content: [titleModule]
       },
       selectedModuleId: 'title-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -61,7 +60,8 @@ describe('PropertyPanel', () => {
         content: [textModule]
       },
       selectedModuleId: 'text-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -84,7 +84,8 @@ describe('PropertyPanel', () => {
         content: [imageModule]
       },
       selectedModuleId: 'image-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -111,7 +112,8 @@ describe('PropertyPanel', () => {
         content: [keyValueModule]
       },
       selectedModuleId: 'kv-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -135,7 +137,8 @@ describe('PropertyPanel', () => {
         content: [separatorModule]
       },
       selectedModuleId: 'sep-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -156,7 +159,8 @@ describe('PropertyPanel', () => {
         content: [multiColumnModule]
       },
       selectedModuleId: 'mc-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -178,7 +182,8 @@ describe('PropertyPanel', () => {
         content: [titleModule]
       },
       selectedModuleId: 'title-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -202,7 +207,8 @@ describe('PropertyPanel', () => {
         content: [textModule]
       },
       selectedModuleId: 'text-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -227,7 +233,8 @@ describe('PropertyPanel', () => {
         content: [imageModule]
       },
       selectedModuleId: 'image-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -251,7 +258,8 @@ describe('PropertyPanel', () => {
         content: [keyValueModule]
       },
       selectedModuleId: 'kv-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -283,7 +291,8 @@ describe('PropertyPanel', () => {
         content: [keyValueModule]
       },
       selectedModuleId: 'kv-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -313,7 +322,8 @@ describe('PropertyPanel', () => {
         content: [keyValueModule]
       },
       selectedModuleId: 'kv-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -339,7 +349,8 @@ describe('PropertyPanel', () => {
         content: [keyValueModule]
       },
       selectedModuleId: 'kv-1',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)
@@ -365,7 +376,8 @@ describe('PropertyPanel', () => {
         content: [textModule]
       },
       selectedModuleId: 'test-module-123',
-      updateModule: mockUpdateModule
+      updateModule: mockUpdateModule,
+      markUnsaved: mockMarkUnsaved
     })
 
     render(<PropertyPanel />)

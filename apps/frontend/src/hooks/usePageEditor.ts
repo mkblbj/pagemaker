@@ -5,7 +5,7 @@ import { pageService } from '@/services/pageService'
 import { useRequest } from 'ahooks'
 
 export function usePageEditor() {
-  const { currentPage, hasUnsavedChanges, markSaved, markUnsaved } = usePageStore()
+  const { currentPage, hasUnsavedChanges, markSaved, markUnsaved, setPage } = usePageStore()
 
   const { setSaving, setError } = useEditorStore()
 
@@ -25,7 +25,10 @@ export function usePageEditor() {
           target_area: currentPage.target_area
         })
 
+        // 确保状态同步更新
         markSaved()
+        // 更新页面信息，包括updated_at时间
+        setPage(updatedPage)
         return updatedPage
       } catch (error) {
         setError(error instanceof Error ? error.message : '保存失败')

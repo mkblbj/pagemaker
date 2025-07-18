@@ -14,8 +14,7 @@ import { PageModuleType } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 
 export function PropertyPanel() {
-  const { currentPage, selectedModuleId, updateModule } = usePageStore()
-  const { markUnsaved } = useEditorStore()
+  const { currentPage, selectedModuleId, updateModule, markUnsaved } = usePageStore()
   const { tEditor } = useTranslation()
 
   const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)
@@ -60,7 +59,7 @@ export function PropertyPanel() {
         <div className="p-4 border-b">
           <div className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            <h3 className="font-semibold">{tEditor('properties')}</h3>
+            <h3 className="font-semibold">{tEditor('属性设置')}</h3>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center text-center p-8">
@@ -98,12 +97,83 @@ export function PropertyPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">H1 - 主标题</SelectItem>
-                  <SelectItem value="2">H2 - 副标题</SelectItem>
-                  <SelectItem value="3">H3 - 三级标题</SelectItem>
-                  <SelectItem value="4">H4 - 四级标题</SelectItem>
+                  <SelectItem value="1">{tEditor('H1 - 主标题')}</SelectItem>
+                  <SelectItem value="2">{tEditor('H2 - 副标题')}</SelectItem>
+                  <SelectItem value="3">{tEditor('H3 - 三级标题')}</SelectItem>
+                  <SelectItem value="4">{tEditor('H4 - 四级标题')}</SelectItem>
+                  <SelectItem value="5">{tEditor('H5 - 五级标题')}</SelectItem>
+                  <SelectItem value="6">{tEditor('H6 - 六级标题')}</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="title-alignment">{tEditor('对齐方式')}</Label>
+              <Select
+                value={(selectedModule as any).alignment || 'left'}
+                onValueChange={value => handlePropertyUpdate('alignment', value)}
+              >
+                <SelectTrigger id="title-alignment">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+                  <SelectItem value="center">{tEditor('居中对齐')}</SelectItem>
+                  <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                  <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="title-font-family">{tEditor('字体')}</Label>
+              <Select
+                value={(selectedModule as any).fontFamily || 'inherit'}
+                onValueChange={value => handlePropertyUpdate('fontFamily', value)}
+              >
+                <SelectTrigger id="title-font-family">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">{tEditor('系统默认')}</SelectItem>
+                  <SelectItem value="Arial, sans-serif">Arial</SelectItem>
+                  <SelectItem value="'Times New Roman', serif">Times New Roman</SelectItem>
+                  <SelectItem value="'Courier New', monospace">Courier New</SelectItem>
+                  <SelectItem value="'Helvetica Neue', sans-serif">Helvetica Neue</SelectItem>
+                  <SelectItem value="'MS Mincho', serif">明朝体</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="title-font-weight">{tEditor('字体粗细')}</Label>
+              <Select
+                value={(selectedModule as any).fontWeight || 'bold'}
+                onValueChange={value => handlePropertyUpdate('fontWeight', value)}
+              >
+                <SelectTrigger id="title-font-weight">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">{tEditor('正常')}</SelectItem>
+                  <SelectItem value="bold">{tEditor('加粗')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="title-color">{tEditor('文字颜色')}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="title-color"
+                  type="color"
+                  value={(selectedModule as any).color || '#000000'}
+                  onChange={e => handlePropertyUpdate('color', e.target.value)}
+                  className="w-16 h-8 p-1 rounded"
+                />
+                <Input
+                  value={(selectedModule as any).color || '#000000'}
+                  onChange={e => handlePropertyUpdate('color', e.target.value)}
+                  placeholder="#000000"
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
         )
@@ -256,11 +326,11 @@ export function PropertyPanel() {
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
           <Settings className="h-5 w-5" />
-          <h3 className="font-semibold">属性设置</h3>
+          <h3 className="font-semibold">{tEditor('属性设置')}</h3>
         </div>
         <div className="mt-2">
           <Badge variant="outline" className="text-xs">
-            {selectedModule.type} 模块
+            {tEditor('{type} 模块', { type: selectedModule.type })}
           </Badge>
         </div>
       </div>

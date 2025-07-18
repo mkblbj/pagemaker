@@ -19,11 +19,15 @@ function SortableModuleContainer({
   module,
   index,
   isSelected,
+  isEditing,
   onSelect,
   onDelete,
   onCopy,
   onMoveUp,
   onMoveDown,
+  onUpdate,
+  onStartEdit,
+  onEndEdit,
   isFirst,
   isLast,
   isDeleting = false,
@@ -66,7 +70,14 @@ function SortableModuleContainer({
 
       {/* 模块内容 */}
       <div className="ml-6">
-        <ModuleRenderer module={module} />
+        <ModuleRenderer
+          module={module}
+          isSelected={isSelected}
+          isEditing={isEditing}
+          onUpdate={onUpdate}
+          onStartEdit={onStartEdit}
+          onEndEdit={onEndEdit}
+        />
       </div>
 
       {/* 操作按钮 */}
@@ -129,13 +140,14 @@ function SortableModuleContainer({
 }
 
 export function Canvas() {
-  const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, addModule } = usePageStore()
-  const { markUnsaved, hasUnsavedChanges } = useEditorStore()
+  const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, addModule, updateModule, markUnsaved, hasUnsavedChanges } =
+    usePageStore()
   const { tEditor, currentLanguage } = useTranslation()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [moduleToDelete, setModuleToDelete] = useState<any>(null)
   const [deletingModuleId, setDeletingModuleId] = useState<string | null>(null)
+  const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
 
   const modules = currentPage?.content || []
 
@@ -198,6 +210,23 @@ export function Canvas() {
     }
   }
 
+  // 处理模块更新
+  const handleModuleUpdate = (moduleId: string, updates: Partial<any>) => {
+    updateModule(moduleId, updates)
+    markUnsaved()
+  }
+
+  // 处理开始编辑
+  const handleStartEdit = (moduleId: string) => {
+    setEditingModuleId(moduleId)
+    setSelectedModule(moduleId)
+  }
+
+  // 处理结束编辑
+  const handleEndEdit = () => {
+    setEditingModuleId(null)
+  }
+
   return (
     <DroppableCanvas className="h-full overflow-y-auto p-4 relative">
       {modules.length === 0 ? (
@@ -224,11 +253,15 @@ export function Canvas() {
               module={module}
               index={index}
               isSelected={selectedModuleId === module.id}
+              isEditing={editingModuleId === module.id}
               onSelect={handleModuleSelect}
               onDelete={() => handleModuleDelete(module.id)}
               onCopy={() => handleModuleCopy(module.id)}
               onMoveUp={() => handleModuleMoveUp(module.id)}
               onMoveDown={() => handleModuleMoveDown(module.id)}
+              onUpdate={(updates: any) => handleModuleUpdate(module.id, updates)}
+              onStartEdit={() => handleStartEdit(module.id)}
+              onEndEdit={handleEndEdit}
               isFirst={index === 0}
               isLast={index === modules.length - 1}
               isDeleting={deletingModuleId === module.id}

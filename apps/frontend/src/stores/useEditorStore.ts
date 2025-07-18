@@ -7,7 +7,6 @@ interface EditorState {
 
   // 保存状态
   isSaving: boolean
-  hasUnsavedChanges: boolean
 
   // 错误状态
   error: string | null
@@ -30,8 +29,6 @@ interface EditorState {
   setLoading: (loading: boolean) => void
   setSaving: (saving: boolean) => void
   setError: (error: string | null) => void
-  markUnsaved: () => void
-  markSaved: () => void
 
   // UI Actions
   setLeftPanelWidth: (width: number) => void
@@ -56,7 +53,6 @@ export const useEditorStore = create<EditorState>()(
       // Initial state
       isLoading: false,
       isSaving: false,
-      hasUnsavedChanges: false,
       error: null,
       leftPanelWidth: 280,
       rightPanelWidth: 320,
@@ -73,10 +69,6 @@ export const useEditorStore = create<EditorState>()(
       setSaving: saving => set({ isSaving: saving }, false, 'setSaving'),
 
       setError: error => set({ error }, false, 'setError'),
-
-      markUnsaved: () => set({ hasUnsavedChanges: true }, false, 'markUnsaved'),
-
-      markSaved: () => set({ hasUnsavedChanges: false }, false, 'markSaved'),
 
       // UI Actions
       setLeftPanelWidth: width =>
@@ -113,7 +105,6 @@ export const useEditorStore = create<EditorState>()(
           {
             isLoading: false,
             isSaving: false,
-            hasUnsavedChanges: false,
             error: null,
             isDragging: false,
             draggedModuleType: null,

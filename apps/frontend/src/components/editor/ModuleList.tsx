@@ -11,8 +11,7 @@ import { DraggableModuleItem } from './dnd/DraggableModuleItem'
 import { useTranslation } from '@/contexts/I18nContext'
 
 export function ModuleList() {
-  const { selectedModuleId, addModule } = usePageStore()
-  const { markUnsaved } = useEditorStore()
+  const { selectedModuleId, addModule, targetArea } = usePageStore()
   const { tEditor, tCommon, currentLanguage } = useTranslation()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -26,12 +25,12 @@ export function ModuleList() {
   )
 
   const filteredModules = useMemo(() => {
-    return getAvailableModules(currentLanguage).filter(
+    return getAvailableModules(currentLanguage, targetArea).filter(
       module =>
         module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [searchTerm, currentLanguage])
+  }, [searchTerm, currentLanguage, targetArea])
 
   return (
     <div className="h-full flex flex-col overflow-x-hidden" data-testid="module-list">

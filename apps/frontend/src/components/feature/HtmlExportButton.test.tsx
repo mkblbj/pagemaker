@@ -101,11 +101,11 @@ describe('HtmlExportButton', () => {
     const minifyCheckbox = screen.getByLabelText('压缩HTML代码')
 
     expect(includeStylesCheckbox).toBeChecked()
-    expect(minifyCheckbox).not.toBeChecked()
+    expect(minifyCheckbox).toBeChecked() // 现在默认为true
 
     // 测试选项切换
     await user.click(minifyCheckbox)
-    expect(minifyCheckbox).toBeChecked()
+    expect(minifyCheckbox).not.toBeChecked()
   })
 
   it('应该在对话框打开时自动生成HTML', async () => {
@@ -122,7 +122,7 @@ describe('HtmlExportButton', () => {
         expect.objectContaining({
           title: '测试页面',
           includeStyles: true,
-          minify: false,
+          minify: true, // 现在默认为true
           fullDocument: false
         })
       )

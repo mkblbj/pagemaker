@@ -26,10 +26,12 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
       category: 'basic',
       color: 'text-blue-600',
       defaultConfig: {
-        text: tEditor('标题文本'),
+        text: 'タイトルテキスト',
         level: 1,
         alignment: 'left',
-        color: '#000000'
+        color: '#000000',
+        fontFamily: 'inherit',
+        fontWeight: 'bold'
       },
       isEnabled: true,
       sortOrder: 1
@@ -117,10 +119,25 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
 /**
  * 获取所有可用模块
  */
-export function getAvailableModules(language?: SupportedLanguage): ModuleMetadata[] {
+export function getAvailableModules(language?: SupportedLanguage, targetArea?: string): ModuleMetadata[] {
   const registry = createModuleRegistry(language)
+  const tEditor = createTEditor(language)
+  
   return Object.values(registry)
     .filter(module => module.isEnabled)
+    .map(module => {
+      // 乐天规则：手机页面不允许使用标题标签
+      if (module.type === PageModuleType.TITLE && targetArea === 'mobile') {
+        return {
+          ...module,
+          isEnabled: false,
+          color: 'text-gray-400',
+          name: `${module.name} (${tEditor('手机页面不可用')})`,
+          description: `${module.description} - ${tEditor('乐天规则：手机页面不允许使用H1-H6标签')}`
+        }
+      }
+      return module
+    })
     .sort((a, b) => a.sortOrder - b.sortOrder)
 }
 
@@ -129,9 +146,10 @@ export function getAvailableModules(language?: SupportedLanguage): ModuleMetadat
  */
 export function getModulesByCategory(
   category: 'basic' | 'advanced' | 'layout',
-  language?: SupportedLanguage
+  language?: SupportedLanguage,
+  targetArea?: string
 ): ModuleMetadata[] {
-  return getAvailableModules(language).filter(module => module.category === category)
+  return getAvailableModules(language, targetArea).filter(module => module.category === category)
 }
 
 /**

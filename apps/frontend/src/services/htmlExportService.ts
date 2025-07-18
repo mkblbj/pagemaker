@@ -113,14 +113,18 @@ ${htmlContent}
    * 生成标题模块HTML
    */
   private static generateTitleHTML(module: PageModule): string {
-    const content = getStringProp(module, 'content')
-    const level = getStringProp(module, 'level', 'h2')
+    const content = getStringProp(module, 'text', getStringProp(module, 'content'))
+    const level = module.level ? `h${module.level}` : getStringProp(module, 'level', 'h2')
     const alignment = getStringProp(module, 'alignment', 'left')
     const color = getStringProp(module, 'color', '#000000')
+    const fontFamily = getStringProp(module, 'fontFamily', 'inherit')
+    const fontWeight = getStringProp(module, 'fontWeight', 'bold')
 
     const styles = this.generateInlineStyles({
       'text-align': alignment,
       color: color,
+      'font-family': fontFamily !== 'inherit' ? fontFamily : undefined,
+      'font-weight': fontWeight,
       'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
       'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
       'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
@@ -130,7 +134,10 @@ ${htmlContent}
       'background-color': getStringProp(module, 'backgroundColor')
     })
 
-    return `        <${level} class="pm-title" style="${styles}">${this.escapeHtml(content)}</${level}>`
+    // 处理换行符
+    const formattedContent = this.escapeHtml(content).replace(/\n/g, '<br>')
+    
+    return `        <${level} class="pm-title" style="${styles}">${formattedContent}</${level}>`
   }
 
   /**
@@ -403,19 +410,13 @@ ${columnsHTML}
    * HTML转义
    */
   private static escapeHtml(text: string): string {
-    // 在测试环境中使用手动转义，在浏览器中使用原生方法
-    if (typeof document === 'undefined' || !document.createElement) {
-      return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-    }
-
-    const div = document.createElement('div')
-    div.textContent = text
-    return div.innerHTML
+    // 优先使用手动转义，确保在所有环境中都能正常工作
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
   }
 
   /**

@@ -77,8 +77,8 @@ interface DragProviderProps {
 }
 
 export function DragProvider({ children }: DragProviderProps) {
-  const { addModule, reorderModules, currentPage } = usePageStore()
-  const { setDragging, markUnsaved, draggedModuleType } = useEditorStore()
+  const { addModule, reorderModules, currentPage, markUnsaved } = usePageStore()
+  const { setDragging, draggedModuleType } = useEditorStore()
   const { currentLanguage } = useTranslation()
 
   // 配置传感器，优化触摸和键盘支持

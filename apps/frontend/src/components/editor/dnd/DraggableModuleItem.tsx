@@ -19,7 +19,8 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
     data: {
       type: 'MODULE_TYPE',
       moduleType: module.type
-    }
+    },
+    disabled: !module.isEnabled
   })
 
   // 获取图标组件
@@ -44,12 +45,12 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
       ref={setNodeRef}
       style={style}
       className={`
-        cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent 
-        hover:border-primary/20 group
+        ${module.isEnabled ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'cursor-not-allowed opacity-60'}
+        transition-shadow border-2 border-transparent group
         ${isDragging ? 'opacity-60' : ''}
       `}
-      {...listeners}
-      {...attributes}
+      {...(module.isEnabled ? listeners : {})}
+      {...(module.isEnabled ? attributes : {})}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
@@ -60,17 +61,19 @@ export function DraggableModuleItem({ module, onAddModule }: DraggableModuleItem
             <h3 className="font-medium text-sm">{module.name}</h3>
             <p className="text-xs text-muted-foreground mt-1">{module.description}</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={e => {
-              e.stopPropagation()
-              onAddModule(module.type)
-            }}
-            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          {module.isEnabled && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={e => {
+                e.stopPropagation()
+                onAddModule(module.type)
+              }}
+              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

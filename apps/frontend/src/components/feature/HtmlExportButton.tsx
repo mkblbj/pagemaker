@@ -18,6 +18,7 @@ import { generateHTML, type HtmlExportOptions } from '@/services/htmlExportServi
 import { copyTextWithFeedback, getClipboardCapabilities } from '@/lib/clipboardUtils'
 import type { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
+import { useEffect } from 'react'
 
 interface HtmlExportButtonProps {
   modules: PageModule[]
@@ -43,7 +44,7 @@ export function HtmlExportButton({
   const [isCopying, setCopying] = useState(false)
   const [exportOptions, setExportOptions] = useState<HtmlExportOptions>({
     includeStyles: true,
-    minify: false,
+    minify: true, // デフォルトで圧縮を有効化
     title: pageTitle,
     description: `使用 Pagemaker CMS 创建的页面：${pageTitle}`,
     language: 'ja-JP',
@@ -51,6 +52,20 @@ export function HtmlExportButton({
   })
 
   const clipboardCapabilities = getClipboardCapabilities()
+
+  // 监听模块变化，自动清除生成的HTML
+  useEffect(() => {
+    setGeneratedHTML('')
+  }, [modules])
+
+  // 更新页面标题时同步更新导出选项
+  useEffect(() => {
+    setExportOptions(prev => ({
+      ...prev,
+      title: pageTitle,
+      description: `使用 Pagemaker CMS 创建的页面：${pageTitle}`
+    }))
+  }, [pageTitle])
 
   // 生成HTML
   const handleGenerateHTML = async () => {
@@ -97,7 +112,8 @@ export function HtmlExportButton({
   // 对话框打开时自动生成HTML
   const handleDialogOpen = (open: boolean) => {
     setIsOpen(open)
-    if (open && !generatedHTML) {
+    if (open) {
+      // 总是重新生成HTML以确保最新内容
       handleGenerateHTML()
     }
   }
@@ -122,7 +138,10 @@ export function HtmlExportButton({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+      <DialogContent 
+        className="w-[95vw] max-w-6xl sm:max-w-6xl md:max-w-6xl lg:max-w-6xl xl:max-w-6xl max-h-[85vh] flex flex-col overflow-hidden"
+        style={{ maxWidth: '72rem', width: '95vw' }}
+      >
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Code className="h-5 w-5" />
@@ -217,6 +236,11 @@ export function HtmlExportButton({
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium">{tEditor('生成的HTML代码')}</h4>
               <div className="flex items-center gap-2">
+                {!generatedHTML && (
+                  <Badge variant="outline" className="text-xs text-orange-600">
+                    {tEditor('需要重新生成')}
+                  </Badge>
+                )}
                 <Button variant="outline" size="sm" onClick={handleGenerateHTML} disabled={isGenerating}>
                   <Settings className="h-4 w-4 mr-1" />
                   {isGenerating ? tEditor('生成中...') : tEditor('重新生成')}
