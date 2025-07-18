@@ -44,7 +44,8 @@ const mockPageStore = {
   selectedModuleId: null,
   setSelectedModule: vi.fn(),
   deleteModule: vi.fn(),
-  reorderModules: vi.fn()
+  reorderModules: vi.fn(),
+  markUnsaved: vi.fn()
 }
 
 const mockEditorStore = {
@@ -147,7 +148,7 @@ describe('KeyboardShortcuts', () => {
 
       expect(window.confirm).toHaveBeenCalledWith('确定要删除选中的模块吗？')
       expect(mockPageStore.deleteModule).toHaveBeenCalledWith('module-2')
-      expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+      expect(mockPageStore.markUnsaved).toHaveBeenCalled()
     })
 
     it('按Backspace键删除选中的模块', () => {
@@ -163,7 +164,7 @@ describe('KeyboardShortcuts', () => {
 
       expect(window.confirm).toHaveBeenCalledWith('确定要删除选中的模块吗？')
       expect(mockPageStore.deleteModule).toHaveBeenCalledWith('module-1')
-      expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+      expect(mockPageStore.markUnsaved).toHaveBeenCalled()
     })
 
     it('用户取消删除时不应该删除模块', () => {
@@ -207,7 +208,7 @@ describe('KeyboardShortcuts', () => {
       fireEvent.keyDown(document, { key: 'ArrowUp', shiftKey: true })
 
       expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 0)
-      expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+      expect(mockPageStore.markUnsaved).toHaveBeenCalled()
     })
 
     it('Shift+ArrowDown 向下移动模块', () => {
@@ -222,7 +223,7 @@ describe('KeyboardShortcuts', () => {
       fireEvent.keyDown(document, { key: 'ArrowDown', shiftKey: true })
 
       expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 2)
-      expect(mockEditorStore.markUnsaved).toHaveBeenCalled()
+      expect(mockPageStore.markUnsaved).toHaveBeenCalled()
     })
 
     it('第一个模块不能向上移动', () => {

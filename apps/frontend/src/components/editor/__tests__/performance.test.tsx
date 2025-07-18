@@ -127,11 +127,13 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     mockUseEditorStore.mockReturnValue({
-      markUnsaved: vi.fn(),
       hasUnsavedChanges: false
     })
   })
@@ -150,7 +152,9 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     const startTime = performance.now()
@@ -187,7 +191,10 @@ describe('Canvas 性能测试', () => {
       setSelectedModule,
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     render(
@@ -227,7 +234,10 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules,
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     render(
@@ -267,7 +277,10 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule
+      addModule,
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     render(
@@ -307,7 +320,10 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule,
       reorderModules: vi.fn(),
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     render(
@@ -346,7 +362,10 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     const startTime = performance.now()
@@ -388,7 +407,10 @@ describe('Canvas 性能测试', () => {
       setSelectedModule: vi.fn(),
       deleteModule: vi.fn(),
       reorderModules: vi.fn(),
-      addModule: vi.fn()
+      addModule: vi.fn(),
+      updateModule: vi.fn(),
+      markUnsaved: vi.fn(),
+      hasUnsavedChanges: false
     })
 
     const startTime = performance.now()

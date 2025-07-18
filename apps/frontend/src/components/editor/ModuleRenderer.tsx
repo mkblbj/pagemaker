@@ -136,7 +136,7 @@ export function ModuleRenderer({
                   key={index}
                   className="border border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-500"
                 >
-                  {tEditor('列 {index + 1}', { index: index + 1 })}
+                  {tEditor('列 {index}', { index: index + 1 })}
                   <br />
                   <span className="text-xs">{tEditor('拖拽内容到此处')}</span>
                 </div>
