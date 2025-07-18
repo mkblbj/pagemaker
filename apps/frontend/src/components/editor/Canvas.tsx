@@ -140,8 +140,17 @@ function SortableModuleContainer({
 }
 
 export function Canvas() {
-  const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, addModule, updateModule, markUnsaved, hasUnsavedChanges } =
-    usePageStore()
+  const {
+    currentPage,
+    selectedModuleId,
+    setSelectedModule,
+    deleteModule,
+    reorderModules,
+    addModule,
+    updateModule,
+    markUnsaved,
+    hasUnsavedChanges
+  } = usePageStore()
   const { tEditor, currentLanguage } = useTranslation()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)

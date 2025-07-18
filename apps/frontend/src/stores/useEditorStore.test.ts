@@ -12,7 +12,6 @@ describe('useEditorStore', () => {
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.error).toBeNull()
-    expect(result.current.hasUnsavedChanges).toBe(false)
     expect(result.current.isSaving).toBe(false)
     expect(result.current.leftPanelWidth).toBe(280)
     expect(result.current.rightPanelWidth).toBe(320)
@@ -69,22 +68,6 @@ describe('useEditorStore', () => {
     })
 
     expect(result.current.error).toBeNull()
-  })
-
-  it('应该正确管理未保存状态', () => {
-    const { result } = renderHook(() => useEditorStore())
-
-    act(() => {
-      result.current.markUnsaved()
-    })
-
-    expect(result.current.hasUnsavedChanges).toBe(true)
-
-    act(() => {
-      result.current.markSaved()
-    })
-
-    expect(result.current.hasUnsavedChanges).toBe(false)
   })
 
   it('应该正确设置左侧面板宽度', () => {
@@ -188,7 +171,6 @@ describe('useEditorStore', () => {
     act(() => {
       result.current.setLoading(true)
       result.current.setError('Some error')
-      result.current.markUnsaved()
       result.current.setSaving(true)
       result.current.setDragging(true, 'image')
     })
@@ -200,7 +182,6 @@ describe('useEditorStore', () => {
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.error).toBeNull()
-    expect(result.current.hasUnsavedChanges).toBe(false)
     expect(result.current.isSaving).toBe(false)
     expect(result.current.isDragging).toBe(false)
     expect(result.current.draggedModuleType).toBeNull()

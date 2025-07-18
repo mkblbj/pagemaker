@@ -10,8 +10,7 @@ interface KeyboardShortcutsProps {
 }
 
 export function KeyboardShortcuts({ onShowHelp }: KeyboardShortcutsProps) {
-  const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules } = usePageStore()
-  const { markUnsaved } = useEditorStore()
+  const { currentPage, selectedModuleId, setSelectedModule, deleteModule, reorderModules, markUnsaved } = usePageStore()
   const { tEditor } = useTranslation()
 
   useEffect(() => {

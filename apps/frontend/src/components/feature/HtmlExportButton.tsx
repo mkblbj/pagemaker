@@ -138,7 +138,7 @@ export function HtmlExportButton({
         </Button>
       </DialogTrigger>
 
-      <DialogContent 
+      <DialogContent
         className="w-[95vw] max-w-6xl sm:max-w-6xl md:max-w-6xl lg:max-w-6xl xl:max-w-6xl max-h-[85vh] flex flex-col overflow-hidden"
         style={{ maxWidth: '72rem', width: '95vw' }}
       >

@@ -136,7 +136,7 @@ ${htmlContent}
 
     // 处理换行符
     const formattedContent = this.escapeHtml(content).replace(/\n/g, '<br>')
-    
+
     return `        <${level} class="pm-title" style="${styles}">${formattedContent}</${level}>`
   }
 

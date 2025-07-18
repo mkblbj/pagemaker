@@ -122,7 +122,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
 export function getAvailableModules(language?: SupportedLanguage, targetArea?: string): ModuleMetadata[] {
   const registry = createModuleRegistry(language)
   const tEditor = createTEditor(language)
-  
+
   return Object.values(registry)
     .filter(module => module.isEnabled)
     .map(module => {

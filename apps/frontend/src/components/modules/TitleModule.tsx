@@ -155,10 +155,7 @@ export function TitleModule({
           onChange={e => handleTextChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          className={cn(
-            'w-full bg-transparent border-none outline-none resize-none',
-            titleStyles.className
-          )}
+          className={cn('w-full bg-transparent border-none outline-none resize-none', titleStyles.className)}
           style={{
             ...titleStyles.style,
             minHeight: '1.5em',
@@ -168,9 +165,9 @@ export function TitleModule({
           placeholder={tEditor('输入标题文本...')}
         />
       ) : (
-        <div 
-          className={cn(titleStyles.className, 'cursor-text whitespace-pre-wrap')} 
-          style={titleStyles.style} 
+        <div
+          className={cn(titleStyles.className, 'cursor-text whitespace-pre-wrap')}
+          style={titleStyles.style}
           onClick={onStartEdit}
         >
           {localText || tEditor('标题文本')}
