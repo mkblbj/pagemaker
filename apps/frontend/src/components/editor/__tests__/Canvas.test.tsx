@@ -85,7 +85,7 @@ describe('Canvas', () => {
     // 检查模块容器是否存在
     const moduleContainer = screen.getByTestId('module-title-1')
     expect(moduleContainer).toBeInTheDocument()
-    
+
     // 检查选中状态的样式（在模块的最外层容器上）
     const moduleWrapper = moduleContainer.querySelector('.border-blue-500')
     expect(moduleWrapper).toBeInTheDocument()
