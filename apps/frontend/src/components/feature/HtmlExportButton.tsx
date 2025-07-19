@@ -18,6 +18,7 @@ import { generateHTML, type HtmlExportOptions } from '@/services/htmlExportServi
 import { copyTextWithFeedback, getClipboardCapabilities } from '@/lib/clipboardUtils'
 import type { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
+import { usePageStore } from '@/stores/usePageStore'
 import { useEffect } from 'react'
 
 interface HtmlExportButtonProps {
@@ -38,17 +39,22 @@ export function HtmlExportButton({
   disabled = false
 }: HtmlExportButtonProps) {
   const { tEditor, tCommon } = useTranslation()
+  const { targetArea } = usePageStore()
   const [isOpen, setIsOpen] = useState(false)
   const [generatedHTML, setGeneratedHTML] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isCopying, setCopying] = useState(false)
+
+  // 根据目标区域自动设置导出选项
+  const isMobileMode = targetArea === 'mobile'
   const [exportOptions, setExportOptions] = useState<HtmlExportOptions>({
-    includeStyles: true,
+    includeStyles: !isMobileMode, // 移动端模式下不包含样式
     minify: true, // デフォルトで圧縮を有効化
     title: pageTitle,
     description: `使用 Pagemaker CMS 创建的页面：${pageTitle}`,
     language: 'ja-JP',
-    fullDocument: false // 默认只导出内容部分
+    fullDocument: false, // 默认只导出内容部分
+    mobileMode: isMobileMode // 移动端页面自动启用乐天模式
   })
 
   const clipboardCapabilities = getClipboardCapabilities()
@@ -66,6 +72,17 @@ export function HtmlExportButton({
       description: `使用 Pagemaker CMS 创建的页面：${pageTitle}`
     }))
   }, [pageTitle])
+
+  // 监听目标区域变化，自动调整导出模式
+  useEffect(() => {
+    const isMobile = targetArea === 'mobile'
+    setExportOptions(prev => ({
+      ...prev,
+      mobileMode: isMobile,
+      includeStyles: !isMobile, // 移动端模式下禁用样式
+      fullDocument: !isMobile // 移动端模式下禁用完整文档
+    }))
+  }, [targetArea])
 
   // 生成HTML
   const handleGenerateHTML = async () => {
@@ -175,6 +192,11 @@ export function HtmlExportButton({
                 {tEditor('已压缩')}
               </Badge>
             )}
+            {isMobileMode && (
+              <Badge variant="secondary" className="text-xs">
+                {tEditor('乐天模式')}
+              </Badge>
+            )}
           </div>
 
           <Separator />
@@ -182,36 +204,53 @@ export function HtmlExportButton({
           {/* 导出选项 */}
           <div className="space-y-3">
             <h4 className="text-sm font-medium">{tEditor('导出选项')}</h4>
+            {isMobileMode ? (
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-blue-700">
+                  <p className="font-medium mb-1">{tEditor('移动端页面 - 自动乐天模式')}</p>
+                  <p>
+                    {tEditor('检测到移动端页面，已自动启用乐天HTML约束：使用<p>标签、<font>标签和有限的HTML标签。')}
+                  </p>
+                </div>
+              </div>
+            ) : null}
             <div className="grid grid-cols-2 gap-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={exportOptions.fullDocument}
-                  onChange={e =>
-                    setExportOptions(prev => ({
-                      ...prev,
-                      fullDocument: e.target.checked
-                    }))
-                  }
-                  className="rounded"
-                />
-                <span className="text-sm">{tEditor('完整HTML文档')}</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={exportOptions.includeStyles}
-                  onChange={e =>
-                    setExportOptions(prev => ({
-                      ...prev,
-                      includeStyles: e.target.checked
-                    }))
-                  }
-                  className="rounded"
-                  disabled={!exportOptions.fullDocument}
-                />
-                <span className="text-sm">{tEditor('包含CSS样式')}</span>
-              </label>
+              {!isMobileMode && (
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={exportOptions.fullDocument}
+                    onChange={e =>
+                      setExportOptions(prev => ({
+                        ...prev,
+                        fullDocument: e.target.checked
+                      }))
+                    }
+                    className="rounded"
+                  />
+                  <span className="text-sm">{tEditor('完整HTML文档')}</span>
+                </label>
+              )}
+              {!isMobileMode && (
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={exportOptions.includeStyles}
+                    onChange={e =>
+                      setExportOptions(prev => ({
+                        ...prev,
+                        includeStyles: e.target.checked
+                      }))
+                    }
+                    className="rounded"
+                    disabled={!exportOptions.fullDocument}
+                  />
+                  <span className={`text-sm ${!exportOptions.fullDocument ? 'text-gray-400' : ''}`}>
+                    {tEditor('包含CSS样式')}
+                  </span>
+                </label>
+              )}
               <label className="flex items-center space-x-2">
                 <input
                   type="checkbox"

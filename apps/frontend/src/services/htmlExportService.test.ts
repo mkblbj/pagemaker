@@ -18,10 +18,12 @@ describe('HtmlExportService', () => {
   const mockTextModule: PageModule = {
     id: 'text-1',
     type: PageModuleType.TEXT,
-    content: '这是一段测试文本\n包含换行符',
+    content: '这是一段测试文本',
     alignment: 'left',
     fontSize: '16px',
-    color: '#333333'
+    fontFamily: 'Arial, sans-serif',
+    textColor: '#333333',
+    backgroundColor: 'transparent'
   }
 
   describe('generateHTML', () => {
@@ -126,6 +128,71 @@ describe('HtmlExportService', () => {
       expect(html).toContain('测试标题')
       expect(html).toContain('<div class="pm-text"')
       expect(html).toContain('这是一段测试文本')
+    })
+
+    it('应该在移动端模式下生成乐天约束的HTML', () => {
+      const html = HtmlExportService.generateHTML([mockTitleModule], { mobileMode: true })
+
+      expect(html).toContain('<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">')
+      expect(html).toContain('<font size="5" color="#1975B0">') // 标题默认24px对应size="5"
+      expect(html).toContain('<b>测试标题</b>')
+      expect(html).not.toContain('class=')
+      expect(html).not.toContain('style=')
+    })
+
+    it('应该在移动端模式下正确处理文本模块', () => {
+      const html = HtmlExportService.generateHTML([mockTextModule], { mobileMode: true })
+
+      expect(html).toContain('<p><font size="4" color="#333333">这是一段测试文本</font></p>')
+      expect(html).not.toContain('<table')
+      expect(html).not.toContain('<div')
+      expect(html).not.toContain('class=')
+    })
+
+    it('应该正确转换CSS字体大小为HTML font size', () => {
+      const testCases = [
+        { css: '10px', expected: '1' },
+        { css: '12px', expected: '2' },
+        { css: '14px', expected: '3' },
+        { css: '18px', expected: '4' },
+        { css: '24px', expected: '5' },
+        { css: '36px', expected: '6' },
+        { css: '48px', expected: '7' }
+      ]
+
+      testCases.forEach(({ css, expected }) => {
+        const titleModule = { ...mockTitleModule, fontSize: css }
+        const html = HtmlExportService.generateHTML([titleModule], { mobileMode: true })
+        expect(html).toContain(`<font size="${expected}"`)
+      })
+    })
+
+    it('应该清理HTML内容以符合乐天约束', () => {
+      const textModuleWithRichContent = {
+        ...mockTextModule,
+        content: '<div><strong>加粗文本</strong><span style="color: red;">红色文本</span><u>下划线</u></div>'
+      }
+
+      const html = HtmlExportService.generateHTML([textModuleWithRichContent], { mobileMode: true })
+
+      expect(html).toContain('<font size="4" color="#333333"><p><b>加粗文本</b>红色文本下划线</p></font>')
+      expect(html).not.toContain('<div>')
+      expect(html).not.toContain('<span>')
+      expect(html).not.toContain('<strong>')
+      expect(html).not.toContain('<u>')
+      expect(html).not.toContain('style=')
+      expect(html).not.toContain('class=')
+    })
+
+    it('应该在移动端模式下正确处理文本对齐', () => {
+      const centerTextModule = { ...mockTextModule, alignment: 'center' }
+      const rightTextModule = { ...mockTextModule, alignment: 'right' }
+
+      const centerHtml = HtmlExportService.generateHTML([centerTextModule], { mobileMode: true })
+      const rightHtml = HtmlExportService.generateHTML([rightTextModule], { mobileMode: true })
+
+      expect(centerHtml).toContain('<p align="center">')
+      expect(rightHtml).toContain('<p align="right">')
     })
 
     it('应该正确处理标题模块中的换行符', () => {

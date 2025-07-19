@@ -295,7 +295,17 @@
     "乐天规则：手机页面不允许使用H1-H6标签": "Rakuten Rule: H1-H6 tags are not allowed on mobile pages",
     "包含样式": "Include Styles",
     "已压缩": "Minified",
-    "完整文档": "Full Document"
+    "完整文档": "Full Document",
+    "当前文本已有链接，是否要移除链接？": "The current text already has a link. Do you want to remove the link?",
+    "添加链接": "Add Link",
+    "下划线": "Underline",
+    "请输入链接地址": "Enter link address",
+    "字体大小": "Font Size",
+    "背景颜色": "Background Color",
+    "乐天模式": "Rakuten Mode",
+    "移动端页面 - 自动乐天模式": "Mobile Page - Automatic Rakuten Mode",
+    "检测到移动端页面，已自动启用乐天HTML约束：使用<p>标签、<font>标签和有限的HTML标签。": "Mobile page detected, Rakuten HTML constraints have been automatically enabled. Use <p> tags, <font> tags, and limited HTML tags only.",
+    "💡 修改属性会自动标记为未保存": "💡 Modifying properties automatically marks as unsaved"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",

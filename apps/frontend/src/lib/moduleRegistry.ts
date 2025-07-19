@@ -44,10 +44,12 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
       category: 'basic',
       color: 'text-green-600',
       defaultConfig: {
-        text: tEditor('输入文本内容'),
-        fontSize: 14,
+        content: tEditor('输入文本内容'),
+        fontSize: '14px',
+        fontFamily: 'inherit',
         alignment: 'left',
-        color: '#000000'
+        textColor: '#000000',
+        backgroundColor: 'transparent'
       },
       isEnabled: true,
       sortOrder: 2

@@ -185,11 +185,104 @@ export function PropertyPanel() {
               <Label htmlFor="text-content">{tEditor('文本内容')}</Label>
               <Textarea
                 id="text-content"
-                value={(selectedModule as any).text || ''}
-                onChange={e => handlePropertyUpdate('text', e.target.value)}
+                value={(selectedModule as any).content || ''}
+                onChange={e => handlePropertyUpdate('content', e.target.value)}
                 placeholder={tEditor('输入文本内容')}
                 rows={6}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="text-alignment">{tEditor('对齐方式')}</Label>
+              <Select
+                value={(selectedModule as any).alignment || 'left'}
+                onValueChange={value => handlePropertyUpdate('alignment', value)}
+              >
+                <SelectTrigger id="text-alignment">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+                  <SelectItem value="center">{tEditor('居中对齐')}</SelectItem>
+                  <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                  <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="text-font-family">{tEditor('字体')}</Label>
+              <Select
+                value={(selectedModule as any).fontFamily || 'inherit'}
+                onValueChange={value => handlePropertyUpdate('fontFamily', value)}
+              >
+                <SelectTrigger id="text-font-family">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">{tEditor('系统默认')}</SelectItem>
+                  <SelectItem value="Arial, sans-serif">Arial</SelectItem>
+                  <SelectItem value="'Times New Roman', serif">Times New Roman</SelectItem>
+                  <SelectItem value="'Courier New', monospace">Courier New</SelectItem>
+                  <SelectItem value="'Helvetica Neue', sans-serif">Helvetica Neue</SelectItem>
+                  <SelectItem value="'MS Mincho', serif">明朝体</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="text-font-size">{tEditor('字体大小')}</Label>
+              <Select
+                value={(selectedModule as any).fontSize || '14px'}
+                onValueChange={value => handlePropertyUpdate('fontSize', value)}
+              >
+                <SelectTrigger id="text-font-size">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="12px">12px</SelectItem>
+                  <SelectItem value="14px">14px</SelectItem>
+                  <SelectItem value="16px">16px</SelectItem>
+                  <SelectItem value="18px">18px</SelectItem>
+                  <SelectItem value="20px">20px</SelectItem>
+                  <SelectItem value="24px">24px</SelectItem>
+                  <SelectItem value="28px">28px</SelectItem>
+                  <SelectItem value="32px">32px</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="text-color">{tEditor('文字颜色')}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="text-color"
+                  type="color"
+                  value={(selectedModule as any).textColor || '#000000'}
+                  onChange={e => handlePropertyUpdate('textColor', e.target.value)}
+                  className="w-16 h-8 p-1 rounded"
+                />
+                <Input
+                  value={(selectedModule as any).textColor || '#000000'}
+                  onChange={e => handlePropertyUpdate('textColor', e.target.value)}
+                  placeholder="#000000"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="text-bg-color">{tEditor('背景颜色')}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="text-bg-color"
+                  type="color"
+                  value={(selectedModule as any).backgroundColor || '#ffffff'}
+                  onChange={e => handlePropertyUpdate('backgroundColor', e.target.value)}
+                  className="w-16 h-8 p-1 rounded"
+                />
+                <Input
+                  value={(selectedModule as any).backgroundColor || 'transparent'}
+                  onChange={e => handlePropertyUpdate('backgroundColor', e.target.value)}
+                  placeholder="transparent"
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
         )
@@ -341,8 +434,10 @@ export function PropertyPanel() {
       {/* 底部信息 */}
       <div className="p-4 border-t bg-muted/30">
         <div className="text-xs text-muted-foreground">
-          <p>模块ID: {selectedModule.id}</p>
-          <p className="mt-1">💡 修改属性会自动标记为未保存</p>
+          <p>
+            {tEditor('模块ID')}: {selectedModule.id}
+          </p>
+          <p className="mt-1">{tEditor('💡 修改属性会自动标记为未保存')}</p>
         </div>
       </div>
     </div>

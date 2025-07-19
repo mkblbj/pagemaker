@@ -33,6 +33,7 @@ function SortableModuleContainer({
   isDeleting = false,
   tEditor
 }: any) {
+  const { isDragging: globalDragging } = useEditorStore()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: module.id,
     data: {
@@ -52,10 +53,10 @@ function SortableModuleContainer({
       style={style}
       data-testid={`module-${module.id}`}
       className={`
-        group relative border-2 rounded-lg p-4 transition-all
-        ${isSelected ? 'border-primary bg-primary/5' : 'border-transparent hover:border-gray-200'}
-        ${isDragging ? 'opacity-60' : ''}
+        group relative transition-all
+        ${isDragging ? 'border-2 border-solid border-blue-500 bg-blue-100/50 shadow-lg scale-105 z-10 rounded-lg p-2' : ''}
         ${isDeleting ? 'opacity-0 scale-95' : ''}
+        ${globalDragging && !isDragging ? 'border-2 border-dashed border-blue-300 bg-blue-50/20 rounded-lg p-2' : ''}
       `}
       onClick={() => onSelect(module.id)}
     >
@@ -63,13 +64,13 @@ function SortableModuleContainer({
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-2 top-1/2 transform -translate-y-1/2 cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 cursor-move opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white rounded-md shadow-sm p-1"
       >
         <GripVertical className="h-4 w-4 text-gray-400" />
       </div>
 
       {/* 模块内容 */}
-      <div className="ml-6">
+      <div className="ml-8">
         <ModuleRenderer
           module={module}
           isSelected={isSelected}

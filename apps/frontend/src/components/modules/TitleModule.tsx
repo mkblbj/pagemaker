@@ -145,6 +145,11 @@ export function TitleModule({
         <Badge variant="secondary" className="text-xs">
           {tEditor('标题模块 (H{level})', { level: module.level || 1 })}
         </Badge>
+        {isSelected && !isEditing && (
+          <Badge variant="outline" className="text-xs text-blue-600">
+            {tEditor('点击编辑')}
+          </Badge>
+        )}
       </div>
 
       {/* 标题内容 */}
@@ -171,13 +176,6 @@ export function TitleModule({
           onClick={onStartEdit}
         >
           {localText || tEditor('标题文本')}
-        </div>
-      )}
-
-      {/* 编辑提示 */}
-      {isSelected && !isEditing && (
-        <div className="absolute top-2 right-2 text-xs text-muted-foreground bg-white px-2 py-1 rounded shadow-sm">
-          {tEditor('点击编辑')}
         </div>
       )}
     </div>

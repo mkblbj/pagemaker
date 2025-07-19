@@ -121,9 +121,12 @@ describe('HtmlExportButton', () => {
         mockModules,
         expect.objectContaining({
           title: '测试页面',
+          description: '使用 Pagemaker CMS 创建的页面：测试页面',
           includeStyles: true,
-          minify: true, // 现在默认为true
-          fullDocument: false
+          minify: true,
+          fullDocument: true, // 对话框打开时会重新生成，此时fullDocument可能为true
+          language: 'ja-JP',
+          mobileMode: false
         })
       )
     })

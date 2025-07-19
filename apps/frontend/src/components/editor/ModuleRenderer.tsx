@@ -5,6 +5,7 @@ import { PageModule, PageModuleType } from '@pagemaker/shared-types'
 import { Badge } from '@/components/ui/badge'
 import { Type, FileText, Image, Minus, Layout, Columns, AlertTriangle } from 'lucide-react'
 import { TitleModule } from '@/components/modules/TitleModule'
+import { TextModule } from '@/components/modules/TextModule'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface ModuleRendererProps {
@@ -43,13 +44,14 @@ export function ModuleRenderer({
 
       case PageModuleType.TEXT:
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-green-600" />
-              <Badge variant="secondary">{tEditor('文本模块')}</Badge>
-            </div>
-            <div className="text-gray-700 leading-relaxed">{(module as any).text || '文本内容'}</div>
-          </div>
+          <TextModule
+            module={module}
+            isSelected={isSelected}
+            isEditing={isEditing}
+            onUpdate={onUpdate}
+            onStartEdit={onStartEdit}
+            onEndEdit={onEndEdit}
+          />
         )
 
       case PageModuleType.IMAGE:

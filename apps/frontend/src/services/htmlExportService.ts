@@ -8,6 +8,7 @@ export interface HtmlExportOptions {
   description?: string
   language?: string
   fullDocument?: boolean // 是否生成完整HTML文档（包含头尾）
+  mobileMode?: boolean // 是否使用移动端模式（乐天约束）
 }
 
 // 默认导出选项
@@ -17,7 +18,8 @@ const DEFAULT_OPTIONS: Required<HtmlExportOptions> = {
   title: 'Pagemaker 导出页面',
   description: '使用 Pagemaker CMS 创建的页面',
   language: 'zh-CN',
-  fullDocument: false // 默认只导出内容部分
+  fullDocument: false, // 默认只导出内容部分
+  mobileMode: false // 默认不使用移动端模式
 }
 
 // 类型安全的属性获取函数
@@ -46,7 +48,7 @@ export class HtmlExportService {
   static generateHTML(modules: PageModule[], options: HtmlExportOptions = {}): string {
     const opts = { ...DEFAULT_OPTIONS, ...options }
 
-    const htmlContent = this.generateModulesHTML(modules)
+    const htmlContent = this.generateModulesHTML(modules, opts)
 
     // 如果只需要内容部分，直接返回模块HTML
     if (!opts.fullDocument) {
@@ -79,9 +81,12 @@ ${htmlContent}
   /**
    * 生成模块的HTML内容
    */
-  private static generateModulesHTML(modules: PageModule[]): string {
+  private static generateModulesHTML(
+    modules: PageModule[],
+    options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
+  ): string {
     return modules
-      .map(module => this.generateModuleHTML(module))
+      .map(module => this.generateModuleHTML(module, options))
       .filter(html => html.trim() !== '')
       .join('\n')
   }
@@ -89,12 +94,12 @@ ${htmlContent}
   /**
    * 生成单个模块的HTML
    */
-  private static generateModuleHTML(module: PageModule): string {
+  private static generateModuleHTML(module: PageModule, options: Required<HtmlExportOptions>): string {
     switch (module.type) {
       case 'title':
-        return this.generateTitleHTML(module)
+        return options.mobileMode ? this.generateTitleHTMLMobile(module) : this.generateTitleHTML(module)
       case 'text':
-        return this.generateTextHTML(module)
+        return options.mobileMode ? this.generateTextHTMLMobile(module) : this.generateTextHTML(module)
       case 'image':
         return this.generateImageHTML(module)
       case 'separator':
@@ -146,28 +151,115 @@ ${htmlContent}
   private static generateTextHTML(module: PageModule): string {
     const content = getStringProp(module, 'content')
     const alignment = getStringProp(module, 'alignment', 'left')
-    const fontSize = getStringProp(module, 'fontSize', '16px')
-    const lineHeight = getStringProp(module, 'lineHeight', '1.6')
-    const color = getStringProp(module, 'color', '#000000')
+    const fontSize = getStringProp(module, 'fontSize', '14px')
+    const fontFamily = getStringProp(module, 'fontFamily', 'inherit')
+    const textColor = getStringProp(module, 'textColor', '#000000')
+    const backgroundColor = getStringProp(module, 'backgroundColor', 'transparent')
 
     const styles = this.generateInlineStyles({
       'text-align': alignment,
       'font-size': fontSize,
-      'line-height': lineHeight,
-      color: color,
+      'font-family': fontFamily !== 'inherit' ? fontFamily : undefined,
+      'line-height': '1.6',
+      color: textColor,
+      'background-color': backgroundColor !== 'transparent' ? backgroundColor : undefined,
       'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
       'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
       'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
       'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
       'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
-      'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
-      'background-color': getStringProp(module, 'backgroundColor')
+      'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight'))
     })
 
-    // 处理换行符
-    const formattedContent = this.escapeHtml(content).replace(/\n/g, '<br>')
+    // 文本模块支持富文本HTML内容，无需转义
+    // 但需要确保安全性，这里我们假设内容已经被适当处理
+    const formattedContent = content || '输入文本内容'
 
     return `        <div class="pm-text" style="${styles}">${formattedContent}</div>`
+  }
+
+  /**
+   * 生成标题模块HTML（移动端乐天约束版本）
+   */
+  private static generateTitleHTMLMobile(module: PageModule): string {
+    const content = getStringProp(module, 'text', getStringProp(module, 'content'))
+    const alignment = getStringProp(module, 'alignment', 'left')
+    const color = getStringProp(module, 'color', '#000000')
+    const fontSize = this.convertToFontSize(getStringProp(module, 'fontSize', '24px'))
+
+    // 转换对齐方式为乐天支持的格式
+    const alignValue = alignment === 'justify' ? 'left' : alignment
+
+    // 处理换行符，转换为<br>
+    const formattedContent = this.escapeHtml(content).replace(/\n/g, '<br>')
+
+    // 使用table布局和font标签，符合乐天约束
+    return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr>
+<td align="${alignValue}"><font size="${fontSize}" color="${color}"><b>${formattedContent}</b></font></td>
+</tr>
+</table>`
+  }
+
+  /**
+   * 生成文本模块HTML（移动端乐天约束版本）
+   */
+  private static generateTextHTMLMobile(module: PageModule): string {
+    const content = getStringProp(module, 'content')
+    const alignment = getStringProp(module, 'alignment', 'left')
+    const textColor = getStringProp(module, 'textColor', '#000000')
+    const fontSize = this.convertToFontSize(getStringProp(module, 'fontSize', '14px'))
+    const backgroundColor = getStringProp(module, 'backgroundColor', 'transparent')
+
+    // 转换对齐方式为乐天支持的格式
+    const alignValue = alignment === 'justify' ? 'left' : alignment
+
+    // 处理富文本内容，确保只使用乐天允许的标签
+    const formattedContent = this.sanitizeHTMLForRakuten(content || '输入文本内容')
+
+    // 使用<p>标签，更语义化且符合乐天约束
+    const bgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+    const alignAttr = alignValue !== 'left' ? ` align="${alignValue}"` : ''
+
+    return `<p${alignAttr}><font size="${fontSize}" color="${textColor}">${formattedContent}</font></p>`
+  }
+
+  /**
+   * 转换CSS字体大小为HTML font标签的size属性
+   */
+  private static convertToFontSize(cssSize: string): string {
+    // 将CSS字体大小转换为HTML font标签的size属性（1-7）
+    const size = parseInt(cssSize.replace(/[^\d]/g, ''))
+    if (size <= 10) return '1'
+    if (size <= 12) return '2'
+    if (size <= 14) return '3'
+    if (size <= 18) return '4'
+    if (size <= 24) return '5'
+    if (size <= 36) return '6'
+    return '7'
+  }
+
+  /**
+   * 清理HTML内容，确保只包含乐天允许的标签
+   */
+  private static sanitizeHTMLForRakuten(html: string): string {
+    // 允许的标签：a, img, table, td, th, tr, br, p, font, b, center, hr
+    // 移除不允许的标签，保留内容
+    return (
+      html
+        .replace(/<div[^>]*>/gi, '<p>')
+        .replace(/<\/div>/gi, '</p>')
+        .replace(/<span[^>]*>/gi, '')
+        .replace(/<\/span>/gi, '')
+        .replace(/<strong[^>]*>/gi, '<b>')
+        .replace(/<\/strong>/gi, '</b>')
+        .replace(/<em[^>]*>/gi, '')
+        .replace(/<\/em>/gi, '')
+        .replace(/<u[^>]*>/gi, '')
+        .replace(/<\/u>/gi, '')
+        // 清理不允许的属性，只保留href, target, alt, src, width, height等
+        .replace(/\s(class|id|style)="[^"]*"/gi, '')
+    )
   }
 
   /**

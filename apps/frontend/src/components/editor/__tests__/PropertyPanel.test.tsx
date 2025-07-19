@@ -52,7 +52,7 @@ describe('PropertyPanel', () => {
     const textModule = {
       id: 'text-1',
       type: PageModuleType.TEXT,
-      text: '测试文本内容'
+      content: '测试文本内容'
     }
 
     mockUsePageStore.mockReturnValue({
@@ -216,7 +216,7 @@ describe('PropertyPanel', () => {
     const textArea = screen.getByLabelText('文本内容')
     fireEvent.change(textArea, { target: { value: '新文本内容' } })
 
-    expect(mockUpdateModule).toHaveBeenCalledWith('text-1', { text: '新文本内容' })
+    expect(mockUpdateModule).toHaveBeenCalledWith('text-1', { content: '新文本内容' })
     expect(mockMarkUnsaved).toHaveBeenCalled()
   })
 

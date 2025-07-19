@@ -44,7 +44,7 @@ describe('Canvas', () => {
       {
         id: 'text-1',
         type: PageModuleType.TEXT,
-        text: '测试文本'
+        content: '测试文本'
       }
     ]
 
@@ -82,8 +82,13 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
-    const moduleElement = screen.getByTestId('module-title-1')
-    expect(moduleElement).toHaveClass('border-primary', 'bg-primary/5')
+    // 检查模块容器是否存在
+    const moduleContainer = screen.getByTestId('module-title-1')
+    expect(moduleContainer).toBeInTheDocument()
+    
+    // 检查选中状态的样式（在模块的最外层容器上）
+    const moduleWrapper = moduleContainer.querySelector('.border-blue-500')
+    expect(moduleWrapper).toBeInTheDocument()
   })
 
   it('应该处理模块点击选择', () => {
@@ -91,7 +96,7 @@ describe('Canvas', () => {
       {
         id: 'text-1',
         type: PageModuleType.TEXT,
-        text: '可点击的文本'
+        content: '可点击的文本'
       }
     ]
 
@@ -140,7 +145,7 @@ describe('Canvas', () => {
       {
         id: 'text-1',
         type: PageModuleType.TEXT,
-        text: '文本1'
+        content: '文本1'
       },
       {
         id: 'separator-1',
@@ -264,7 +269,7 @@ describe('Canvas', () => {
     const modules = Array.from({ length: 20 }, (_, i) => ({
       id: `text-${i}`,
       type: PageModuleType.TEXT,
-      text: `文本模块 ${i + 1}`
+      content: `文本模块 ${i + 1}`
     }))
 
     mockUsePageStore.mockReturnValue({
@@ -287,12 +292,12 @@ describe('Canvas', () => {
       {
         id: 'text-1',
         type: PageModuleType.TEXT,
-        text: '第一个文本'
+        content: '第一个文本'
       },
       {
         id: 'text-2',
         type: PageModuleType.TEXT,
-        text: '第二个文本'
+        content: '第二个文本'
       }
     ]
 
@@ -306,12 +311,14 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
-    // 第一个模块应该被选中
-    const firstModule = screen.getByTestId('module-text-1')
-    expect(firstModule).toHaveClass('border-primary', 'bg-primary/5')
+    // 第一个模块应该被选中（检查模块容器内的选中样式）
+    const firstModuleContainer = screen.getByTestId('module-text-1')
+    const firstSelectedWrapper = firstModuleContainer.querySelector('.border-blue-500')
+    expect(firstSelectedWrapper).toBeInTheDocument()
 
     // 第二个模块不应该被选中
-    const secondModule = screen.getByText('第二个文本').closest('div')
-    expect(secondModule).not.toHaveClass('border-primary', 'bg-primary/5')
+    const secondModuleContainer = screen.getByTestId('module-text-2')
+    const secondSelectedWrapper = secondModuleContainer.querySelector('.border-blue-500')
+    expect(secondSelectedWrapper).toBeNull()
   })
 })

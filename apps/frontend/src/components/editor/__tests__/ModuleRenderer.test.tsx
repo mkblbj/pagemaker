@@ -41,7 +41,7 @@ describe('ModuleRenderer', () => {
     const textModule = {
       id: 'text-1',
       type: PageModuleType.TEXT,
-      text: '这是一段测试文本'
+      content: '这是一段测试文本'
     }
 
     render(<ModuleRenderer module={textModule} />)
@@ -183,7 +183,7 @@ describe('ModuleRenderer', () => {
 
     render(<ModuleRenderer module={textModule} />)
 
-    expect(screen.getByText('文本内容')).toBeInTheDocument()
+    expect(screen.getByText('输入文本内容')).toBeInTheDocument()
     expect(screen.getByText('文本模块')).toBeInTheDocument()
   })
 
@@ -192,7 +192,7 @@ describe('ModuleRenderer', () => {
     const textModule = {
       id: 'text-long',
       type: PageModuleType.TEXT,
-      text: longText
+      content: longText
     }
 
     render(<ModuleRenderer module={textModule} />)
@@ -205,7 +205,7 @@ describe('ModuleRenderer', () => {
     const textModule = {
       id: 'text-special',
       type: PageModuleType.TEXT,
-      text: specialText
+      content: specialText
     }
 
     render(<ModuleRenderer module={textModule} />)

@@ -44,6 +44,7 @@ describe('TitleModule', () => {
       <TitleModule
         module={mockModule}
         isSelected={true}
+        isEditing={false}
         onUpdate={mockOnUpdate}
         onStartEdit={mockOnStartEdit}
         onEndEdit={mockOnEndEdit}
