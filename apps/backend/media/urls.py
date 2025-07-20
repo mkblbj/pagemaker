@@ -18,4 +18,8 @@ urlpatterns = [
     ),
     # 用户文件列表
     path("files/", views.list_user_media_files, name="list_user_media_files"),
+    # R-Cabinet文件夹列表
+    path("cabinet-folders/", views.get_cabinet_folders, name="get_cabinet_folders"),
+    # R-Cabinet图片列表
+    path("cabinet-images/", views.get_cabinet_images, name="get_cabinet_images"),
 ]

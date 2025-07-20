@@ -64,8 +64,11 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
       defaultConfig: {
         src: '',
         alt: tEditor('图片描述'),
-        width: 100,
-        alignment: 'center'
+        alignment: 'center',
+        size: {
+          type: 'preset',
+          value: 'medium'
+        }
       },
       isEnabled: true,
       sortOrder: 3

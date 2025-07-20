@@ -63,6 +63,7 @@ class RCabinetClient:
         # 配置参数
         self.base_url = base_url or app_config.RAKUTEN_API_BASE_URL
         self.timeout = timeout or app_config.RAKUTEN_API_TIMEOUT
+        # 优先使用传入的test_mode，如果没有则使用配置文件，默认为real模式
         self.test_mode = test_mode or app_config.RAKUTEN_API_TEST_MODE
 
         # 凭据配置
@@ -134,9 +135,6 @@ class RCabinetClient:
         Raises:
             RakutenAPIError: API调用失败时
         """
-        if self.test_mode == TEST_MODE["MOCK"]:
-            return self._mock_response(endpoint, method, params, data)
-
         # 速率限制
         self.rate_limiter.wait_if_needed()
 
@@ -217,77 +215,7 @@ class RCabinetClient:
                     error=error,
                 )
 
-    def _mock_response(
-        self,
-        endpoint: str,
-        method: str,
-        params: Dict[str, Any] = None,
-        data: Any = None,
-    ) -> Dict[str, Any]:
-        """
-        生成模拟响应数据
 
-        Args:
-            endpoint: API端点
-            method: HTTP方法
-            params: 请求参数
-            data: 请求数据
-
-        Returns:
-            模拟的响应数据
-        """
-        self.logger.info(f"模拟API调用: {method} {endpoint}")
-
-        # 模拟基础响应结构
-        mock_response = {
-            "interface_id": self._get_interface_id_from_endpoint(endpoint),
-            "system_status": "OK",
-            "message": "OK",
-            "request_id": "mock-request-id-12345",
-            "success": True,
-            "data": {},
-        }
-
-        # 根据不同端点生成不同的模拟数据
-        if "usage/get" in endpoint:
-            mock_response["data"] = {
-                "result_code": 0,
-                "max_space": 100,
-                "folder_max": 1000,
-                "file_max": 10000,
-                "use_space": 25.5,
-                "avail_space": 74.5,
-                "use_folder_count": 5,
-                "avail_folder_count": 995,
-            }
-        elif "folders/get" in endpoint:
-            mock_response["data"] = {
-                "result_code": 0,
-                "folder_all_count": 10,
-                "folder_count": 5,
-                "folders": [
-                    {
-                        "folder_id": 10001,
-                        "folder_name": "测试文件夹1",
-                        "folder_node": 1,
-                        "folder_path": "test_folder_1",
-                        "file_count": 3,
-                        "file_size": 1024.5,
-                        "timestamp": "2024-01-01T12:00:00",
-                    },
-                    {
-                        "folder_id": 10002,
-                        "folder_name": "测试文件夹2",
-                        "folder_node": 1,
-                        "folder_path": "test_folder_2",
-                        "file_count": 2,
-                        "file_size": 512.3,
-                        "timestamp": "2024-01-02T12:00:00",
-                    },
-                ],
-            }
-
-        return mock_response
 
     def _get_interface_id_from_endpoint(self, endpoint: str) -> str:
         """从端点获取接口ID"""
@@ -487,9 +415,6 @@ class RCabinetClient:
         Raises:
             RakutenAPIError: 上传失败时
         """
-        if self.test_mode == TEST_MODE["MOCK"]:
-            return self._mock_upload_response(filename)
-
         # 构建XML请求参数
         xml_data = self._build_upload_xml(filename, folder_id, alt_text)
 
@@ -540,32 +465,4 @@ class RCabinetClient:
 
         return "".join(xml_parts)
 
-    def _mock_upload_response(self, filename: str) -> Dict[str, Any]:
-        """
-        模拟文件上传响应
 
-        Args:
-            filename: 文件名
-
-        Returns:
-            模拟响应数据
-        """
-        import uuid
-
-        mock_file_id = f"mock_file_{uuid.uuid4().hex[:8]}"
-        mock_url = f"https://image.rakuten.co.jp/shop/cabinet/{mock_file_id}_{filename}"
-
-        return {
-            "success": True,
-            "system_status": "OK",
-            "request_id": f"mock-request-{uuid.uuid4().hex[:8]}",
-            "interface_id": "cabinet.file.insert",
-            "data": {
-                "result_code": 0,
-                "file_id": mock_file_id,
-                "file_url": mock_url,
-                "file_name": filename,
-                "file_size": 1024,  # 模拟文件大小
-                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            },
-        }
