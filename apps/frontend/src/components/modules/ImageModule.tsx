@@ -669,35 +669,19 @@ export function ImageModule({
                       {cabinetImages.map((image) => (
                         <div
                           key={image.id}
-                          className="relative cursor-pointer group aspect-square"
+                          className="cursor-pointer border rounded p-1 hover:border-blue-500"
                           onClick={() => handleCabinetImageSelect(image)}
                         >
                           <img
                             src={image.url}
                             alt={image.filename}
-                            className="w-full h-full object-cover rounded group-hover:opacity-80 transition-opacity"
-                            onError={(e) => {
-                              // 处理图片加载失败的情况
-                              const target = e.target as HTMLImageElement
-                              target.style.display = 'none'
-                              const parent = target.parentElement
-                              if (parent) {
-                                parent.innerHTML = `
-                                  <div class="w-full h-full bg-gray-200 rounded flex items-center justify-center">
-                                    <span class="text-xs text-gray-500 text-center p-1">${image.filename}</span>
-                                  </div>
-                                `
-                              }
-                            }}
+                            style={{ width: '100%', height: '120px', objectFit: 'cover' }}
                           />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded transition-all" />
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1 rounded-b opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="text-white text-xs truncate">
-                              {image.filename}
-                            </div>
-                            <div className="text-white/80 text-xs">
-                              {image.width}×{image.height}
-                            </div>
+                          <div className="text-xs text-gray-600 mt-1 truncate">
+                            {image.filename}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {image.width}×{image.height}
                           </div>
                         </div>
                       ))}
