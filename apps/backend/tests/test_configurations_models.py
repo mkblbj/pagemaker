@@ -24,7 +24,7 @@ class ShopConfigurationModelTest(TestCase):
             "ftp_host": "ftp.example.com",
             "ftp_port": 21,
             "ftp_user": "testuser",
-            "ftp_password": "testpass"
+            "ftp_password": "testpass",
         }
 
     def test_create_shop_configuration(self):
@@ -43,7 +43,7 @@ class ShopConfigurationModelTest(TestCase):
     def test_shop_configuration_str_representation(self):
         """测试店铺配置的字符串表示"""
         config = ShopConfiguration.objects.create(**self.valid_config_data)
-        
+
         expected_str = "测试店铺 (test_area)"
         self.assertEqual(str(config), expected_str)
 
@@ -65,13 +65,13 @@ class ShopConfigurationModelTest(TestCase):
         del config_data["ftp_port"]  # 不指定端口
 
         config = ShopConfiguration.objects.create(**config_data)
-        
+
         self.assertEqual(config.ftp_port, 21)  # 应该使用默认值
 
     def test_uuid_primary_key(self):
         """测试UUID主键"""
         config1 = ShopConfiguration.objects.create(**self.valid_config_data)
-        
+
         config_data_2 = self.valid_config_data.copy()
         config_data_2["target_area"] = "test_area_2"
         config2 = ShopConfiguration.objects.create(**config_data_2)
@@ -89,15 +89,19 @@ class ShopConfigurationModelTest(TestCase):
         config_data["shop_name"] = long_shop_name
 
         config = ShopConfiguration(**config_data)
-        
+
         # 字段长度验证在数据库层面，这里只测试模型创建
         self.assertEqual(config.shop_name, long_shop_name)
 
     def test_shop_configuration_required_fields(self):
         """测试必需字段"""
         required_fields = [
-            "shop_name", "target_area", "api_service_secret", 
-            "api_license_key", "ftp_host", "ftp_user"
+            "shop_name",
+            "target_area",
+            "api_service_secret",
+            "api_license_key",
+            "ftp_host",
+            "ftp_user",
         ]
 
         for field in required_fields:
@@ -125,7 +129,7 @@ class ShopConfigurationIntegrationTest(TestCase):
             "ftp_host": "ftp.integration.com",
             "ftp_port": 2121,
             "ftp_user": "integration_user",
-            "ftp_password": "integration_pass"
+            "ftp_password": "integration_pass",
         }
 
         config = ShopConfiguration.objects.create(**config_data)
@@ -147,14 +151,14 @@ class ShopConfigurationIntegrationTest(TestCase):
 
         # Delete
         updated_config.delete()
-        
+
         with self.assertRaises(ShopConfiguration.DoesNotExist):
             ShopConfiguration.objects.get(id=config_id)
 
     def test_multiple_shop_configurations(self):
         """测试多个店铺配置的管理"""
         configs = []
-        
+
         for i in range(3):
             config_data = {
                 "shop_name": f"店铺_{i}",
@@ -164,9 +168,9 @@ class ShopConfigurationIntegrationTest(TestCase):
                 "ftp_host": f"ftp{i}.example.com",
                 "ftp_port": 21 + i,
                 "ftp_user": f"user_{i}",
-                "ftp_password": f"pass_{i}"
+                "ftp_password": f"pass_{i}",
             }
-            
+
             config = ShopConfiguration.objects.create(**config_data)
             configs.append(config)
 
@@ -176,10 +180,10 @@ class ShopConfigurationIntegrationTest(TestCase):
         # 验证可以通过不同字段查询
         config_by_name = ShopConfiguration.objects.get(shop_name="店铺_1")
         config_by_area = ShopConfiguration.objects.get(target_area="area_1")
-        
+
         self.assertEqual(config_by_name.id, config_by_area.id)
         self.assertEqual(config_by_name, configs[1])
 
         # 验证target_area的唯一性
-        all_areas = ShopConfiguration.objects.values_list('target_area', flat=True)
-        self.assertEqual(len(set(all_areas)), len(all_areas))  # 所有area都应该是唯一的 
+        all_areas = ShopConfiguration.objects.values_list("target_area", flat=True)
+        self.assertEqual(len(set(all_areas)), len(all_areas))  # 所有area都应该是唯一的

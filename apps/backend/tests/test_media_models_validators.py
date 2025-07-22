@@ -29,9 +29,9 @@ from media.validators import (
 User = get_user_model()
 
 
-def create_test_image(width=100, height=100, format='JPEG'):
+def create_test_image(width=100, height=100, format="JPEG"):
     """创建测试图片"""
-    image = Image.new('RGB', (width, height), color='red')
+    image = Image.new("RGB", (width, height), color="red")
     buffer = BytesIO()
     image.save(buffer, format=format)
     buffer.seek(0)
@@ -45,9 +45,7 @@ class MediaFileModelTest(TestCase):
     def setUp(self):
         """设置测试数据"""
         self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
+            username="testuser", email="test@example.com", password="testpass123"
         )
 
     def test_create_media_file(self):
@@ -59,12 +57,14 @@ class MediaFileModelTest(TestCase):
             rcabinet_file_id="file_123",
             file_size=1024,
             content_type="image/jpeg",
-            upload_status="completed"
+            upload_status="completed",
         )
 
         self.assertEqual(media_file.user, self.user)
         self.assertEqual(media_file.original_filename, "test.jpg")
-        self.assertEqual(media_file.rcabinet_url, "https://rcabinet.example.com/files/test.jpg")
+        self.assertEqual(
+            media_file.rcabinet_url, "https://rcabinet.example.com/files/test.jpg"
+        )
         self.assertEqual(media_file.rcabinet_file_id, "file_123")
         self.assertEqual(media_file.file_size, 1024)
         self.assertEqual(media_file.content_type, "image/jpeg")
@@ -77,7 +77,7 @@ class MediaFileModelTest(TestCase):
             user=self.user,
             original_filename="test.jpg",
             file_size=1024,
-            content_type="image/jpeg"
+            content_type="image/jpeg",
         )
 
         self.assertEqual(media_file.upload_status, "pending")
@@ -89,7 +89,7 @@ class MediaFileModelTest(TestCase):
             original_filename="test.jpg",
             file_size=1024,
             content_type="image/jpeg",
-            upload_status="completed"
+            upload_status="completed",
         )
 
         expected_str = "test.jpg (completed)"
@@ -103,7 +103,7 @@ class MediaFileModelTest(TestCase):
             original_filename="test1.jpg",
             rcabinet_file_id="unique_id_123",
             file_size=1024,
-            content_type="image/jpeg"
+            content_type="image/jpeg",
         )
 
         # 尝试创建具有相同R-Cabinet ID的文件应该失败
@@ -113,7 +113,7 @@ class MediaFileModelTest(TestCase):
                 original_filename="test2.jpg",
                 rcabinet_file_id="unique_id_123",
                 file_size=2048,
-                content_type="image/png"
+                content_type="image/png",
             )
 
     def test_media_file_cascade_delete(self):
@@ -122,7 +122,7 @@ class MediaFileModelTest(TestCase):
             user=self.user,
             original_filename="test.jpg",
             file_size=1024,
-            content_type="image/jpeg"
+            content_type="image/jpeg",
         )
         media_file_id = media_file.id
 
@@ -143,7 +143,7 @@ class MediaFileModelTest(TestCase):
                 original_filename=f"test_{status}.jpg",
                 file_size=1024,
                 content_type="image/jpeg",
-                upload_status=status
+                upload_status=status,
             )
             self.assertEqual(media_file.upload_status, status)
 
@@ -153,7 +153,7 @@ class MediaFileModelTest(TestCase):
             user=self.user,
             original_filename="test.jpg",
             file_size=1024,
-            content_type="image/jpeg"
+            content_type="image/jpeg",
         )
 
         # 这些字段应该可以为空
@@ -169,9 +169,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_format_valid_jpg(self):
         """测试有效的JPG文件格式验证"""
         uploaded_file = SimpleUploadedFile(
-            "test.jpg",
-            b"fake image content",
-            content_type="image/jpeg"
+            "test.jpg", b"fake image content", content_type="image/jpeg"
         )
 
         is_valid, error_message = validate_file_format(uploaded_file)
@@ -182,9 +180,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_format_valid_png(self):
         """测试有效的PNG文件格式验证"""
         uploaded_file = SimpleUploadedFile(
-            "test.png",
-            b"fake image content",
-            content_type="image/png"
+            "test.png", b"fake image content", content_type="image/png"
         )
 
         is_valid, error_message = validate_file_format(uploaded_file)
@@ -195,9 +191,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_format_invalid_extension(self):
         """测试无效的文件扩展名"""
         uploaded_file = SimpleUploadedFile(
-            "test.txt",
-            b"text content",
-            content_type="text/plain"
+            "test.txt", b"text content", content_type="text/plain"
         )
 
         is_valid, error_message = validate_file_format(uploaded_file)
@@ -209,9 +203,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_format_case_insensitive(self):
         """测试文件扩展名大小写不敏感"""
         uploaded_file = SimpleUploadedFile(
-            "test.JPG",  # 大写扩展名
-            b"fake image content",
-            content_type="image/jpeg"
+            "test.JPG", b"fake image content", content_type="image/jpeg"  # 大写扩展名
         )
 
         is_valid, error_message = validate_file_format(uploaded_file)
@@ -224,9 +216,7 @@ class FileValidatorsTest(TestCase):
         # 创建小于限制的文件
         small_content = b"x" * 1024  # 1KB
         uploaded_file = SimpleUploadedFile(
-            "small.jpg",
-            small_content,
-            content_type="image/jpeg"
+            "small.jpg", small_content, content_type="image/jpeg"
         )
 
         is_valid, error_message = validate_file_size(uploaded_file)
@@ -240,7 +230,7 @@ class FileValidatorsTest(TestCase):
         uploaded_file = SimpleUploadedFile(
             "large.jpg",
             b"x",  # 内容很小，但我们会mock size属性
-            content_type="image/jpeg"
+            content_type="image/jpeg",
         )
         # 模拟大文件
         uploaded_file.size = MAX_FILE_SIZE + 1
@@ -261,7 +251,7 @@ class FileValidatorsTest(TestCase):
             "test.jpg",
             "image/jpeg",
             image_buffer.getbuffer().nbytes,
-            None
+            None,
         )
 
         is_valid, error_message = validate_image_dimensions(uploaded_file)
@@ -280,7 +270,7 @@ class FileValidatorsTest(TestCase):
             "large.jpg",
             "image/jpeg",
             image_buffer.getbuffer().nbytes,
-            None
+            None,
         )
 
         is_valid, error_message = validate_image_dimensions(uploaded_file)
@@ -292,9 +282,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_image_dimensions_invalid_image(self):
         """测试无效的图片文件"""
         uploaded_file = SimpleUploadedFile(
-            "not_image.jpg",
-            b"not an image",
-            content_type="image/jpeg"
+            "not_image.jpg", b"not an image", content_type="image/jpeg"
         )
 
         is_valid, error_message = validate_image_dimensions(uploaded_file)
@@ -305,9 +293,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_security_valid(self):
         """测试有效文件的安全性验证"""
         uploaded_file = SimpleUploadedFile(
-            "safe_file.jpg",
-            b"safe content",
-            content_type="image/jpeg"
+            "safe_file.jpg", b"safe content", content_type="image/jpeg"
         )
 
         is_valid, error_message = validate_file_security(uploaded_file)
@@ -320,17 +306,15 @@ class FileValidatorsTest(TestCase):
         # 测试多种危险字符
         dangerous_filenames = [
             "file<script>.jpg",  # 包含 < 字符
-            "file|pipe.jpg",     # 包含 | 字符
-            "file*.jpg",         # 包含 * 字符
-            'file"quote.jpg',    # 包含 " 字符
+            "file|pipe.jpg",  # 包含 | 字符
+            "file*.jpg",  # 包含 * 字符
+            'file"quote.jpg',  # 包含 " 字符
         ]
 
         for filename in dangerous_filenames:
             with self.subTest(filename=filename):
                 uploaded_file = SimpleUploadedFile(
-                    filename,
-                    b"content",
-                    content_type="image/jpeg"
+                    filename, b"content", content_type="image/jpeg"
                 )
 
                 is_valid, error_message = validate_file_security(uploaded_file)
@@ -341,9 +325,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_security_empty_file(self):
         """测试空文件的安全性验证"""
         uploaded_file = SimpleUploadedFile(
-            "empty.jpg",
-            b"",  # 空内容
-            content_type="image/jpeg"
+            "empty.jpg", b"", content_type="image/jpeg"  # 空内容
         )
 
         is_valid, error_message = validate_file_security(uploaded_file)
@@ -360,7 +342,7 @@ class FileValidatorsTest(TestCase):
             "test.jpg",
             "image/jpeg",
             image_buffer.getbuffer().nbytes,
-            None
+            None,
         )
 
         is_valid, error_message = validate_file_integrity(uploaded_file)
@@ -371,9 +353,7 @@ class FileValidatorsTest(TestCase):
     def test_validate_file_integrity_corrupted_file(self):
         """测试损坏文件的完整性验证"""
         uploaded_file = SimpleUploadedFile(
-            "corrupted.jpg",
-            b"corrupted image data",
-            content_type="image/jpeg"
+            "corrupted.jpg", b"corrupted image data", content_type="image/jpeg"
         )
 
         is_valid, error_message = validate_file_integrity(uploaded_file)
@@ -395,7 +375,7 @@ class ValidateUploadedFileTest(TestCase):
             "valid.jpg",
             "image/jpeg",
             image_buffer.getbuffer().nbytes,
-            None
+            None,
         )
 
         # 验证应该成功
@@ -406,9 +386,7 @@ class ValidateUploadedFileTest(TestCase):
     def test_validate_uploaded_file_invalid_format(self):
         """测试无效格式的文件验证失败"""
         uploaded_file = SimpleUploadedFile(
-            "invalid.txt",
-            b"text content",
-            content_type="text/plain"
+            "invalid.txt", b"text content", content_type="text/plain"
         )
 
         is_valid, error_message = validate_uploaded_file(uploaded_file)
@@ -417,11 +395,7 @@ class ValidateUploadedFileTest(TestCase):
 
     def test_validate_uploaded_file_too_large(self):
         """测试文件过大的验证失败"""
-        uploaded_file = SimpleUploadedFile(
-            "large.jpg",
-            b"x",
-            content_type="image/jpeg"
-        )
+        uploaded_file = SimpleUploadedFile("large.jpg", b"x", content_type="image/jpeg")
         uploaded_file.size = MAX_FILE_SIZE + 1
 
         is_valid, error_message = validate_uploaded_file(uploaded_file)
@@ -430,14 +404,14 @@ class ValidateUploadedFileTest(TestCase):
 
     def test_get_file_format_info_jpg(self):
         """测试获取JPG文件格式信息"""
-        image_buffer = create_test_image(100, 100, 'JPEG')
+        image_buffer = create_test_image(100, 100, "JPEG")
         uploaded_file = InMemoryUploadedFile(
             image_buffer,
             None,
             "test.jpg",
             "image/jpeg",
             image_buffer.getbuffer().nbytes,
-            None
+            None,
         )
 
         format_info = get_file_format_info(uploaded_file)
@@ -450,9 +424,7 @@ class ValidateUploadedFileTest(TestCase):
     def test_get_file_format_info_invalid_file(self):
         """测试获取无效文件的格式信息"""
         uploaded_file = SimpleUploadedFile(
-            "test.txt",
-            b"text content",
-            content_type="text/plain"
+            "test.txt", b"text content", content_type="text/plain"
         )
 
         format_info = get_file_format_info(uploaded_file)
@@ -468,16 +440,16 @@ class ValidatorsConstantsTest(TestCase):
     def test_supported_formats_structure(self):
         """测试支持格式的数据结构"""
         self.assertIsInstance(SUPPORTED_FORMATS, dict)
-        
+
         # 检查每种格式都有对应的扩展名列表
         for format_name, extensions in SUPPORTED_FORMATS.items():
             self.assertIsInstance(format_name, str)
             self.assertIsInstance(extensions, list)
             self.assertGreater(len(extensions), 0)
-            
+
             # 检查扩展名格式
             for ext in extensions:
-                self.assertTrue(ext.startswith('.'))
+                self.assertTrue(ext.startswith("."))
                 self.assertEqual(ext, ext.lower())
 
     def test_file_size_limit(self):
@@ -502,9 +474,7 @@ class MediaIntegrationTest(TestCase):
     def setUp(self):
         """设置测试数据"""
         self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
+            username="testuser", email="test@example.com", password="testpass123"
         )
 
     def test_complete_media_workflow(self):
@@ -517,7 +487,7 @@ class MediaIntegrationTest(TestCase):
             "workflow_test.jpg",
             "image/jpeg",
             image_buffer.getbuffer().nbytes,
-            None
+            None,
         )
 
         # 2. 验证文件
@@ -530,7 +500,7 @@ class MediaIntegrationTest(TestCase):
             original_filename=uploaded_file.name,
             file_size=uploaded_file.size,
             content_type=uploaded_file.content_type,
-            upload_status="pending"
+            upload_status="pending",
         )
 
         # 4. 模拟上传成功，更新记录
@@ -558,41 +528,41 @@ class MediaIntegrationTest(TestCase):
             with self.subTest(filename=filename):
                 if should_pass:
                     # 创建有效文件
-                    if filename.endswith(('.jpg', '.jpeg')):
-                        image_buffer = create_test_image(100, 100, 'JPEG')
+                    if filename.endswith((".jpg", ".jpeg")):
+                        image_buffer = create_test_image(100, 100, "JPEG")
                     else:
-                        image_buffer = create_test_image(100, 100, 'PNG')
-                    
+                        image_buffer = create_test_image(100, 100, "PNG")
+
                     uploaded_file = InMemoryUploadedFile(
                         image_buffer,
                         None,
                         filename,
                         content_type,
                         image_buffer.getbuffer().nbytes,
-                        None
+                        None,
                     )
 
                     # 验证应该通过
                     is_valid, error_message = validate_uploaded_file(uploaded_file)
-                    self.assertTrue(is_valid, f"文件 {filename} 验证应该成功: {error_message}")
+                    self.assertTrue(
+                        is_valid, f"文件 {filename} 验证应该成功: {error_message}"
+                    )
 
                     # 创建模型记录
                     media_file = MediaFile.objects.create(
                         user=self.user,
                         original_filename=filename,
                         file_size=uploaded_file.size,
-                        content_type=content_type
+                        content_type=content_type,
                     )
                     self.assertEqual(media_file.upload_status, expected_status)
 
                 else:
                     # 创建无效文件
                     uploaded_file = SimpleUploadedFile(
-                        filename,
-                        b"invalid content",
-                        content_type=content_type
+                        filename, b"invalid content", content_type=content_type
                     )
 
                     # 验证应该失败
                     is_valid, error_message = validate_uploaded_file(uploaded_file)
-                    self.assertFalse(is_valid, f"文件 {filename} 验证应该失败") 
+                    self.assertFalse(is_valid, f"文件 {filename} 验证应该失败")

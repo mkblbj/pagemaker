@@ -23,9 +23,9 @@ class ValidateJsonContentTest(TestCase):
         """测试有效的列表内容"""
         valid_content = [
             {"id": "module-1", "type": "title", "content": "标题"},
-            {"id": "module-2", "type": "text", "content": "文本"}
+            {"id": "module-2", "type": "text", "content": "文本"},
         ]
-        
+
         # 应该不抛出异常
         try:
             validate_json_content(valid_content)
@@ -35,7 +35,7 @@ class ValidateJsonContentTest(TestCase):
     def test_validate_json_content_valid_json_string(self):
         """测试有效的JSON字符串"""
         valid_json = '[{"id": "module-1", "type": "title"}]'
-        
+
         try:
             validate_json_content(valid_json)
         except ValidationError:
@@ -45,22 +45,22 @@ class ValidateJsonContentTest(TestCase):
         """测试空内容"""
         with self.assertRaises(ValidationError) as context:
             validate_json_content(None)
-        
+
         self.assertIn("Content不能为空", str(context.exception))
 
     def test_validate_json_content_invalid_json(self):
         """测试无效的JSON字符串"""
         invalid_json = '{"invalid": json}'
-        
+
         with self.assertRaises(ValidationError) as context:
             validate_json_content(invalid_json)
-        
+
         self.assertIn("Content必须是有效的JSON", str(context.exception))
 
     def test_validate_json_content_non_list_dict(self):
         """测试非列表格式的字典"""
         dict_content = {"type": "page", "modules": []}
-        
+
         # 根据实际实现，字典类型直接通过验证，因为isinstance(value, (list, dict))为True
         # 实际的列表验证在模型的clean方法中进行
         try:
@@ -72,10 +72,10 @@ class ValidateJsonContentTest(TestCase):
     def test_validate_json_content_non_list_string(self):
         """测试非列表格式的JSON字符串"""
         non_list_json = '{"type": "page"}'
-        
+
         with self.assertRaises(ValidationError) as context:
             validate_json_content(non_list_json)
-        
+
         self.assertIn("Content必须是数组格式", str(context.exception))
 
 
@@ -86,14 +86,12 @@ class PageTemplateModelTest(TestCase):
     def setUp(self):
         """设置测试数据"""
         self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
+            username="testuser", email="test@example.com", password="testpass123"
         )
-        
+
         self.valid_content = [
             {"id": "module-1", "type": "title", "content": "测试标题"},
-            {"id": "module-2", "type": "text", "content": "测试文本内容"}
+            {"id": "module-2", "type": "text", "content": "测试文本内容"},
         ]
 
     def test_create_page_template_basic(self):
@@ -102,7 +100,7 @@ class PageTemplateModelTest(TestCase):
             name="测试页面",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         self.assertEqual(page.name, "测试页面")
@@ -119,20 +117,20 @@ class PageTemplateModelTest(TestCase):
             name="UUID测试页面",
             content=self.valid_content,
             target_area="mobile",
-            owner=self.user
+            owner=self.user,
         )
 
         # 主键应该是UUID类型
         self.assertIsInstance(page.id, uuid.UUID)
-        
+
         # 每次创建的UUID应该不同
         page2 = PageTemplate.objects.create(
             name="另一个页面",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
-        
+
         self.assertNotEqual(page.id, page2.id)
 
     def test_page_template_str_representation(self):
@@ -141,7 +139,7 @@ class PageTemplateModelTest(TestCase):
             name="字符串测试页面",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         expected_str = "字符串测试页面 (testuser)"
@@ -156,7 +154,7 @@ class PageTemplateModelTest(TestCase):
                 name=f"测试页面_{area}",
                 content=self.valid_content,
                 target_area=area,
-                owner=self.user
+                owner=self.user,
             )
             self.assertEqual(page.target_area, area)
 
@@ -167,7 +165,7 @@ class PageTemplateModelTest(TestCase):
             name="内容验证测试",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
         self.assertEqual(page.content, self.valid_content)
 
@@ -177,7 +175,7 @@ class PageTemplateModelTest(TestCase):
             name="级联删除测试",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
         page_id = page.id
 
@@ -194,7 +192,7 @@ class PageTemplateModelTest(TestCase):
             name="可选字段测试",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         # 测试content字段可以为空列表
@@ -209,7 +207,7 @@ class PageTemplateModelTest(TestCase):
             name="唯一性测试页面",
             content=self.valid_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         # 同一用户可以创建多个同名页面（如果没有唯一约束）
@@ -219,7 +217,7 @@ class PageTemplateModelTest(TestCase):
                 name="唯一性测试页面",
                 content=self.valid_content,
                 target_area="mobile",
-                owner=self.user
+                owner=self.user,
             )
             # 如果没有唯一约束，这应该成功
         except IntegrityError:
@@ -233,27 +231,21 @@ class PageTemplateModelTest(TestCase):
                 "id": "module-1",
                 "type": "title",
                 "content": "复杂标题",
-                "style": {
-                    "fontSize": "24px",
-                    "color": "#333"
-                }
+                "style": {"fontSize": "24px", "color": "#333"},
             },
             {
                 "id": "module-2",
                 "type": "text",
                 "content": "复杂文本",
-                "nested": {
-                    "array": [1, 2, 3],
-                    "object": {"key": "value"}
-                }
-            }
+                "nested": {"array": [1, 2, 3], "object": {"key": "value"}},
+            },
         ]
 
         page = PageTemplate.objects.create(
             name="复杂内容测试",
             content=complex_content,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         # 从数据库重新获取，确保JSON序列化/反序列化正常
@@ -269,7 +261,7 @@ class PageTemplateModelTest(TestCase):
                 name=f"排序测试页面_{i}",
                 content=self.valid_content,
                 target_area="pc",
-                owner=self.user
+                owner=self.user,
             )
             pages.append(page)
 
@@ -283,14 +275,14 @@ class PageTemplateModelTest(TestCase):
             {"id": "title-1", "type": "title", "content": "标题1"},
             {"id": "text-1", "type": "text", "content": "文本1"},
             {"id": "title-2", "type": "title", "content": "标题2"},
-            {"id": "image-1", "type": "image", "src": "image.jpg"}
+            {"id": "image-1", "type": "image", "src": "image.jpg"},
         ]
 
         page = PageTemplate.objects.create(
             name="方法测试页面",
             content=content_with_multiple_types,
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         # 测试 module_count 属性
@@ -318,10 +310,10 @@ class PageTemplateModelTest(TestCase):
                 name="",  # 空名称
                 content=self.valid_content,
                 target_area="pc",
-                owner=self.user
+                owner=self.user,
             )
             page.clean()
-        
+
         self.assertIn("页面名称不能为空", str(context.exception))
 
         # 测试target_area验证
@@ -330,10 +322,10 @@ class PageTemplateModelTest(TestCase):
                 name="测试页面",
                 content=self.valid_content,
                 target_area="",  # 空目标区域
-                owner=self.user
+                owner=self.user,
             )
             page.clean()
-        
+
         self.assertIn("目标区域不能为空", str(context.exception))
 
         # 测试content格式验证
@@ -342,25 +334,23 @@ class PageTemplateModelTest(TestCase):
                 name="测试页面",
                 content="invalid content",  # 非数组内容
                 target_area="pc",
-                owner=self.user
+                owner=self.user,
             )
             page.clean()
-        
+
         self.assertIn("Content必须是数组格式", str(context.exception))
 
         # 测试模块缺少必需字段
-        invalid_content = [
-            {"type": "title", "content": "标题"}  # 缺少id字段
-        ]
+        invalid_content = [{"type": "title", "content": "标题"}]  # 缺少id字段
         with self.assertRaises(ValidationError) as context:
             page = PageTemplate(
                 name="测试页面",
                 content=invalid_content,
                 target_area="pc",
-                owner=self.user
+                owner=self.user,
             )
             page.clean()
-        
+
         self.assertIn("缺少id字段", str(context.exception))
 
 
@@ -371,30 +361,23 @@ class PageTemplateIntegrationTest(TestCase):
     def setUp(self):
         """设置测试数据"""
         self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
+            username="testuser", email="test@example.com", password="testpass123"
         )
-        
+
         self.admin_user = User.objects.create_superuser(
-            username="admin",
-            email="admin@example.com",
-            password="adminpass123"
+            username="admin", email="admin@example.com", password="adminpass123"
         )
 
     def test_page_template_workflow(self):
         """测试完整的页面模板工作流"""
         content = [
             {"id": "title-1", "type": "title", "content": "工作流测试标题"},
-            {"id": "text-1", "type": "text", "content": "工作流测试内容"}
+            {"id": "text-1", "type": "text", "content": "工作流测试内容"},
         ]
 
         # 1. 创建页面模板
         page = PageTemplate.objects.create(
-            name="工作流测试页面",
-            content=content,
-            target_area="pc",
-            owner=self.user
+            name="工作流测试页面", content=content, target_area="pc", owner=self.user
         )
 
         # 2. 验证创建成功
@@ -425,14 +408,14 @@ class PageTemplateIntegrationTest(TestCase):
             name="用户1的页面",
             content=[{"id": "1", "type": "title", "content": "用户1"}],
             target_area="pc",
-            owner=self.user
+            owner=self.user,
         )
 
         user2_page = PageTemplate.objects.create(
             name="管理员的页面",
             content=[{"id": "1", "type": "title", "content": "管理员"}],
             target_area="mobile",
-            owner=self.admin_user
+            owner=self.admin_user,
         )
 
         # 验证用户只能看到自己的页面
@@ -445,4 +428,4 @@ class PageTemplateIntegrationTest(TestCase):
         self.assertEqual(user2_pages.first().name, "管理员的页面")
 
         # 验证页面ID不同
-        self.assertNotEqual(user1_page.id, user2_page.id) 
+        self.assertNotEqual(user1_page.id, user2_page.id)

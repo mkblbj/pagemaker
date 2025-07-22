@@ -24,18 +24,16 @@ class UserProfileModelTest(TestCase):
         """设置测试数据"""
         self.user = User.objects.create_user(
             username="testuser",
-            email="test@example.com", 
+            email="test@example.com",
             password="testpass123",
             first_name="Test",
-            last_name="User"
+            last_name="User",
         )
 
     def test_create_user_profile_with_editor_role(self):
         """测试创建编辑者角色的用户配置"""
         profile = UserProfile.objects.create(
-            user=self.user,
-            role="editor",
-            full_name="Test User"
+            user=self.user, role="editor", full_name="Test User"
         )
 
         self.assertEqual(profile.user, self.user)
@@ -47,9 +45,7 @@ class UserProfileModelTest(TestCase):
     def test_create_user_profile_with_admin_role(self):
         """测试创建管理员角色的用户配置"""
         profile = UserProfile.objects.create(
-            user=self.user,
-            role="admin",
-            full_name="Admin User"
+            user=self.user, role="admin", full_name="Admin User"
         )
 
         self.assertEqual(profile.role, "admin")
@@ -59,15 +55,12 @@ class UserProfileModelTest(TestCase):
     def test_user_profile_default_role(self):
         """测试用户配置默认角色"""
         profile = UserProfile.objects.create(user=self.user)
-        
+
         self.assertEqual(profile.role, "editor")  # 默认角色应该是editor
 
     def test_user_profile_str_representation(self):
         """测试用户配置的字符串表示"""
-        profile = UserProfile.objects.create(
-            user=self.user,
-            role="admin"
-        )
+        profile = UserProfile.objects.create(user=self.user, role="admin")
 
         expected_str = f"{self.user.username} (admin)"
         self.assertEqual(str(profile), expected_str)
@@ -75,48 +68,32 @@ class UserProfileModelTest(TestCase):
     def test_is_admin_method(self):
         """测试is_admin方法"""
         # 测试admin角色
-        admin_profile = UserProfile.objects.create(
-            user=self.user,
-            role="admin"
-        )
+        admin_profile = UserProfile.objects.create(user=self.user, role="admin")
         self.assertTrue(admin_profile.is_admin())
 
         # 测试editor角色
-        editor_user = User.objects.create_user(
-            username="editor", password="pass"
-        )
-        editor_profile = UserProfile.objects.create(
-            user=editor_user,
-            role="editor"
-        )
+        editor_user = User.objects.create_user(username="editor", password="pass")
+        editor_profile = UserProfile.objects.create(user=editor_user, role="editor")
         self.assertFalse(editor_profile.is_admin())
 
     def test_is_editor_method(self):
         """测试is_editor方法"""
         # 测试editor角色
-        editor_profile = UserProfile.objects.create(
-            user=self.user,
-            role="editor"
-        )
+        editor_profile = UserProfile.objects.create(user=self.user, role="editor")
         self.assertTrue(editor_profile.is_editor())
 
         # 测试admin角色
-        admin_user = User.objects.create_user(
-            username="admin", password="pass"
-        )
-        admin_profile = UserProfile.objects.create(
-            user=admin_user,
-            role="admin"
-        )
+        admin_user = User.objects.create_user(username="admin", password="pass")
+        admin_profile = UserProfile.objects.create(user=admin_user, role="admin")
         self.assertFalse(admin_profile.is_editor())
 
     def test_user_profile_one_to_one_relationship(self):
         """测试用户配置与用户的一对一关系"""
         profile = UserProfile.objects.create(user=self.user, role="editor")
-        
+
         # 通过用户访问配置
         self.assertEqual(self.user.userprofile, profile)
-        
+
         # 通过配置访问用户
         self.assertEqual(profile.user, self.user)
 
@@ -124,7 +101,7 @@ class UserProfileModelTest(TestCase):
         """测试用户配置的唯一约束"""
         # 创建第一个配置
         UserProfile.objects.create(user=self.user, role="editor")
-        
+
         # 尝试为同一用户创建第二个配置应该失败
         with self.assertRaises(IntegrityError):
             UserProfile.objects.create(user=self.user, role="admin")
@@ -133,10 +110,10 @@ class UserProfileModelTest(TestCase):
         """测试用户删除时配置文件的级联删除"""
         profile = UserProfile.objects.create(user=self.user, role="editor")
         profile_id = profile.id
-        
+
         # 删除用户
         self.user.delete()
-        
+
         # 配置文件应该也被删除
         with self.assertRaises(UserProfile.DoesNotExist):
             UserProfile.objects.get(id=profile_id)
@@ -146,20 +123,16 @@ class UserProfileModelTest(TestCase):
         # 有效角色
         valid_roles = ["editor", "admin"]
         for role in valid_roles:
-            user = User.objects.create_user(
-                username=f"user_{role}", password="pass"
-            )
+            user = User.objects.create_user(username=f"user_{role}", password="pass")
             profile = UserProfile.objects.create(user=user, role=role)
             self.assertEqual(profile.role, role)
 
     def test_user_profile_blank_full_name(self):
         """测试全名字段可以为空"""
         profile = UserProfile.objects.create(
-            user=self.user,
-            role="editor",
-            full_name=""  # 空字符串
+            user=self.user, role="editor", full_name=""  # 空字符串
         )
-        
+
         self.assertEqual(profile.full_name, "")
 
     def test_user_profile_meta_options(self):
@@ -179,21 +152,17 @@ class UserProfileFunctionsTest(TestCase):
             email="test@example.com",
             password="testpass123",
             first_name="Test",
-            last_name="User"
+            last_name="User",
         )
         self.superuser = User.objects.create_superuser(
-            username="superuser",
-            email="super@example.com",
-            password="superpass123"
+            username="superuser", email="super@example.com", password="superpass123"
         )
 
     def test_get_user_profile_existing(self):
         """测试获取已存在的用户配置"""
         # 创建用户配置
         original_profile = UserProfile.objects.create(
-            user=self.user,
-            role="admin",
-            full_name="Test Admin"
+            user=self.user, role="admin", full_name="Test Admin"
         )
 
         # 获取配置
@@ -206,7 +175,7 @@ class UserProfileFunctionsTest(TestCase):
     def test_get_user_profile_create_for_regular_user(self):
         """测试为普通用户创建默认配置"""
         # 确保用户没有配置
-        self.assertFalse(hasattr(self.user, 'userprofile'))
+        self.assertFalse(hasattr(self.user, "userprofile"))
 
         # 获取配置（应该自动创建）
         profile = get_user_profile(self.user)
@@ -228,9 +197,7 @@ class UserProfileFunctionsTest(TestCase):
     def test_get_user_profile_empty_full_name(self):
         """测试用户没有姓名时创建配置"""
         user_no_name = User.objects.create_user(
-            username="noname",
-            email="noname@example.com",
-            password="pass"
+            username="noname", email="noname@example.com", password="pass"
         )
 
         profile = get_user_profile(user_no_name)
@@ -262,7 +229,7 @@ class UserProfileFunctionsTest(TestCase):
     def test_check_user_role_no_profile(self):
         """测试没有配置文件的用户角色检查"""
         # 确保用户没有配置文件
-        self.assertFalse(hasattr(self.user, 'userprofile'))
+        self.assertFalse(hasattr(self.user, "userprofile"))
 
         # 没有配置文件的普通用户应该没有权限
         self.assertFalse(check_user_role(self.user, "admin"))
@@ -282,9 +249,7 @@ class UserProfileFunctionsTest(TestCase):
         self.assertTrue(has_admin_role(self.user))
 
         # 编辑者用户
-        editor_user = User.objects.create_user(
-            username="editor", password="pass"
-        )
+        editor_user = User.objects.create_user(username="editor", password="pass")
         UserProfile.objects.create(user=editor_user, role="editor")
         self.assertFalse(has_admin_role(editor_user))
 
@@ -298,9 +263,7 @@ class UserProfileFunctionsTest(TestCase):
         # 不指定required_role应该默认检查admin权限
         self.assertTrue(check_user_role(self.user))
 
-        editor_user = User.objects.create_user(
-            username="editor", password="pass"
-        )
+        editor_user = User.objects.create_user(username="editor", password="pass")
         UserProfile.objects.create(user=editor_user, role="editor")
         self.assertFalse(check_user_role(editor_user))
 
@@ -317,7 +280,7 @@ class UserProfileIntegrationTest(TestCase):
             email="workflow@example.com",
             password="pass123",
             first_name="Workflow",
-            last_name="User"
+            last_name="User",
         )
 
         # 2. 获取配置（应该自动创建）
@@ -351,13 +314,13 @@ class UserProfileIntegrationTest(TestCase):
 
         # 验证权限
         users_permissions = [
-            (admin_user, True, True),   # admin: admin权限=True, editor权限=True
-            (editor_user, False, True), # editor: admin权限=False, editor权限=True
-            (superuser, True, True),    # superuser: 所有权限=True
+            (admin_user, True, True),  # admin: admin权限=True, editor权限=True
+            (editor_user, False, True),  # editor: admin权限=False, editor权限=True
+            (superuser, True, True),  # superuser: 所有权限=True
         ]
 
         for user, expected_admin, expected_editor in users_permissions:
             with self.subTest(user=user.username):
                 self.assertEqual(check_user_role(user, "admin"), expected_admin)
                 self.assertEqual(check_user_role(user, "editor"), expected_editor)
-                self.assertEqual(has_admin_role(user), expected_admin) 
+                self.assertEqual(has_admin_role(user), expected_admin)

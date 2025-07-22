@@ -29,7 +29,7 @@ class HealthCheckViewTest(TestCase):
         response = self.client.get(reverse("health_check"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         data = response.json()
         self.assertEqual(data["status"], "healthy")
         self.assertEqual(data["database"], "connected")
@@ -46,7 +46,7 @@ class HealthCheckViewTest(TestCase):
         response = self.client.get(reverse("health_check"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         data = response.json()
         self.assertEqual(data["status"], "healthy")
         self.assertEqual(data["database"], "disconnected")
@@ -55,10 +55,10 @@ class HealthCheckViewTest(TestCase):
     def test_health_check_response_format(self):
         """测试健康检查响应格式"""
         response = self.client.get(reverse("health_check"))
-        
+
         data = response.json()
         required_fields = ["status", "database", "timestamp"]
-        
+
         for field in required_fields:
             self.assertIn(field, data, f"响应中缺少字段: {field}")
 
@@ -99,7 +99,7 @@ class RakutenHealthCheckViewTest(TestCase):
         response = self.client.get(reverse("rakuten_health_check"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         data = response.json()
         self.assertTrue(data["success"])
         self.assertEqual(data["service"], "R-Cabinet")
@@ -124,7 +124,7 @@ class RakutenHealthCheckViewTest(TestCase):
         response = self.client.get(reverse("rakuten_health_check"))
 
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-        
+
         data = response.json()
         self.assertFalse(data["success"])
         self.assertEqual(data["service"], "R-Cabinet")
@@ -143,7 +143,7 @@ class RakutenHealthCheckViewTest(TestCase):
         response = self.client.get(reverse("rakuten_health_check"))
 
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-        
+
         data = response.json()
         self.assertFalse(data["success"])
         self.assertEqual(data["service"], "R-Cabinet")
@@ -162,7 +162,7 @@ class RakutenHealthCheckViewTest(TestCase):
         response = self.client.get(reverse("rakuten_health_check"))
 
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-        
+
         data = response.json()
         self.assertFalse(data["success"])
         self.assertEqual(data["service"], "R-Cabinet")
@@ -179,7 +179,9 @@ class RakutenHealthCheckViewTest(TestCase):
 
             # 不需要认证的请求
             response = self.client.get(reverse("rakuten_health_check"))
-            self.assertIn(response.status_code, [200, 503])  # 任一状态码都说明端点可访问
+            self.assertIn(
+                response.status_code, [200, 503]
+            )  # 任一状态码都说明端点可访问
 
     @patch("api.views.RCabinetClient")
     def test_rakuten_health_check_response_format(self, mock_client_class):
@@ -192,10 +194,10 @@ class RakutenHealthCheckViewTest(TestCase):
         mock_client_class.return_value = mock_client
 
         response = self.client.get(reverse("rakuten_health_check"))
-        
+
         data = response.json()
         required_fields = ["success", "service", "status"]
-        
+
         for field in required_fields:
             self.assertIn(field, data, f"响应中缺少字段: {field}")
 
@@ -223,7 +225,7 @@ class APIIntegrationTest(TestCase):
     def test_api_cors_headers(self):
         """测试API CORS头设置"""
         response = self.client.get(reverse("health_check"))
-        
+
         # 检查是否有CORS相关的头（如果配置了）
         # 这取决于Django CORS设置
         self.assertIsNotNone(response)  # 基本可达性测试
@@ -231,7 +233,7 @@ class APIIntegrationTest(TestCase):
     def test_api_content_type(self):
         """测试API响应内容类型"""
         response = self.client.get(reverse("health_check"))
-        
+
         self.assertEqual(response["Content-Type"], "application/json")
 
     def test_api_method_not_allowed(self):
@@ -244,4 +246,4 @@ class APIIntegrationTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         response = self.client.delete(reverse("health_check"))
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED) 
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
