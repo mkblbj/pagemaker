@@ -38,8 +38,9 @@ class RCabinetUploadMockTestCase(TestCase):
         self.assertTrue(result["success"])
         self.assertEqual(result["system_status"], "OK")
         self.assertIn("file_id", result["data"])
-        self.assertIn("file_url", result["data"])
-        self.assertEqual(result["data"]["file_name"], "test_integration.jpg")
+        # R-Cabinet API在file.insert响应中只返回file_id和result_code
+        # file_url需要通过后续的API调用获取
+        self.assertIsNotNone(result["data"]["file_id"])
 
     def test_mock_upload_with_folder(self):
         """测试指定文件夹的上传"""

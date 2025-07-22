@@ -9,9 +9,282 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Image, Plus, Trash2 } from 'lucide-react'
+import { Settings, Image, Plus, Trash2, Upload, Link, X } from 'lucide-react'
 import { PageModuleType } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { useState, useRef } from 'react'
+import { imageService } from '@/services/imageService'
+
+// 图片模块属性组件
+function ImageModuleProperties({
+  module,
+  onUpdate
+}: {
+  module: any
+  onUpdate: (property: string, value: any) => void
+}) {
+  const { tEditor } = useTranslation()
+  const [showImageSelector, setShowImageSelector] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 处理文件上传
+  const handleFileUpload = async (file: File) => {
+    const validation = imageService.validateImageFile(file)
+    if (!validation.valid) {
+      setUploadError(validation.error || '文件验证失败')
+      setUploadStatus('error')
+      return
+    }
+
+    setUploadingFile(file)
+    setUploadStatus('uploading')
+    setUploadProgress(0)
+    setUploadError(null)
+
+    try {
+      const uploadResult = await imageService.uploadImage(file, progress => {
+        setUploadProgress(progress)
+      })
+
+      setUploadStatus('success')
+      onUpdate('src', uploadResult.url)
+      onUpdate('alt', module.alt || file.name.replace(/\.[^/.]+$/, ''))
+
+      // 延迟关闭对话框以显示成功状态
+      setTimeout(() => {
+        setShowImageSelector(false)
+        setUploadStatus('idle')
+        setUploadProgress(0)
+      }, 1500)
+    } catch (error) {
+      console.error('图片上传失败:', error)
+      setUploadError(error instanceof Error ? error.message : '图片上传失败，请重试')
+      setUploadStatus('error')
+    } finally {
+      setUploadingFile(null)
+    }
+  }
+
+  // 处理文件选择
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* 图片选择/上传 */}
+      <div className="space-y-2">
+        <Label>{tEditor('图片')}</Label>
+        {!module.src ? (
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition-colors"
+            onClick={() => setShowImageSelector(true)}
+          >
+            <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">{tEditor('点击选择图片')}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <img src={module.src} alt={module.alt || '预览图片'} className="max-w-full h-auto rounded-lg shadow-sm" />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowImageSelector(true)} className="flex-1">
+                <Upload className="h-4 w-4 mr-2" />
+                {tEditor('更换图片')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onUpdate('src', '')
+                  onUpdate('alt', '')
+                }}
+                className="text-red-600 hover:text-red-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Alt文本 */}
+      <div className="space-y-2">
+        <Label htmlFor="image-alt">{tEditor('图片描述')}</Label>
+        <Input
+          id="image-alt"
+          value={module.alt || ''}
+          onChange={e => onUpdate('alt', e.target.value)}
+          placeholder={tEditor('输入图片描述')}
+        />
+      </div>
+
+      {/* 对齐方式 */}
+      <div className="space-y-2">
+        <Label>{tEditor('对齐方式')}</Label>
+        <Select
+          value={module.alignment || 'center'}
+          onValueChange={(value: 'left' | 'center' | 'right') => onUpdate('alignment', value)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+            <SelectItem value="center">{tEditor('居中')}</SelectItem>
+            <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 尺寸设置 */}
+      <div className="space-y-2">
+        <Label>{tEditor('图片尺寸')}</Label>
+        <div className="space-y-2">
+          <Select
+            value={module.size?.type || 'preset'}
+            onValueChange={(value: 'preset' | 'percentage') =>
+              onUpdate('size', {
+                type: value,
+                value: value === 'preset' ? 'medium' : '100'
+              })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="preset">{tEditor('预设尺寸')}</SelectItem>
+              <SelectItem value="percentage">{tEditor('百分比')}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {module.size?.type === 'preset' ? (
+            <Select
+              value={module.size?.value || 'medium'}
+              onValueChange={value => onUpdate('size', { type: 'preset', value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="small">{tEditor('小图 (200px)')}</SelectItem>
+                <SelectItem value="medium">{tEditor('中图 (400px)')}</SelectItem>
+                <SelectItem value="large">{tEditor('大图 (600px)')}</SelectItem>
+                <SelectItem value="full">{tEditor('全宽')}</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min="1"
+                max="100"
+                value={module.size?.value || '100'}
+                onChange={e => onUpdate('size', { type: 'percentage', value: e.target.value })}
+                className="flex-1"
+              />
+              <span className="text-sm text-gray-500">%</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 链接设置 */}
+      <div className="space-y-2">
+        <Label>{tEditor('链接设置')}</Label>
+        <div className="space-y-2">
+          <Select
+            value={module.link?.type || 'none'}
+            onValueChange={(value: string) => {
+              if (value === 'none') {
+                onUpdate('link', undefined)
+              } else {
+                onUpdate('link', { type: value, value: '' })
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{tEditor('无链接')}</SelectItem>
+              <SelectItem value="url">{tEditor('网址')}</SelectItem>
+              <SelectItem value="email">{tEditor('邮箱')}</SelectItem>
+              <SelectItem value="phone">{tEditor('电话')}</SelectItem>
+              <SelectItem value="anchor">{tEditor('页面锚点')}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {module.link && (
+            <Input
+              value={module.link.value || ''}
+              onChange={e => onUpdate('link', { ...module.link, value: e.target.value })}
+              placeholder={
+                module.link.type === 'url'
+                  ? 'https://example.com'
+                  : module.link.type === 'email'
+                    ? 'example@email.com'
+                    : module.link.type === 'phone'
+                      ? '+86 138 0013 8000'
+                      : module.link.type === 'anchor'
+                        ? 'section-name'
+                        : ''
+              }
+            />
+          )}
+        </div>
+      </div>
+
+      {/* 图片选择对话框 */}
+      <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tEditor('选择图片')}</DialogTitle>
+            <DialogDescription>{tEditor('从本地上传新图片或从R-Cabinet中选择已有图片')}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+              <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+
+              {uploadStatus === 'uploading' && (
+                <div className="space-y-2 mb-4">
+                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {tEditor('上传中')} {uploadProgress}%
+                  </p>
+                </div>
+              )}
+
+              <Button onClick={() => fileInputRef.current?.click()} disabled={uploadStatus === 'uploading'}>
+                {uploadStatus === 'uploading' ? tEditor('上传中...') : tEditor('选择文件')}
+              </Button>
+              <p className="text-sm text-gray-500 mt-2">
+                {tEditor('支持 JPG、PNG、GIF、WebP 格式，文件大小不超过5MB')}
+              </p>
+
+              {uploadError && <p className="text-sm text-red-600 mt-2">{uploadError}</p>}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
 
 export function PropertyPanel() {
   const { currentPage, selectedModuleId, updateModule, markUnsaved } = usePageStore()
@@ -288,41 +561,7 @@ export function PropertyPanel() {
         )
 
       case PageModuleType.IMAGE:
-        return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="image-src">{tEditor('图片URL')}</Label>
-              <Input
-                id="image-src"
-                value={(selectedModule as any).src || ''}
-                onChange={e => handlePropertyUpdate('src', e.target.value)}
-                placeholder={tEditor('输入图片URL')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="image-alt">{tEditor('图片描述')}</Label>
-              <Input
-                id="image-alt"
-                value={(selectedModule as any).alt || ''}
-                onChange={e => handlePropertyUpdate('alt', e.target.value)}
-                placeholder={tEditor('输入图片描述')}
-              />
-            </div>
-            <Button variant="outline" className="w-full">
-              <Image className="h-4 w-4 mr-2" />
-              {tEditor('上传图片')}
-            </Button>
-            {(selectedModule as any).src && (
-              <div className="mt-4">
-                <img
-                  src={(selectedModule as any).src}
-                  alt={(selectedModule as any).alt || '预览图片'}
-                  className="max-w-full h-auto rounded-lg shadow-sm"
-                />
-              </div>
-            )}
-          </div>
-        )
+        return <ImageModuleProperties module={selectedModule as any} onUpdate={handlePropertyUpdate} />
 
       case PageModuleType.KEY_VALUE:
         return (

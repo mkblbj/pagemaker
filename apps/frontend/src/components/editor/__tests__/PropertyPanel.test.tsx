@@ -91,10 +91,10 @@ describe('PropertyPanel', () => {
     render(<PropertyPanel />)
 
     expect(screen.getByText('image 模块')).toBeInTheDocument()
-    expect(screen.getByLabelText('图片URL')).toBeInTheDocument()
     expect(screen.getByLabelText('图片描述')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('https://example.com/image.jpg')).toBeInTheDocument()
     expect(screen.getByDisplayValue('测试图片')).toBeInTheDocument()
+    expect(screen.getByText('更换图片')).toBeInTheDocument()
+    expect(screen.getByAltText('测试图片')).toBeInTheDocument()
   })
 
   it('应该显示键值对模块的属性编辑器', () => {
@@ -220,7 +220,7 @@ describe('PropertyPanel', () => {
     expect(mockMarkUnsaved).toHaveBeenCalled()
   })
 
-  it('应该正确处理图片URL更新', () => {
+  it('应该正确处理图片描述更新', () => {
     const imageModule = {
       id: 'image-1',
       type: PageModuleType.IMAGE,
@@ -239,10 +239,10 @@ describe('PropertyPanel', () => {
 
     render(<PropertyPanel />)
 
-    const srcInput = screen.getByLabelText('图片URL')
-    fireEvent.change(srcInput, { target: { value: 'new-url.jpg' } })
+    const altInput = screen.getByLabelText('图片描述')
+    fireEvent.change(altInput, { target: { value: '新的图片描述' } })
 
-    expect(mockUpdateModule).toHaveBeenCalledWith('image-1', { src: 'new-url.jpg' })
+    expect(mockUpdateModule).toHaveBeenCalledWith('image-1', { alt: '新的图片描述' })
     expect(mockMarkUnsaved).toHaveBeenCalled()
   })
 

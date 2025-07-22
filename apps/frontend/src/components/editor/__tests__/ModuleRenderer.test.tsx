@@ -74,7 +74,6 @@ describe('ModuleRenderer', () => {
     render(<ModuleRenderer module={imageModule} />)
 
     expect(screen.getByText('图片模块')).toBeInTheDocument()
-    expect(screen.getByText('点击上传图片')).toBeInTheDocument()
   })
 
   it('应该渲染键值对模块', () => {

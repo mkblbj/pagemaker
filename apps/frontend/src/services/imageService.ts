@@ -56,28 +56,21 @@ export const imageService = {
   /**
    * 上传图片到R-Cabinet
    */
-  async uploadImage(
-    file: File, 
-    onProgress?: (progress: number) => void
-  ): Promise<ImageUploadResponse> {
+  async uploadImage(file: File, onProgress?: (progress: number) => void): Promise<ImageUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await apiClient.post<ApiResponse<ImageUploadResponse>>(
-      '/api/v1/media/upload/',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            onProgress(progress)
-          }
-        },
+    const response = await apiClient.post<ApiResponse<ImageUploadResponse>>('/api/v1/media/upload/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress: progressEvent => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          onProgress(progress)
+        }
       }
-    )
+    })
 
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || '图片上传失败')
@@ -89,14 +82,10 @@ export const imageService = {
   /**
    * 获取R-Cabinet中的文件夹列表
    */
-  async getCabinetFolders(params?: {
-    page?: number
-    pageSize?: number
-  }): Promise<CabinetFolderListResponse> {
-    const response = await apiClient.get<ApiResponse<CabinetFolderListResponse>>(
-      '/api/v1/media/cabinet-folders/',
-      { params }
-    )
+  async getCabinetFolders(params?: { page?: number; pageSize?: number }): Promise<CabinetFolderListResponse> {
+    const response = await apiClient.get<ApiResponse<CabinetFolderListResponse>>('/api/v1/media/cabinet-folders/', {
+      params
+    })
 
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || '获取文件夹列表失败')
@@ -114,10 +103,9 @@ export const imageService = {
     search?: string
     folderId?: string
   }): Promise<CabinetImageListResponse> {
-    const response = await apiClient.get<ApiResponse<CabinetImageListResponse>>(
-      '/api/v1/media/cabinet-images/',
-      { params }
-    )
+    const response = await apiClient.get<ApiResponse<CabinetImageListResponse>>('/api/v1/media/cabinet-images/', {
+      params
+    })
 
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || '获取图片列表失败')
@@ -164,4 +152,4 @@ export const imageService = {
   }
 }
 
-export default imageService 
+export default imageService

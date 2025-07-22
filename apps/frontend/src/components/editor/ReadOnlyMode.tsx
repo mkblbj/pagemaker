@@ -21,6 +21,7 @@ import {
 import { PageTemplate, PageModule, PageModuleType } from '@pagemaker/shared-types'
 import { performCompatibilityCheck } from '@/lib/browserCompatibility'
 import { createAppError, ErrorType, ErrorSeverity } from '@/lib/errorHandler'
+import { copyTextWithFeedback } from '@/lib/clipboardUtils'
 
 interface ReadOnlyModeProps {
   page?: PageTemplate
@@ -112,9 +113,11 @@ export function ReadOnlyMode({
         })
         .join('\n\n')
 
-      await navigator.clipboard.writeText(content)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      const result = await copyTextWithFeedback(content)
+      if (result.success) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     } catch (err) {
       console.error('复制失败:', err)
     }

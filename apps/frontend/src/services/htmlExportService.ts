@@ -269,10 +269,10 @@ ${htmlContent}
     const src = getStringProp(module, 'src')
     const alt = getStringProp(module, 'alt', '图片')
     const alignment = getStringProp(module, 'alignment', 'center')
-    
+
     // 获取尺寸配置
     const size = module.size as { type: 'preset' | 'percentage'; value: string } | undefined
-    
+
     // 获取链接配置
     const link = module.link as { type: 'url' | 'email' | 'phone' | 'anchor'; value: string } | undefined
 
@@ -284,7 +284,7 @@ ${htmlContent}
 </tr>
 </table>`
       } else {
-      return `        <div class="pm-image-placeholder" style="text-align: ${alignment}; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
+        return `        <div class="pm-image-placeholder" style="text-align: ${alignment}; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
             <p style="margin: 0; color: #666;">图片未设置</p>
         </div>`
       }
@@ -295,10 +295,10 @@ ${htmlContent}
     if (size) {
       if (size.type === 'preset') {
         const presetSizes: Record<string, string> = {
-          'small': '200px',
-          'medium': '400px',
-          'large': '600px',
-          'full': '100%'
+          small: '200px',
+          medium: '400px',
+          large: '600px',
+          full: '100%'
         }
         imageWidth = presetSizes[size.value] || '100%'
       } else if (size.type === 'percentage') {
@@ -309,7 +309,7 @@ ${htmlContent}
     if (options.mobileMode) {
       // 乐天移动端约束版本 - 使用table布局
       const alignValue = alignment === 'justify' ? 'center' : alignment
-      
+
       // 生成图片元素（乐天约束：只支持特定属性）
       const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" width="${imageWidth}">`
 
@@ -317,7 +317,7 @@ ${htmlContent}
       let content = imgElement
       if (link && link.value) {
         let href = link.value
-        
+
         // 根据链接类型生成正确的href
         switch (link.type) {
           case 'email':
@@ -342,43 +342,43 @@ ${htmlContent}
 </table>`
     } else {
       // 标准版本 - 使用div和CSS样式
-    const imgStyles = this.generateInlineStyles({
-      width: imageWidth,
-      'max-width': '100%',
-      height: 'auto'
-    })
+      const imgStyles = this.generateInlineStyles({
+        width: imageWidth,
+        'max-width': '100%',
+        height: 'auto'
+      })
 
-    const containerStyles = this.generateInlineStyles({
-      'text-align': alignment,
-      margin: '16px 0'
-    })
+      const containerStyles = this.generateInlineStyles({
+        'text-align': alignment,
+        margin: '16px 0'
+      })
 
-    // 生成图片元素
-    const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" style="${imgStyles}">`
+      // 生成图片元素
+      const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" style="${imgStyles}">`
 
-    // 如果有链接，包装在链接中
-    let content = imgElement
-    if (link && link.value) {
-      let href = link.value
-      
-      // 根据链接类型生成正确的href
-      switch (link.type) {
-        case 'email':
-          href = `mailto:${link.value}`
-          break
-        case 'phone':
-          href = `tel:${link.value}`
-          break
-        case 'anchor':
-          href = `#${link.value}`
-          break
-        // 'url' 类型直接使用原值
+      // 如果有链接，包装在链接中
+      let content = imgElement
+      if (link && link.value) {
+        let href = link.value
+
+        // 根据链接类型生成正确的href
+        switch (link.type) {
+          case 'email':
+            href = `mailto:${link.value}`
+            break
+          case 'phone':
+            href = `tel:${link.value}`
+            break
+          case 'anchor':
+            href = `#${link.value}`
+            break
+          // 'url' 类型直接使用原值
+        }
+
+        content = `<a href="${this.escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${imgElement}</a>`
       }
 
-      content = `<a href="${this.escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${imgElement}</a>`
-    }
-
-    return `        <div class="pm-image" style="${containerStyles}">
+      return `        <div class="pm-image" style="${containerStyles}">
             ${content}
         </div>`
     }
@@ -387,7 +387,10 @@ ${htmlContent}
   /**
    * 生成分隔符模块HTML
    */
-  private static generateSeparatorHTML(module: PageModule, options: Required<HtmlExportOptions> = DEFAULT_OPTIONS): string {
+  private static generateSeparatorHTML(
+    module: PageModule,
+    options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
+  ): string {
     const color = getStringProp(module, 'color', '#e0e0e0')
     const thickness = getNumberProp(module, 'thickness', 1)
 
@@ -397,25 +400,28 @@ ${htmlContent}
     } else {
       // 标准版本 - 使用CSS样式
       const style = getStringProp(module, 'style', 'solid')
-    const width = getStringProp(module, 'width', '100%')
+      const width = getStringProp(module, 'width', '100%')
 
-    const styles = this.generateInlineStyles({
-      'border-top': `${thickness}px ${style} ${color}`,
-      width: width,
-      'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
-      'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
-      'margin-left': 'auto',
-      'margin-right': 'auto'
-    })
+      const styles = this.generateInlineStyles({
+        'border-top': `${thickness}px ${style} ${color}`,
+        width: width,
+        'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
+        'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
+        'margin-left': 'auto',
+        'margin-right': 'auto'
+      })
 
-    return `        <hr class="pm-separator" style="${styles}">`
+      return `        <hr class="pm-separator" style="${styles}">`
     }
   }
 
   /**
    * 生成键值对模块HTML
    */
-  private static generateKeyValueHTML(module: PageModule, options: Required<HtmlExportOptions> = DEFAULT_OPTIONS): string {
+  private static generateKeyValueHTML(
+    module: PageModule,
+    options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
+  ): string {
     const items = getArrayProp(module, 'items')
     const layout = getStringProp(module, 'layout', 'horizontal')
     const backgroundColor = getStringProp(module, 'backgroundColor')
@@ -423,7 +429,7 @@ ${htmlContent}
     if (options.mobileMode) {
       // 乐天移动端约束版本 - 使用table布局
       const bgColorAttr = backgroundColor && backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
-      
+
       const itemsHTML = items
         .map((item: any) => {
           const key = this.escapeHtml(String(item?.key || ''))
@@ -450,36 +456,36 @@ ${itemsHTML}
 </table>`
     } else {
       // 标准版本 - 使用div和CSS样式
-    const containerStyles = this.generateInlineStyles({
-      'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
-      'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
-      'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
-      'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
-      'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
-      'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
+      const containerStyles = this.generateInlineStyles({
+        'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
+        'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
+        'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
+        'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
+        'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
+        'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
         'background-color': backgroundColor
-    })
+      })
 
-    const itemsHTML = items
-      .map((item: any) => {
-        const key = this.escapeHtml(String(item?.key || ''))
-        const value = this.escapeHtml(String(item?.value || ''))
+      const itemsHTML = items
+        .map((item: any) => {
+          const key = this.escapeHtml(String(item?.key || ''))
+          const value = this.escapeHtml(String(item?.value || ''))
 
-        if (layout === 'vertical') {
-          return `            <div class="pm-kv-item" style="margin-bottom: 8px;">
+          if (layout === 'vertical') {
+            return `            <div class="pm-kv-item" style="margin-bottom: 8px;">
                 <div class="pm-kv-key" style="font-weight: bold; margin-bottom: 4px;">${key}</div>
                 <div class="pm-kv-value">${value}</div>
             </div>`
-        } else {
-          return `            <div class="pm-kv-item" style="display: flex; margin-bottom: 8px;">
+          } else {
+            return `            <div class="pm-kv-item" style="display: flex; margin-bottom: 8px;">
                 <div class="pm-kv-key" style="font-weight: bold; margin-right: 16px; min-width: 120px;">${key}</div>
                 <div class="pm-kv-value" style="flex: 1;">${value}</div>
             </div>`
-        }
-      })
-      .join('\n')
+          }
+        })
+        .join('\n')
 
-    return `        <div class="pm-key-value" style="${containerStyles}">
+      return `        <div class="pm-key-value" style="${containerStyles}">
 ${itemsHTML}
         </div>`
     }
@@ -488,17 +494,20 @@ ${itemsHTML}
   /**
    * 生成多列模块HTML
    */
-  private static generateMultiColumnHTML(module: PageModule, options: Required<HtmlExportOptions> = DEFAULT_OPTIONS): string {
+  private static generateMultiColumnHTML(
+    module: PageModule,
+    options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
+  ): string {
     const columns = getArrayProp(module, 'columns')
     const backgroundColor = getStringProp(module, 'backgroundColor')
 
     if (options.mobileMode) {
       // 乐天移动端约束版本 - 使用table布局
       const bgColorAttr = backgroundColor && backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
-      
+
       // 计算每列的宽度百分比
       const columnWidth = Math.floor(100 / columns.length)
-      
+
       const columnsHTML = columns
         .map((column: any) => {
           const content = this.escapeHtml(String(column?.content || ''))
@@ -513,39 +522,39 @@ ${columnsHTML}
 </table>`
     } else {
       // 标准版本 - 使用div和CSS样式
-    const gap = getNumberProp(module, 'gap', 16)
+      const gap = getNumberProp(module, 'gap', 16)
 
-    const containerStyles = this.generateInlineStyles({
-      display: 'flex',
-      gap: `${gap}px`,
-      'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
-      'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
-      'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
-      'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
-      'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
-      'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
+      const containerStyles = this.generateInlineStyles({
+        display: 'flex',
+        gap: `${gap}px`,
+        'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
+        'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
+        'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
+        'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
+        'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
+        'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
         'background-color': backgroundColor,
-      'flex-wrap': 'wrap'
-    })
+        'flex-wrap': 'wrap'
+      })
 
-    const columnsHTML = columns
-      .map((column: any) => {
-        const width = String(column?.width || 'auto')
-        const content = this.escapeHtml(String(column?.content || ''))
+      const columnsHTML = columns
+        .map((column: any) => {
+          const width = String(column?.width || 'auto')
+          const content = this.escapeHtml(String(column?.content || ''))
 
-        const columnStyles = this.generateInlineStyles({
-          flex: width === 'auto' ? '1' : 'none',
-          width: width !== 'auto' ? width : undefined,
-          'min-width': '0'
-        })
+          const columnStyles = this.generateInlineStyles({
+            flex: width === 'auto' ? '1' : 'none',
+            width: width !== 'auto' ? width : undefined,
+            'min-width': '0'
+          })
 
-        return `            <div class="pm-column" style="${columnStyles}">
+          return `            <div class="pm-column" style="${columnStyles}">
                 ${content.replace(/\n/g, '<br>')}
             </div>`
-      })
-      .join('\n')
+        })
+        .join('\n')
 
-    return `        <div class="pm-multi-column" style="${containerStyles}">
+      return `        <div class="pm-multi-column" style="${containerStyles}">
 ${columnsHTML}
         </div>`
     }

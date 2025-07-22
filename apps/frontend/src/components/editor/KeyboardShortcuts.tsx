@@ -93,32 +93,37 @@ export function KeyboardShortcuts({ onShowHelp }: KeyboardShortcutsProps) {
           break
 
         default:
-          // Ctrl/Cmd + 组合键
+          // Ctrl/Cmd + 组合键 - 只拦截已实现的功能
           if (event.ctrlKey || event.metaKey) {
             switch (event.key) {
-              case 'a':
-                event.preventDefault()
-                // 全选逻辑（可选）
-                break
+              // 注释掉未实现的快捷键，避免阻止浏览器默认行为
+              // case 'a':
+              //   event.preventDefault()
+              //   // 全选逻辑（可选）
+              //   break
 
-              case 'c':
-                event.preventDefault()
-                // 复制模块逻辑（可选）
-                break
+              // case 'c':
+              //   event.preventDefault()
+              //   // 复制模块逻辑（可选）
+              //   break
 
-              case 'v':
-                event.preventDefault()
-                // 粘贴模块逻辑（可选）
-                break
+              // case 'v':
+              //   event.preventDefault()
+              //   // 粘贴模块逻辑（可选）
+              //   break
 
-              case 'z':
-                event.preventDefault()
-                // 撤销逻辑（可选）
-                break
+              // case 'z':
+              //   event.preventDefault()
+              //   // 撤销逻辑（可选）
+              //   break
 
-              case 'y':
-                event.preventDefault()
-                // 重做逻辑（可选）
+              // case 'y':
+              //   event.preventDefault()
+              //   // 重做逻辑（可选）
+              //   break
+
+              default:
+                // 不阻止其他Ctrl/Cmd组合键的默认行为
                 break
             }
           }

@@ -58,27 +58,27 @@ function getShortcuts(tEditor: (key: string) => string): ShortcutItem[] {
       category: tEditor('模块操作')
     },
 
-    // 编辑操作（预留）
-    {
-      keys: ['Ctrl', 'C'],
-      description: tEditor('复制模块（开发中）'),
-      category: tEditor('编辑操作')
-    },
-    {
-      keys: ['Ctrl', 'V'],
-      description: tEditor('粘贴模块（开发中）'),
-      category: tEditor('编辑操作')
-    },
-    {
-      keys: ['Ctrl', 'Z'],
-      description: tEditor('撤销操作（开发中）'),
-      category: tEditor('编辑操作')
-    },
-    {
-      keys: ['Ctrl', 'Y'],
-      description: tEditor('重做操作（开发中）'),
-      category: tEditor('编辑操作')
-    },
+    // 编辑操作（预留 - 暂时移除未实现的快捷键以免干扰系统复制功能）
+    // {
+    //   keys: ['Ctrl', 'C'],
+    //   description: tEditor('复制模块（开发中）'),
+    //   category: tEditor('编辑操作')
+    // },
+    // {
+    //   keys: ['Ctrl', 'V'],
+    //   description: tEditor('粘贴模块（开发中）'),
+    //   category: tEditor('编辑操作')
+    // },
+    // {
+    //   keys: ['Ctrl', 'Z'],
+    //   description: tEditor('撤销操作（开发中）'),
+    //   category: tEditor('编辑操作')
+    // },
+    // {
+    //   keys: ['Ctrl', 'Y'],
+    //   description: tEditor('重做操作（开发中）'),
+    //   category: tEditor('编辑操作')
+    // },
 
     // 帮助
     {

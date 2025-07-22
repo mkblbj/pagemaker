@@ -138,12 +138,15 @@ describe('clipboardUtils', () => {
         configurable: true
       })
 
+      // 重置并设置 execCommand mock
+      mockExecCommand.mockClear()
       mockExecCommand.mockReturnValue(true)
 
       // Mock DOM操作
       const mockTextArea = {
         value: '',
         style: {},
+        focus: vi.fn(),
         select: vi.fn(),
         setSelectionRange: vi.fn(),
         setAttribute: vi.fn()
@@ -174,6 +177,7 @@ describe('clipboardUtils', () => {
       expect(mockTextArea.value).toBe('测试文本')
       expect(mockAppendChild).toHaveBeenCalledWith(mockTextArea)
       expect(mockExecCommand).toHaveBeenCalledWith('copy')
+      expect(mockExecCommand).toHaveReturnedWith(true)
       expect(mockRemoveChild).toHaveBeenCalledWith(mockTextArea)
       expect(result.success).toBe(true)
     })

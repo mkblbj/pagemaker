@@ -1,1 +1,1 @@
-# Media app tests package 
+# Media app tests package

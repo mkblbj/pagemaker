@@ -221,6 +221,14 @@ X_FRAME_OPTIONS = "DENY"
 
 # CSRF settings for API
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8456",
+    "http://127.0.0.1:8456",
+    "http://192.168.1.26:8456",
+    "http://192.168.1.26:3002",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:8456",
+    "http://127.0.0.1:8456",
+    "http://192.168.1.26:8456",
+    "http://192.168.1.26:3002",
 ]

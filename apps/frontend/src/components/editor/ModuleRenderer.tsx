@@ -67,7 +67,6 @@ export function ModuleRenderer({
           />
         )
 
-
       case PageModuleType.SEPARATOR:
         return (
           <div className="space-y-2">

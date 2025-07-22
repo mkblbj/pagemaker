@@ -146,7 +146,8 @@ describe('HtmlExportButton', () => {
   })
 
   it('应该支持复制HTML代码', async () => {
-    const { copyTextWithFeedback } = await import('@/lib/clipboardUtils')
+    // Mock document.execCommand for testing
+    document.execCommand = vi.fn().mockReturnValue(true)
 
     render(<HtmlExportButton modules={mockModules} />)
 
@@ -160,10 +161,19 @@ describe('HtmlExportButton', () => {
     const copyButton = screen.getByRole('button', { name: /复制代码/i })
     await user.click(copyButton)
 
-    expect(copyTextWithFeedback).toHaveBeenCalledWith('<html><body><h1>测试HTML</h1></body></html>')
+    // 验证复制功能被调用
+    expect(document.execCommand).toHaveBeenCalledWith('copy')
   })
 
   it('应该支持预览HTML', async () => {
+    const mockWindow = {
+      document: {
+        write: vi.fn(),
+        close: vi.fn()
+      }
+    }
+    vi.mocked(window.open).mockReturnValue(mockWindow as any)
+
     render(<HtmlExportButton modules={mockModules} />)
 
     const button = screen.getByRole('button', { name: /导出HTML/i })
@@ -177,6 +187,8 @@ describe('HtmlExportButton', () => {
     await user.click(previewButton)
 
     expect(window.open).toHaveBeenCalledWith('', '_blank', 'width=1200,height=800')
+    expect(mockWindow.document.write).toHaveBeenCalledWith('<html><body><h1>测试HTML</h1></body></html>')
+    expect(mockWindow.document.close).toHaveBeenCalled()
   })
 
   it('应该支持重新生成HTML', async () => {

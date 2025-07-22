@@ -1,12 +1,30 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Image as ImageIcon, Upload, Link, Settings, Folder, CheckCircle, XCircle, ChevronDown, Search, X } from 'lucide-react'
+import {
+  Image as ImageIcon,
+  Upload,
+  Link,
+  Settings,
+  Folder,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+  Search,
+  X
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription
+} from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { PageModule } from '@pagemaker/shared-types'
@@ -55,7 +73,7 @@ export function ImageModule({
 }: ImageModuleProps) {
   const { tEditor } = useTranslation()
   const [showImageSelector, setShowImageSelector] = useState(false)
-  const [showPropertiesPanel, setShowPropertiesPanel] = useState(false)
+
   const [uploadingFile, setUploadingFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
@@ -84,7 +102,7 @@ export function ImageModule({
     // 构建树形结构
     folders.forEach(folder => {
       const folderWithChildren = folderMap.get(folder.path)!
-      
+
       if (folder.node === 1 || !folder.parentPath || folder.parentPath === '') {
         // 根级文件夹（node=1 或者没有父路径）
         rootFolders.push(folderWithChildren)
@@ -122,24 +140,24 @@ export function ImageModule({
     }
 
     const filtered: CabinetFolder[] = []
-    
+
     for (const folder of folders) {
       const matchesSearch = folder.name.toLowerCase().includes(searchTerm.toLowerCase())
       const filteredChildren = folder.children ? filterFolderTree(folder.children, searchTerm) : []
-      
+
       if (matchesSearch || filteredChildren.length > 0) {
         filtered.push({
           ...folder,
           children: filteredChildren
         })
-        
+
         // 如果有匹配的子文件夹，自动展开当前文件夹
         if (filteredChildren.length > 0) {
           setExpandedFolders(prev => new Set([...prev, folder.id]))
         }
       }
     }
-    
+
     return filtered
   }
 
@@ -208,8 +226,8 @@ export function ImageModule({
     const targetFolderId = folderId || selectedFolderId
     setLoadingCabinet(true)
     try {
-      const response = await imageService.getCabinetImages({ 
-        page: 1, 
+      const response = await imageService.getCabinetImages({
+        page: 1,
         pageSize: 20,
         folderId: targetFolderId
       })
@@ -236,16 +254,16 @@ export function ImageModule({
     setUploadError(null)
 
     try {
-      const uploadResult = await imageService.uploadImage(file, (progress) => {
+      const uploadResult = await imageService.uploadImage(file, progress => {
         setUploadProgress(progress)
       })
-      
+
       setUploadStatus('success')
       onUpdate?.({
         src: uploadResult.url,
         alt: module.alt || file.name.replace(/\.[^/.]+$/, '')
       })
-      
+
       // 延迟关闭对话框以显示成功状态
       setTimeout(() => {
         setShowImageSelector(false)
@@ -284,7 +302,7 @@ export function ImageModule({
 
     // 对齐方式
     const alignment = module.alignment || 'center'
-    
+
     // 尺寸设置
     const size = module.size || { type: 'preset', value: 'medium' }
     if (size.type === 'preset') {
@@ -305,7 +323,7 @@ export function ImageModule({
   // 获取链接配置
   const getLinkHref = () => {
     if (!module.link) return undefined
-    
+
     switch (module.link.type) {
       case 'email':
         return `mailto:${module.link.value}`
@@ -325,7 +343,7 @@ export function ImageModule({
   const renderImageContent = () => {
     if (!module.src) {
       return (
-        <div 
+        <div
           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 transition-colors"
           onClick={() => setShowImageSelector(true)}
         >
@@ -337,57 +355,51 @@ export function ImageModule({
     }
 
     const imageElement = (
-      <img
-        src={module.src}
-        alt={module.alt || ''}
-        style={imageStyles}
-        className="transition-all duration-200"
-      />
+      <img src={module.src} alt={module.alt || ''} style={imageStyles} className="transition-all duration-200" />
     )
 
     return linkHref ? (
       <a href={linkHref} target="_blank" rel="noopener noreferrer">
         {imageElement}
       </a>
-    ) : imageElement
+    ) : (
+      imageElement
+    )
   }
 
   // 递归渲染文件夹树
   const renderFolderTree = (folders: CabinetFolder[], level: number = 0): React.ReactNode => {
-    return folders.map((folder) => {
+    return folders.map(folder => {
       const isExpanded = expandedFolders.has(folder.id)
       const hasChildren = folder.children && folder.children.length > 0
       const isSelected = selectedFolderId === folder.id
-      
+
       return (
         <div key={folder.id} className="select-none">
           <div
             className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-sm hover:bg-gray-100 transition-colors",
-              isSelected && "bg-blue-100 text-blue-700 hover:bg-blue-100"
+              'flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-sm hover:bg-gray-100 transition-colors',
+              isSelected && 'bg-blue-100 text-blue-700 hover:bg-blue-100'
             )}
             style={{ paddingLeft: `${8 + level * 16}px` }}
           >
             {/* 展开/收起按钮 */}
             {hasChildren ? (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation()
                   toggleFolderExpansion(folder.id)
                 }}
                 className="p-0.5 hover:bg-gray-200 rounded transition-colors"
               >
                 <ChevronDown
-                  className={cn(
-                    "h-3 w-3 text-gray-500 transition-transform",
-                    !isExpanded && "-rotate-90"
-                  )}
+                  className={cn('h-3 w-3 text-gray-500 transition-transform', !isExpanded && '-rotate-90')}
                 />
               </button>
             ) : (
               <div className="w-4" />
             )}
-            
+
             {/* 文件夹图标和信息 */}
             <div
               className="flex items-center gap-2 flex-1 min-w-0"
@@ -407,13 +419,9 @@ export function ImageModule({
               </div>
             </div>
           </div>
-          
+
           {/* 子文件夹 */}
-          {hasChildren && isExpanded && (
-            <div className="ml-2">
-              {renderFolderTree(folder.children!, level + 1)}
-            </div>
-          )}
+          {hasChildren && isExpanded && <div className="ml-2">{renderFolderTree(folder.children!, level + 1)}</div>}
         </div>
       )
     })
@@ -436,42 +444,27 @@ export function ImageModule({
             {tEditor('图片模块')}
           </Badge>
         </div>
-        
-        {isEditing && (
+
+        {isEditing && module.src && (
           <div className="flex items-center gap-1">
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
-                setShowImageSelector(true)
+                onUpdate?.({ src: '', alt: '' })
               }}
-              className="h-8 w-8 p-0"
-              title={tEditor('选择图片')}
+              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              title={tEditor('删除图片')}
             >
-              <Upload className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowPropertiesPanel(true)
-              }}
-              className="h-8 w-8 p-0"
-              title={tEditor('图片属性')}
-            >
-              <Settings className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
         )}
       </div>
 
       {/* 图片内容 */}
-      <div 
-        className="w-full"
-        style={{ textAlign: alignment }}
-      >
+      <div className="w-full" style={{ textAlign: alignment }}>
         {renderImageContent()}
       </div>
 
@@ -480,16 +473,17 @@ export function ImageModule({
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>{tEditor('选择图片')}</DialogTitle>
+            <DialogDescription>{tEditor('从本地上传新图片或从R-Cabinet中选择已有图片')}</DialogDescription>
           </DialogHeader>
-          
+
           <div className="w-full">
             <div className="grid w-full grid-cols-2 border-b">
               <button
                 className={cn(
-                  "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
-                  activeTab === 'upload' 
-                    ? "border-blue-500 text-blue-600" 
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                  'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                  activeTab === 'upload'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
                 )}
                 onClick={() => setActiveTab('upload')}
               >
@@ -497,10 +491,10 @@ export function ImageModule({
               </button>
               <button
                 className={cn(
-                  "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
-                  activeTab === 'cabinet' 
-                    ? "border-blue-500 text-blue-600" 
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                  'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                  activeTab === 'cabinet'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
                 )}
                 onClick={() => {
                   setActiveTab('cabinet')
@@ -518,25 +512,21 @@ export function ImageModule({
                 {tEditor('从R-Cabinet选择')}
               </button>
             </div>
-            
+
             {activeTab === 'upload' && (
               <div className="space-y-4 mt-4">
                 {/* 上传状态提示 */}
                 {uploadStatus === 'error' && uploadError && (
                   <Alert className="border-red-200 bg-red-50">
                     <XCircle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-800">
-                      {uploadError}
-                    </AlertDescription>
+                    <AlertDescription className="text-red-800">{uploadError}</AlertDescription>
                   </Alert>
                 )}
-                
+
                 {uploadStatus === 'success' && (
                   <Alert className="border-green-200 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
-                      {tEditor('图片上传成功！')}
-                    </AlertDescription>
+                    <AlertDescription className="text-green-800">{tEditor('图片上传成功！')}</AlertDescription>
                   </Alert>
                 )}
 
@@ -549,7 +539,7 @@ export function ImageModule({
                     className="hidden"
                   />
                   <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  
+
                   {uploadStatus === 'uploading' && (
                     <div className="space-y-2 mb-4">
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
@@ -563,11 +553,8 @@ export function ImageModule({
                       </p>
                     </div>
                   )}
-                  
-                  <Button 
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadStatus === 'uploading'}
-                  >
+
+                  <Button onClick={() => fileInputRef.current?.click()} disabled={uploadStatus === 'uploading'}>
                     {uploadStatus === 'uploading' ? tEditor('上传中...') : tEditor('选择文件')}
                   </Button>
                   <p className="text-sm text-gray-500 mt-2">
@@ -576,7 +563,7 @@ export function ImageModule({
                 </div>
               </div>
             )}
-            
+
             {activeTab === 'cabinet' && (
               <div className="flex h-96 mt-4 border rounded-lg overflow-hidden">
                 {/* 左侧文件夹树 */}
@@ -585,11 +572,9 @@ export function ImageModule({
                     <div className="flex items-center gap-2 mb-2">
                       <Folder className="h-4 w-4 text-gray-500" />
                       <span className="text-sm font-medium text-gray-700">{tEditor('文件夹')}</span>
-                      {loadingFolders && (
-                        <span className="text-xs text-gray-500">{tEditor('加载中...')}</span>
-                      )}
+                      {loadingFolders && <span className="text-xs text-gray-500">{tEditor('加载中...')}</span>}
                     </div>
-                    
+
                     {/* 文件夹搜索框 */}
                     <div className="relative mb-2">
                       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
@@ -597,7 +582,7 @@ export function ImageModule({
                         type="text"
                         placeholder={tEditor('搜索文件夹...')}
                         value={folderSearchTerm}
-                        onChange={(e) => setFolderSearchTerm(e.target.value)}
+                        onChange={e => setFolderSearchTerm(e.target.value)}
                         className="w-full pl-7 pr-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       />
                       {folderSearchTerm && (
@@ -610,15 +595,13 @@ export function ImageModule({
                         </button>
                       )}
                     </div>
-                    
+
                     {/* 根目录 */}
                     {!folderSearchTerm.trim() && (
                       <div
                         className={cn(
-                          "flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-sm",
-                          selectedFolderId === '0' 
-                            ? "bg-blue-100 text-blue-700" 
-                            : "hover:bg-gray-100 text-gray-700"
+                          'flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-sm',
+                          selectedFolderId === '0' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
                         )}
                         onClick={() => {
                           setSelectedFolderId('0')
@@ -629,11 +612,9 @@ export function ImageModule({
                         <span>{tEditor('根目录')}</span>
                       </div>
                     )}
-                    
+
                     {/* 文件夹树 */}
-                    <div className="mt-1">
-                      {renderFolderTree(filterFolderTree(folderTree, folderSearchTerm))}
-                    </div>
+                    <div className="mt-1">{renderFolderTree(filterFolderTree(folderTree, folderSearchTerm))}</div>
                   </div>
                 </div>
 
@@ -654,7 +635,7 @@ export function ImageModule({
                       </span>
                     )}
                   </div>
-                  
+
                   {loadingCabinet ? (
                     <div className="flex items-center justify-center h-full">
                       <p className="text-gray-500">{tEditor('加载图片中...')}</p>
@@ -666,7 +647,7 @@ export function ImageModule({
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 gap-2 p-2">
-                      {cabinetImages.map((image) => (
+                      {cabinetImages.map(image => (
                         <div
                           key={image.id}
                           className="cursor-pointer border rounded p-1 hover:border-blue-500"
@@ -677,9 +658,7 @@ export function ImageModule({
                             alt={image.filename}
                             style={{ width: '100%', height: '120px', objectFit: 'cover' }}
                           />
-                          <div className="text-xs text-gray-600 mt-1 truncate">
-                            {image.filename}
-                          </div>
+                          <div className="text-xs text-gray-600 mt-1 truncate">{image.filename}</div>
                           <div className="text-xs text-gray-500">
                             {image.width}×{image.height}
                           </div>
@@ -693,162 +672,6 @@ export function ImageModule({
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* 属性配置对话框 */}
-      <Dialog open={showPropertiesPanel} onOpenChange={setShowPropertiesPanel}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tEditor('图片属性')}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Alt文本 */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {tEditor('Alt文本')}
-              </label>
-              <Input
-                value={module.alt || ''}
-                onChange={(e) => onUpdate?.({ alt: e.target.value })}
-                placeholder={tEditor('图片描述文本')}
-              />
-            </div>
-
-            {/* 对齐方式 */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {tEditor('对齐方式')}
-              </label>
-              <Select
-                value={module.alignment || 'center'}
-                onValueChange={(value: 'left' | 'center' | 'right') => 
-                  onUpdate?.({ alignment: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
-                  <SelectItem value="center">{tEditor('居中')}</SelectItem>
-                  <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 尺寸设置 */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {tEditor('图片尺寸')}
-              </label>
-              <div className="space-y-2">
-                <Select
-                  value={module.size?.type || 'preset'}
-                  onValueChange={(value: 'preset' | 'percentage') => 
-                    onUpdate?.({ 
-                      size: { 
-                        type: value, 
-                        value: value === 'preset' ? 'medium' : '100' 
-                      } 
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="preset">{tEditor('预设尺寸')}</SelectItem>
-                    <SelectItem value="percentage">{tEditor('百分比')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                {module.size?.type === 'preset' ? (
-                  <Select
-                    value={module.size?.value || 'medium'}
-                    onValueChange={(value) => 
-                      onUpdate?.({ 
-                        size: { type: 'preset', value } 
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRESET_SIZES.map((preset) => (
-                        <SelectItem key={preset.value} value={preset.value}>
-                          {preset.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={module.size?.value || '100'}
-                      onChange={(e) => 
-                        onUpdate?.({ 
-                          size: { type: 'percentage', value: e.target.value } 
-                        })
-                      }
-                      className="flex-1"
-                    />
-                    <span className="text-sm text-gray-500">%</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 链接设置 */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {tEditor('超链接')}
-              </label>
-              <div className="space-y-2">
-                <Select
-                  value={module.link?.type || 'none'}
-                  onValueChange={(value: 'url' | 'email' | 'phone' | 'anchor' | 'none') => 
-                    value !== 'none' ? 
-                      onUpdate?.({ link: { type: value, value: '' } }) :
-                      onUpdate?.({ link: undefined })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={tEditor('选择链接类型')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{tEditor('无链接')}</SelectItem>
-                    <SelectItem value="url">{tEditor('网址')}</SelectItem>
-                    <SelectItem value="email">{tEditor('邮箱')}</SelectItem>
-                    <SelectItem value="phone">{tEditor('电话')}</SelectItem>
-                    <SelectItem value="anchor">{tEditor('页面锚点')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                {module.link && (
-                  <Input
-                    value={module.link.value || ''}
-                    onChange={(e) => 
-                      onUpdate?.({ 
-                        link: { ...module.link, value: e.target.value } 
-                      })
-                    }
-                    placeholder={
-                      module.link.type === 'url' ? 'https://example.com' :
-                      module.link.type === 'email' ? 'example@email.com' :
-                      module.link.type === 'phone' ? '+86 138 0013 8000' :
-                      'section-name'
-                    }
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
-} 
+}

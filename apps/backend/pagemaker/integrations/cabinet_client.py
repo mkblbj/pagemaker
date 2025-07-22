@@ -135,6 +135,10 @@ class RCabinetClient:
         Raises:
             RakutenAPIError: API调用失败时
         """
+        # 在mock模式下返回模拟响应
+        if self.test_mode == TEST_MODE["MOCK"]:
+            return self._mock_api_response(endpoint, method, params, data, files)
+
         # 速率限制
         self.rate_limiter.wait_if_needed()
 
@@ -214,8 +218,6 @@ class RCabinetClient:
                     duration=duration,
                     error=error,
                 )
-
-
 
     def _get_interface_id_from_endpoint(self, endpoint: str) -> str:
         """从端点获取接口ID"""
@@ -465,4 +467,196 @@ class RCabinetClient:
 
         return "".join(xml_parts)
 
+    def _mock_api_response(
+        self,
+        endpoint: str,
+        method: str,
+        params: Dict[str, Any] = None,
+        data: Any = None,
+        files: Dict[str, Any] = None,
+    ) -> Dict[str, Any]:
+        """
+        生成mock API响应
 
+        Args:
+            endpoint: API端点
+            method: HTTP方法
+            params: 查询参数
+            data: 请求体数据
+            files: 文件数据
+
+        Returns:
+            模拟的API响应数据
+        """
+        import random
+        import uuid
+
+        # 模拟网络延迟
+        time.sleep(random.uniform(0.1, 0.3))
+
+        # 根据端点生成不同的mock响应
+        if endpoint == CABINET_ENDPOINTS["USAGE_GET"]:
+            return {
+                "interface_id": "cabinet.usage.get",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {
+                    "result_code": 0,
+                    "max_space": 1073741824,  # 1GB
+                    "folder_max": 1000,
+                    "file_max": 50000,
+                    "use_space": 134217728,  # 128MB
+                    "avail_space": 939524096,  # 896MB
+                    "use_folder_count": 5,
+                    "avail_folder_count": 995,
+                },
+            }
+
+        elif endpoint == CABINET_ENDPOINTS["FOLDERS_GET"]:
+            return {
+                "interface_id": "cabinet.folders.get",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {
+                    "result_code": 0,
+                    "folder_all_count": 5,
+                    "folder_count": 5,
+                    "folders": [
+                        {
+                            "folder_id": 1,
+                            "folder_name": "Root",
+                            "folder_path": "/",
+                            "folder_node": 0,
+                            "file_count": 10,
+                            "file_size": 1024000,
+                            "timestamp": "2023-01-01T00:00:00Z",
+                        },
+                        {
+                            "folder_id": 2,
+                            "folder_name": "Images",
+                            "folder_path": "/images",
+                            "folder_node": 1,
+                            "file_count": 25,
+                            "file_size": 5120000,
+                            "timestamp": "2023-01-01T00:00:00Z",
+                        },
+                    ],
+                },
+            }
+
+        elif endpoint == CABINET_ENDPOINTS["FOLDER_FILES_GET"]:
+            folder_id = params.get("folderId", 0) if params else 0
+            return {
+                "interface_id": "cabinet.folder.files.get",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {
+                    "result_code": 0,
+                    "file_all_count": 3,
+                    "file_count": 3,
+                    "files": [
+                        {
+                            "folder_id": folder_id,
+                            "folder_name": "Mock Folder",
+                            "folder_node": 1,
+                            "folder_path": "/mock",
+                            "file_id": random.randint(1000000, 9999999),
+                            "file_name": "mock_image1.jpg",
+                            "file_path": "mock_image1.jpg",
+                            "file_url": "https://image.rakuten.co.jp/mock/mock_image1.jpg",
+                            "file_type": 1,
+                            "file_size": 1024,
+                            "file_width": 800,
+                            "file_height": 600,
+                            "file_access_date": "2023-01-01T00:00:00Z",
+                            "timestamp": "2023-01-01T00:00:00Z",
+                        },
+                        {
+                            "folder_id": folder_id,
+                            "folder_name": "Mock Folder",
+                            "folder_node": 1,
+                            "folder_path": "/mock",
+                            "file_id": random.randint(1000000, 9999999),
+                            "file_name": "mock_image2.png",
+                            "file_path": "mock_image2.png",
+                            "file_url": "https://image.rakuten.co.jp/mock/mock_image2.png",
+                            "file_type": 1,
+                            "file_size": 2048,
+                            "file_width": 1024,
+                            "file_height": 768,
+                            "file_access_date": "2023-01-01T00:00:00Z",
+                            "timestamp": "2023-01-01T00:00:00Z",
+                        },
+                    ],
+                },
+            }
+
+        elif endpoint == CABINET_ENDPOINTS["FILES_SEARCH"]:
+            return {
+                "interface_id": "cabinet.files.search",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {
+                    "result_code": 0,
+                    "file_all_count": 1,
+                    "file_count": 1,
+                    "files": [
+                        {
+                            "folder_id": 0,
+                            "folder_name": "Root",
+                            "folder_node": 0,
+                            "folder_path": "/",
+                            "file_id": random.randint(1000000, 9999999),
+                            "file_name": (
+                                params.get("fileName", "search_result.jpg")
+                                if params
+                                else "search_result.jpg"
+                            ),
+                            "file_path": (
+                                params.get("fileName", "search_result.jpg")
+                                if params
+                                else "search_result.jpg"
+                            ),
+                            "file_url": f"https://image.rakuten.co.jp/mock/{params.get('fileName', 'search_result.jpg') if params else 'search_result.jpg'}",
+                            "file_type": 1,
+                            "file_size": 1536,
+                            "file_width": 800,
+                            "file_height": 600,
+                            "file_access_date": "2023-01-01T00:00:00Z",
+                            "timestamp": "2023-01-01T00:00:00Z",
+                        }
+                    ],
+                },
+            }
+
+        elif endpoint == CABINET_ENDPOINTS["FILE_INSERT"]:
+            return {
+                "interface_id": "cabinet.file.insert",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {
+                    "result_code": 0,
+                    "file_id": random.randint(100000000, 999999999),
+                },
+            }
+
+        else:
+            # 默认成功响应
+            return {
+                "interface_id": f"cabinet.{endpoint.split('/')[-1]}",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {"result_code": 0},
+            }

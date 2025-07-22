@@ -106,13 +106,182 @@ export function HtmlExportButton({
     if (!generatedHTML) return
 
     setCopying(true)
+
     try {
-      await copyTextWithFeedback(generatedHTML)
+      // 优先使用现有的textarea元素（在对话框环境中最可靠）
+      const existingTextarea = document.querySelector('textarea[readonly]') as HTMLTextAreaElement
+      if (existingTextarea) {
+        existingTextarea.focus()
+        existingTextarea.select()
+        existingTextarea.setSelectionRange(0, existingTextarea.value.length)
+
+        const success = document.execCommand('copy')
+
+        if (success) {
+          showCopyFeedback('内容已复制到剪贴板', true)
+          return
+        }
+      }
+
+      // 备选方案：创建新元素
+      handleDirectCopy()
     } catch (error) {
       console.error('复制失败:', error)
+      handleDirectCopy()
     } finally {
       setCopying(false)
     }
+  }
+
+  // 显示复制反馈
+  const showCopyFeedback = (message: string, isSuccess: boolean) => {
+    const feedback = document.createElement('div')
+    feedback.textContent = message
+    feedback.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      background-color: ${isSuccess ? '#10b981' : '#ef4444'};
+      box-shadow: 0 4px 12px ${isSuccess ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'};
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
+    `
+
+    document.body.appendChild(feedback)
+
+    // 显示动画
+    requestAnimationFrame(() => {
+      feedback.style.transform = 'translateX(0)'
+    })
+
+    // 自动移除
+    setTimeout(() => {
+      feedback.style.transform = 'translateX(100%)'
+      setTimeout(() => {
+        if (feedback.parentNode) {
+          document.body.removeChild(feedback)
+        }
+      }, 300)
+    }, 3000)
+  }
+
+  // 直接复制方法（备选方案）
+  const handleDirectCopy = () => {
+    if (!generatedHTML) return
+
+    try {
+      const textArea = document.createElement('textarea')
+      textArea.value = generatedHTML
+      textArea.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        opacity: 0;
+      `
+
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      textArea.setSelectionRange(0, generatedHTML.length)
+
+      const success = document.execCommand('copy')
+      document.body.removeChild(textArea)
+
+      if (success) {
+        showCopyFeedback('内容已复制到剪贴板', true)
+      } else {
+        showCopyFeedback('复制失败，请手动复制', false)
+        setTimeout(() => showManualCopyDialog(), 1000)
+      }
+    } catch (error) {
+      console.error('直接复制失败:', error)
+      showCopyFeedback('复制失败，请手动复制', false)
+      setTimeout(() => showManualCopyDialog(), 1000)
+    }
+  }
+
+  // 显示手动复制对话框
+  const showManualCopyDialog = () => {
+    if (!generatedHTML) return
+
+    const dialog = document.createElement('div')
+    dialog.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `
+
+    const content = document.createElement('div')
+    content.style.cssText = `
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      max-width: 600px;
+      width: 90%;
+    `
+
+    const title = document.createElement('h3')
+    title.textContent = '手动复制'
+    title.style.cssText = 'margin: 0 0 16px 0; font-size: 18px;'
+
+    const instruction = document.createElement('p')
+    instruction.textContent = '请手动选择下面的代码并按 Ctrl+C 复制：'
+    instruction.style.cssText = 'margin: 0 0 12px 0;'
+
+    const textarea = document.createElement('textarea')
+    textarea.value = generatedHTML
+    textarea.style.cssText = `
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    `
+
+    const closeBtn = document.createElement('button')
+    closeBtn.textContent = '关闭'
+    closeBtn.style.cssText = `
+      margin-top: 16px;
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    `
+
+    closeBtn.onclick = () => document.body.removeChild(dialog)
+    dialog.onclick = e => {
+      if (e.target === dialog) document.body.removeChild(dialog)
+    }
+
+    content.appendChild(title)
+    content.appendChild(instruction)
+    content.appendChild(textarea)
+    content.appendChild(closeBtn)
+    dialog.appendChild(content)
+    document.body.appendChild(dialog)
+
+    // 自动选中文本
+    setTimeout(() => {
+      textarea.focus()
+      textarea.select()
+    }, 100)
   }
 
   // 预览HTML

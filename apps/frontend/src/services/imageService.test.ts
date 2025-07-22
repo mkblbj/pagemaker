@@ -42,15 +42,12 @@ describe('imageService', () => {
 
       const result = await imageService.uploadImage(mockFile)
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/media/upload',
-        expect.any(FormData),
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/v1/media/upload/', expect.any(FormData), {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: expect.any(Function)
+      })
       expect(result).toEqual(mockResponse)
     })
 
@@ -86,6 +83,8 @@ describe('imageService', () => {
             filename: 'image1.jpg',
             size: 1024,
             mimeType: 'image/jpeg',
+            width: 800,
+            height: 600,
             uploadedAt: '2023-01-01T00:00:00Z'
           }
         ],
@@ -103,10 +102,9 @@ describe('imageService', () => {
 
       const result = await imageService.getCabinetImages({ page: 1, pageSize: 20 })
 
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/v1/media/cabinet-images',
-        { params: { page: 1, pageSize: 20 } }
-      )
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/v1/media/cabinet-images/', {
+        params: { page: 1, pageSize: 20 }
+      })
       expect(result).toEqual(mockResponse)
     })
 
@@ -127,10 +125,9 @@ describe('imageService', () => {
 
       await imageService.getCabinetImages({ page: 1, pageSize: 20, search: 'test' })
 
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/v1/media/cabinet-images',
-        { params: { page: 1, pageSize: 20, search: 'test' } }
-      )
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/v1/media/cabinet-images/', {
+        params: { page: 1, pageSize: 20, search: 'test' }
+      })
     })
 
     it('应该处理获取失败', async () => {
@@ -243,4 +240,4 @@ describe('imageService', () => {
       expect(mockFileReader.readAsDataURL).toHaveBeenCalledWith(mockFile)
     })
   })
-}) 
+})

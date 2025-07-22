@@ -28,7 +28,6 @@ describe('KeyboardShortcutsHelp', () => {
 
     expect(screen.getByText('模块导航')).toBeInTheDocument()
     expect(screen.getByText('模块操作')).toBeInTheDocument()
-    expect(screen.getByText('编辑操作')).toBeInTheDocument()
     expect(screen.getByText('帮助')).toBeInTheDocument()
   })
 

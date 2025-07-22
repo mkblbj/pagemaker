@@ -101,6 +101,11 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     setDragStartWidth(0)
   }, [])
 
+  // 防止默认事件 - 移到useEffect外面确保引用稳定
+  const preventDefault = useCallback((e: Event) => {
+    e.preventDefault()
+  }, [])
+
   // 添加全局鼠标事件监听
   useEffect(() => {
     if (isResizing && typeof window !== 'undefined') {
@@ -114,12 +119,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         document.removeEventListener('selectstart', preventDefault)
       }
     }
-  }, [isResizing, handleMouseMove, handleMouseUp])
-
-  // 防止默认事件
-  const preventDefault = useCallback((e: Event) => {
-    e.preventDefault()
-  }, [])
+  }, [isResizing, handleMouseMove, handleMouseUp, preventDefault])
 
   // 如果正在加载，显示加载指示器
   if (isLoading) {
