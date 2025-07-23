@@ -24,6 +24,8 @@ export type {
   UpdatePageTemplateRequest,
   CreateShopConfigurationRequest,
   UpdateShopConfigurationRequest,
+  SeparatorModuleConfig,
+  KeyValueModuleConfig,
 } from './types/page';
 
 export type {

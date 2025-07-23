@@ -251,7 +251,7 @@ describe('PropertyPanel', () => {
     const keyValueModule = {
       id: 'kv-1',
       type: PageModuleType.KEY_VALUE,
-      pairs: [{ key: '键1', value: '值1' }]
+      rows: [{ key: '键1', value: '值1' }]
     }
 
     mockUsePageStore.mockReturnValue({
@@ -269,7 +269,7 @@ describe('PropertyPanel', () => {
     fireEvent.click(addButton)
 
     expect(mockUpdateModule).toHaveBeenCalledWith('kv-1', {
-      pairs: [
+      rows: [
         { key: '键1', value: '值1' },
         { key: '新键', value: '新值' }
       ]
@@ -281,7 +281,7 @@ describe('PropertyPanel', () => {
     const keyValueModule = {
       id: 'kv-1',
       type: PageModuleType.KEY_VALUE,
-      pairs: [
+      rows: [
         { key: '键1', value: '值1' },
         { key: '键2', value: '值2' }
       ]
@@ -306,7 +306,7 @@ describe('PropertyPanel', () => {
     }
 
     expect(mockUpdateModule).toHaveBeenCalledWith('kv-1', {
-      pairs: [{ key: '键2', value: '值2' }]
+      rows: [{ key: '键2', value: '值2' }]
     })
     expect(mockMarkUnsaved).toHaveBeenCalled()
   })
@@ -315,7 +315,7 @@ describe('PropertyPanel', () => {
     const keyValueModule = {
       id: 'kv-1',
       type: PageModuleType.KEY_VALUE,
-      pairs: [{ key: '旧键', value: '值' }]
+      rows: [{ key: '旧键', value: '值' }]
     }
 
     mockUsePageStore.mockReturnValue({
@@ -333,7 +333,7 @@ describe('PropertyPanel', () => {
     fireEvent.change(keyInput, { target: { value: '新键' } })
 
     expect(mockUpdateModule).toHaveBeenCalledWith('kv-1', {
-      pairs: [{ key: '新键', value: '值' }]
+      rows: [{ key: '新键', value: '值' }]
     })
     expect(mockMarkUnsaved).toHaveBeenCalled()
   })
@@ -342,7 +342,7 @@ describe('PropertyPanel', () => {
     const keyValueModule = {
       id: 'kv-1',
       type: PageModuleType.KEY_VALUE,
-      pairs: [{ key: '键', value: '旧值' }]
+      rows: [{ key: '键', value: '旧值' }]
     }
 
     mockUsePageStore.mockReturnValue({
@@ -360,7 +360,7 @@ describe('PropertyPanel', () => {
     fireEvent.change(valueInput, { target: { value: '新值' } })
 
     expect(mockUpdateModule).toHaveBeenCalledWith('kv-1', {
-      pairs: [{ key: '键', value: '新值' }]
+      rows: [{ key: '键', value: '新值' }]
     })
     expect(mockMarkUnsaved).toHaveBeenCalled()
   })

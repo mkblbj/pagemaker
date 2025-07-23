@@ -42,6 +42,17 @@ describe('HtmlExportService', () => {
     spaceHeight: 'medium'
   }
 
+  const mockKeyValueModule: PageModule = {
+    id: 'keyvalue-1',
+    type: PageModuleType.KEY_VALUE,
+    rows: [
+      { key: '产品名称', value: '测试产品' },
+      { key: '价格', value: '¥999' }
+    ],
+    labelBackgroundColor: '#f3f4f6',
+    textColor: '#374151'
+  }
+
   describe('generateHTML', () => {
     it('应该默认生成纯内容HTML（不包含文档结构）', () => {
       const html = HtmlExportService.generateHTML([mockTitleModule])
@@ -144,6 +155,70 @@ describe('HtmlExportService', () => {
       expect(html).toContain('测试标题')
       expect(html).toContain('<div class="pm-text"')
       expect(html).toContain('这是一段测试文本')
+    })
+
+    it('应该正确处理键值对模块', () => {
+      const html = HtmlExportService.generateHTML([mockKeyValueModule])
+
+      expect(html).toContain('<table class="pm-key-value"')
+      expect(html).toContain('产品名称')
+      expect(html).toContain('测试产品')
+      expect(html).toContain('价格')
+      expect(html).toContain('¥999')
+      expect(html).toContain('background-color: #f3f4f6')
+      expect(html).toContain('color: #374151')
+    })
+
+    it('应该在移动端模式下正确处理键值对模块', () => {
+      const html = HtmlExportService.generateHTML([mockKeyValueModule], { mobileMode: true })
+
+      expect(html).toContain('<table width="100%" cellpadding="8" cellspacing="1" border="0">')
+      expect(html).toContain('bgcolor="#f3f4f6"')
+      expect(html).toContain('bgcolor="#ffffff"')
+      expect(html).toContain('<font color="#374151">')
+      expect(html).toContain('width="30%"')
+      expect(html).toContain('width="70%"')
+      expect(html).toContain('align="left"')
+      expect(html).toContain('valign="top"')
+      expect(html).toContain('产品名称')
+      expect(html).toContain('测试产品')
+      // 确保没有不被允许的style属性
+      expect(html).not.toContain('style=')
+    })
+
+    it('应该处理空的键值对模块', () => {
+      const emptyKeyValueModule = {
+        ...mockKeyValueModule,
+        rows: []
+      }
+
+      const html = HtmlExportService.generateHTML([emptyKeyValueModule])
+
+      expect(html).toContain('<!-- 键值对模块：无数据 -->')
+    })
+
+    it('应该向后兼容items属性', () => {
+      const { rows, ...moduleWithoutRows } = mockKeyValueModule
+      const legacyModule = {
+        ...moduleWithoutRows,
+        items: [{ key: '旧键', value: '旧值' }]
+      }
+
+      const html = HtmlExportService.generateHTML([legacyModule as any])
+
+      expect(html).toContain('旧键')
+      expect(html).toContain('旧值')
+    })
+
+    it('应该正确处理多行文本在键值对中', () => {
+      const multilineModule = {
+        ...mockKeyValueModule,
+        rows: [{ key: '描述', value: '第一行\n第二行\n第三行' }]
+      }
+
+      const html = HtmlExportService.generateHTML([multilineModule])
+
+      expect(html).toContain('第一行<br>第二行<br>第三行')
     })
 
     it('应该在移动端模式下生成乐天约束的HTML', () => {

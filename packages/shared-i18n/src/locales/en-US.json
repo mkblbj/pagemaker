@@ -359,7 +359,19 @@
     "中间距 (40px)": "Medium spacing (40px)",
     "大间距 (60px)": "Large spacing (60px)",
     "超大间距 (80px)": "Extra large spacing (80px)",
-    "空白": "Blank"
+    "空白": "Blank",
+    "添加键值对表格": "Add key-value table",
+    "键值对列表": "Key-value list",
+    "值/内容": "Value/content",
+    "键值对表格": "Key-value table",
+    "添加": "Add",
+    "键/标签": "Key/label",
+    "样式配置": "Style configuration",
+    "标签列背景色": "Label column background color",
+    "文本颜色": "Text color",
+    "行": "Rows",
+    "输入键或标签": "Enter key or label",
+    "输入值或内容": "Enter value or content"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",

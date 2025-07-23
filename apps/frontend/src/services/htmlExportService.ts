@@ -463,40 +463,50 @@ ${htmlContent}
     module: PageModule,
     options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
   ): string {
-    const items = getArrayProp(module, 'items')
-    const layout = getStringProp(module, 'layout', 'horizontal')
-    const backgroundColor = getStringProp(module, 'backgroundColor')
+    // 支持新的rows属性，向后兼容items属性
+    const rowsArray = getArrayProp(module, 'rows')
+    const itemsArray = getArrayProp(module, 'items')
+
+    // 优先使用rows，如果rows为空数组且module中没有rows属性，则使用items
+    const rows =
+      module.hasOwnProperty('rows') && rowsArray.length > 0
+        ? rowsArray
+        : !module.hasOwnProperty('rows') && itemsArray.length > 0
+          ? itemsArray
+          : rowsArray.length > 0
+            ? rowsArray
+            : itemsArray
+
+    const labelBackgroundColor = getStringProp(module, 'labelBackgroundColor', '#f3f4f6')
+    const textColor = getStringProp(module, 'textColor', '#374151')
+
+    if (!rows || rows.length === 0) {
+      return '<!-- 键值对模块：无数据 -->'
+    }
 
     if (options.mobileMode) {
-      // 乐天移动端约束版本 - 使用table布局
-      const bgColorAttr = backgroundColor && backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+      // 乐天移动端约束版本 - 使用table布局，不能使用style属性
+      const tableRows = rows
+        .map((row: any) => {
+          const key = this.escapeHtml(String(row?.key || ''))
+          const value = this.escapeHtml(String(row?.value || ''))
 
-      const itemsHTML = items
-        .map((item: any) => {
-          const key = this.escapeHtml(String(item?.key || ''))
-          const value = this.escapeHtml(String(item?.value || ''))
-
-          if (layout === 'vertical') {
-            return `<tr>
-<td><font size="3"><b>${key}</b></font></td>
-</tr>
-<tr>
-<td><font size="2">${value}</font></td>
+          return `<tr>
+<td bgcolor="${labelBackgroundColor}" width="30%" align="left" valign="top">
+<font color="${textColor}"><b>${key}</b></font>
+</td>
+<td bgcolor="#ffffff" width="70%" align="left" valign="top">
+<font color="${textColor}">${value}</font>
+</td>
 </tr>`
-          } else {
-            return `<tr>
-<td width="30%"><font size="2"><b>${key}</b></font></td>
-<td width="70%"><font size="2">${value}</font></td>
-</tr>`
-          }
         })
         .join('\n')
 
-      return `<table width="100%" cellpadding="5" cellspacing="0" border="0"${bgColorAttr}>
-${itemsHTML}
+      return `<table width="100%" cellpadding="8" cellspacing="1" border="0">
+${tableRows}
 </table>`
     } else {
-      // 标准版本 - 使用div和CSS样式
+      // 标准版本 - 使用table布局以获得更好的样式控制
       const containerStyles = this.generateInlineStyles({
         'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
         'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
@@ -504,31 +514,42 @@ ${itemsHTML}
         'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
         'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
         'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
-        'background-color': backgroundColor
+        width: '100%',
+        'border-collapse': 'collapse'
       })
 
-      const itemsHTML = items
-        .map((item: any) => {
-          const key = this.escapeHtml(String(item?.key || ''))
-          const value = this.escapeHtml(String(item?.value || ''))
+      const tableRows = rows
+        .map((row: any) => {
+          const key = this.escapeHtml(String(row?.key || ''))
+          const value = this.escapeHtml(String(row?.value || ''))
 
-          if (layout === 'vertical') {
-            return `            <div class="pm-kv-item" style="margin-bottom: 8px;">
-                <div class="pm-kv-key" style="font-weight: bold; margin-bottom: 4px;">${key}</div>
-                <div class="pm-kv-value">${value}</div>
-            </div>`
-          } else {
-            return `            <div class="pm-kv-item" style="display: flex; margin-bottom: 8px;">
-                <div class="pm-kv-key" style="font-weight: bold; margin-right: 16px; min-width: 120px;">${key}</div>
-                <div class="pm-kv-value" style="flex: 1;">${value}</div>
-            </div>`
-          }
+          const labelCellStyles = this.generateInlineStyles({
+            'background-color': labelBackgroundColor,
+            color: textColor,
+            padding: '8px 12px',
+            border: '1px solid #e5e7eb',
+            'font-weight': 'bold',
+            'vertical-align': 'top',
+            width: '30%'
+          })
+
+          const valueCellStyles = this.generateInlineStyles({
+            color: textColor,
+            padding: '8px 12px',
+            border: '1px solid #e5e7eb',
+            'vertical-align': 'top'
+          })
+
+          return `            <tr>
+                <td class="pm-kv-key" style="${labelCellStyles}">${key}</td>
+                <td class="pm-kv-value" style="${valueCellStyles}">${value.replace(/\n/g, '<br>')}</td>
+            </tr>`
         })
         .join('\n')
 
-      return `        <div class="pm-key-value" style="${containerStyles}">
-${itemsHTML}
-        </div>`
+      return `        <table class="pm-key-value" style="${containerStyles}">
+${tableRows}
+        </table>`
     }
   }
 

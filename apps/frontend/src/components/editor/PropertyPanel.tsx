@@ -302,27 +302,35 @@ export function PropertyPanel() {
 
   // 处理键值对更新
   const handleKeyValueUpdate = (index: number, field: 'key' | 'value', value: string) => {
-    if (selectedModule && (selectedModule as any).pairs) {
-      const newPairs = [...(selectedModule as any).pairs]
-      newPairs[index] = { ...newPairs[index], [field]: value }
-      handlePropertyUpdate('pairs', newPairs)
+    if (selectedModule) {
+      // 优先使用rows属性，向后兼容pairs属性
+      const currentRows = (selectedModule as any).rows || (selectedModule as any).pairs || []
+      const newRows = [...currentRows]
+      newRows[index] = { ...newRows[index], [field]: value }
+      // 使用rows属性存储，保持一致性
+      handlePropertyUpdate('rows', newRows)
     }
   }
 
   // 添加键值对
   const handleAddKeyValue = () => {
     if (selectedModule) {
-      const currentPairs = (selectedModule as any).pairs || []
-      const newPairs = [...currentPairs, { key: tEditor('新键'), value: tEditor('新值') }]
-      handlePropertyUpdate('pairs', newPairs)
+      // 优先使用rows属性，向后兼容pairs属性
+      const currentRows = (selectedModule as any).rows || (selectedModule as any).pairs || []
+      const newRows = [...currentRows, { key: tEditor('新键'), value: tEditor('新值') }]
+      // 使用rows属性存储，保持一致性
+      handlePropertyUpdate('rows', newRows)
     }
   }
 
   // 删除键值对
   const handleRemoveKeyValue = (index: number) => {
-    if (selectedModule && (selectedModule as any).pairs) {
-      const newPairs = (selectedModule as any).pairs.filter((_: any, i: number) => i !== index)
-      handlePropertyUpdate('pairs', newPairs)
+    if (selectedModule) {
+      // 优先使用rows属性，向后兼容pairs属性
+      const currentRows = (selectedModule as any).rows || (selectedModule as any).pairs || []
+      const newRows = currentRows.filter((_: any, i: number) => i !== index)
+      // 使用rows属性存储，保持一致性
+      handlePropertyUpdate('rows', newRows)
     }
   }
 
@@ -566,19 +574,22 @@ export function PropertyPanel() {
       case PageModuleType.KEY_VALUE:
         return (
           <div className="space-y-4">
+            {/* 键值对列表 */}
             <div className="flex items-center justify-between">
-              <Label>键值对列表</Label>
+              <Label>{tEditor('键值对列表')}</Label>
               <Button variant="outline" size="sm" onClick={handleAddKeyValue}>
                 <Plus className="h-4 w-4 mr-1" />
-                添加
+                {tEditor('添加')}
               </Button>
             </div>
             <div className="space-y-3">
-              {((selectedModule as any).pairs || []).map((pair: any, index: number) => (
+              {((selectedModule as any).rows || (selectedModule as any).pairs || []).map((row: any, index: number) => (
                 <Card key={index} className="p-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs">键值对 {index + 1}</Label>
+                      <Label className="text-xs">
+                        {tEditor('键值对')} {index + 1}
+                      </Label>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -588,21 +599,73 @@ export function PropertyPanel() {
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
-                    <Input
-                      value={pair.key || ''}
-                      onChange={e => handleKeyValueUpdate(index, 'key', e.target.value)}
-                      placeholder="键"
-                      className="text-sm"
-                    />
-                    <Input
-                      value={pair.value || ''}
-                      onChange={e => handleKeyValueUpdate(index, 'value', e.target.value)}
-                      placeholder="值"
-                      className="text-sm"
-                    />
+                    <div className="space-y-2">
+                      <Label className="text-xs">{tEditor('键/标签')}</Label>
+                      <Input
+                        value={row.key || ''}
+                        onChange={e => handleKeyValueUpdate(index, 'key', e.target.value)}
+                        placeholder={tEditor('输入键或标签')}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">{tEditor('值/内容')}</Label>
+                      <Textarea
+                        value={row.value || ''}
+                        onChange={e => handleKeyValueUpdate(index, 'value', e.target.value)}
+                        placeholder={tEditor('输入值或内容')}
+                        className="text-sm"
+                        rows={2}
+                      />
+                    </div>
                   </div>
                 </Card>
               ))}
+            </div>
+
+            {/* 样式配置 */}
+            <div className="space-y-4 pt-4 border-t">
+              <Label className="text-sm font-medium">{tEditor('样式配置')}</Label>
+
+              {/* 标签列背景色 */}
+              <div className="space-y-2">
+                <Label htmlFor="label-bg-color">{tEditor('标签列背景色')}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="label-bg-color"
+                    type="color"
+                    value={(selectedModule as any).labelBackgroundColor || '#f3f4f6'}
+                    onChange={e => handlePropertyUpdate('labelBackgroundColor', e.target.value)}
+                    className="w-16 h-8 p-1 rounded"
+                  />
+                  <Input
+                    value={(selectedModule as any).labelBackgroundColor || '#f3f4f6'}
+                    onChange={e => handlePropertyUpdate('labelBackgroundColor', e.target.value)}
+                    placeholder="#f3f4f6"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* 文本颜色 */}
+              <div className="space-y-2">
+                <Label htmlFor="text-color">{tEditor('文本颜色')}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="text-color"
+                    type="color"
+                    value={(selectedModule as any).textColor || '#374151'}
+                    onChange={e => handlePropertyUpdate('textColor', e.target.value)}
+                    className="w-16 h-8 p-1 rounded"
+                  />
+                  <Input
+                    value={(selectedModule as any).textColor || '#374151'}
+                    onChange={e => handlePropertyUpdate('textColor', e.target.value)}
+                    placeholder="#374151"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )

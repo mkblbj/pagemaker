@@ -185,7 +185,7 @@ describe('Canvas', () => {
       {
         id: 'kv-1',
         type: PageModuleType.KEY_VALUE,
-        pairs: [
+        rows: [
           { key: '产品名称', value: '测试产品' },
           { key: '价格', value: '￥99.99' }
         ]
@@ -202,9 +202,9 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
-    expect(screen.getByText('产品名称:')).toBeInTheDocument()
+    expect(screen.getByText('产品名称')).toBeInTheDocument()
     expect(screen.getByText('测试产品')).toBeInTheDocument()
-    expect(screen.getByText('价格:')).toBeInTheDocument()
+    expect(screen.getByText('价格')).toBeInTheDocument()
     expect(screen.getByText('￥99.99')).toBeInTheDocument()
   })
 

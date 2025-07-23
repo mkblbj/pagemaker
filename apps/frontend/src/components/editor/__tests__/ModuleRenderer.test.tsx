@@ -80,7 +80,7 @@ describe('ModuleRenderer', () => {
     const keyValueModule = {
       id: 'kv-1',
       type: PageModuleType.KEY_VALUE,
-      pairs: [
+      rows: [
         { key: '名称', value: '测试产品' },
         { key: '价格', value: '￥99.99' }
       ]
@@ -88,10 +88,10 @@ describe('ModuleRenderer', () => {
 
     render(<ModuleRenderer module={keyValueModule} />)
 
-    expect(screen.getByText('键值对模块')).toBeInTheDocument()
-    expect(screen.getByText('名称:')).toBeInTheDocument()
+    // 检查表格数据是否正确渲染
+    expect(screen.getByText('名称')).toBeInTheDocument()
     expect(screen.getByText('测试产品')).toBeInTheDocument()
-    expect(screen.getByText('价格:')).toBeInTheDocument()
+    expect(screen.getByText('价格')).toBeInTheDocument()
     expect(screen.getByText('￥99.99')).toBeInTheDocument()
   })
 
@@ -99,13 +99,13 @@ describe('ModuleRenderer', () => {
     const keyValueModule = {
       id: 'kv-empty',
       type: PageModuleType.KEY_VALUE,
-      pairs: []
+      rows: []
     }
 
     render(<ModuleRenderer module={keyValueModule} />)
 
-    expect(screen.getByText('键值对模块')).toBeInTheDocument()
-    expect(screen.getByText('键:')).toBeInTheDocument()
+    // 检查空表格的默认显示
+    expect(screen.getByText('键')).toBeInTheDocument()
     expect(screen.getByText('值')).toBeInTheDocument()
   })
 

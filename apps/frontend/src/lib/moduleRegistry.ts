@@ -93,15 +93,14 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
     [PageModuleType.KEY_VALUE]: {
       type: PageModuleType.KEY_VALUE,
       name: tEditor('键值对'),
-      description: tEditor('添加键值对'),
+      description: tEditor('添加键值对表格'),
       icon: 'Layout',
       category: 'basic',
       color: 'text-orange-600',
       defaultConfig: {
-        pairs: [{ key: tEditor('键'), value: tEditor('值') }],
-        itemStyle: 'default',
-        keyColor: '#374151',
-        valueColor: '#6b7280'
+        rows: [{ key: tEditor('键'), value: tEditor('值') }],
+        labelBackgroundColor: '#f3f4f6',
+        textColor: '#374151'
       },
       isEnabled: true,
       sortOrder: 5

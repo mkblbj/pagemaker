@@ -8,6 +8,7 @@ import { TitleModule } from '@/components/modules/TitleModule'
 import { TextModule } from '@/components/modules/TextModule'
 import { ImageModule } from '@/components/modules/ImageModule'
 import { SeparatorModule } from '@/components/modules/SeparatorModule'
+import { KeyValueModule } from '@/components/modules/KeyValueModule'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface ModuleRendererProps {
@@ -82,23 +83,14 @@ export function ModuleRenderer({
 
       case PageModuleType.KEY_VALUE:
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Layout className="h-4 w-4 text-orange-600" />
-              <Badge variant="secondary">{tEditor('键值对模块')}</Badge>
-            </div>
-            <div className="space-y-2">
-              {((module as any).pairs && (module as any).pairs.length > 0
-                ? (module as any).pairs
-                : [{ key: '键', value: '值' }]
-              ).map((pair: any, index: number) => (
-                <div key={index} className="flex items-center gap-4 p-2 bg-gray-50 rounded">
-                  <span className="font-medium text-sm min-w-0 flex-1">{pair.key || '键'}:</span>
-                  <span className="text-sm text-gray-700 min-w-0 flex-2">{pair.value || '值'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <KeyValueModule
+            module={module as any}
+            isSelected={isSelected}
+            isEditing={isEditing}
+            onUpdate={onUpdate}
+            onStartEdit={onStartEdit}
+            onEndEdit={onEndEdit}
+          />
         )
 
       case PageModuleType.MULTI_COLUMN:

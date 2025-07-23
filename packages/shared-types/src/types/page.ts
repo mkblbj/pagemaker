@@ -21,6 +21,16 @@ export interface SeparatorModuleConfig {
   spaceHeight?: 'small' | 'medium' | 'large' | 'extra-large';
 }
 
+// 键值对模块配置接口
+export interface KeyValueModuleConfig {
+  rows: Array<{
+    key: string;
+    value: string;
+  }>;
+  labelBackgroundColor?: string;
+  textColor?: string;
+}
+
 // 模块元数据接口
 export interface ModuleMetadata {
   type: PageModuleType;
