@@ -635,9 +635,102 @@ export function PropertyPanel() {
       case PageModuleType.SEPARATOR:
         return (
           <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">
-              <p>分隔线模块暂无可配置属性</p>
+            {/* 分隔类型选择 */}
+            <div className="space-y-2">
+              <Label>{tEditor('分隔类型')}</Label>
+              <Select
+                value={(selectedModule as any).separatorType || 'line'}
+                onValueChange={(value: 'line' | 'space') => handlePropertyUpdate('separatorType', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="line">{tEditor('线条分隔')}</SelectItem>
+                  <SelectItem value="space">{tEditor('空白间距')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* 线条样式配置 - 仅在类型为线条时显示 */}
+            {((selectedModule as any).separatorType || 'line') === 'line' && (
+              <>
+                <div className="space-y-2">
+                  <Label>{tEditor('线条样式')}</Label>
+                  <Select
+                    value={(selectedModule as any).lineStyle || 'solid'}
+                    onValueChange={(value: 'solid' | 'dashed' | 'dotted') => handlePropertyUpdate('lineStyle', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="solid">{tEditor('实线')}</SelectItem>
+                      <SelectItem value="dashed">{tEditor('虚线')}</SelectItem>
+                      <SelectItem value="dotted">{tEditor('点线')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="line-color">{tEditor('线条颜色')}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="line-color"
+                      type="color"
+                      value={(selectedModule as any).lineColor || '#e5e7eb'}
+                      onChange={e => handlePropertyUpdate('lineColor', e.target.value)}
+                      className="w-16 h-8 p-1 rounded"
+                    />
+                    <Input
+                      value={(selectedModule as any).lineColor || '#e5e7eb'}
+                      onChange={e => handlePropertyUpdate('lineColor', e.target.value)}
+                      placeholder="#e5e7eb"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="line-thickness">{tEditor('线条粗细')}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="line-thickness"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={(selectedModule as any).lineThickness || 1}
+                      onChange={e => handlePropertyUpdate('lineThickness', parseInt(e.target.value))}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-gray-500">px</span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 空白间距配置 - 仅在类型为空白时显示 */}
+            {((selectedModule as any).separatorType || 'line') === 'space' && (
+              <div className="space-y-2">
+                <Label>{tEditor('间距高度')}</Label>
+                <Select
+                  value={(selectedModule as any).spaceHeight || 'medium'}
+                  onValueChange={(value: 'small' | 'medium' | 'large' | 'extra-large') =>
+                    handlePropertyUpdate('spaceHeight', value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">{tEditor('小间距 (20px)')}</SelectItem>
+                    <SelectItem value="medium">{tEditor('中间距 (40px)')}</SelectItem>
+                    <SelectItem value="large">{tEditor('大间距 (60px)')}</SelectItem>
+                    <SelectItem value="extra-large">{tEditor('超大间距 (80px)')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         )
 

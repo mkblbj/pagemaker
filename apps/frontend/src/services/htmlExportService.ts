@@ -391,27 +391,68 @@ ${htmlContent}
     module: PageModule,
     options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
   ): string {
-    const color = getStringProp(module, 'color', '#e0e0e0')
-    const thickness = getNumberProp(module, 'thickness', 1)
+    const separatorType = getStringProp(module, 'separatorType', 'line')
 
-    if (options.mobileMode) {
-      // 乐天移动端约束版本 - 使用<hr>标签的基本属性
-      return `<hr color="${color}" size="${thickness}">`
+    if (separatorType === 'space') {
+      // 空白间距类型
+      const spaceHeight = getStringProp(module, 'spaceHeight', 'medium')
+      const heightMap = {
+        small: '20px',
+        medium: '40px',
+        large: '60px',
+        'extra-large': '80px'
+      }
+      const height = heightMap[spaceHeight as keyof typeof heightMap] || '40px'
+
+      if (options.mobileMode) {
+        // 乐天移动端约束版本 - 使用table实现空白间距
+        return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr>
+<td height="${height}">&nbsp;</td>
+</tr>
+</table>`
+      } else {
+        // 标准版本 - 使用div实现空白间距
+        const styles = this.generateInlineStyles({
+          height: height,
+          width: '100%'
+        })
+        return `        <div class="pm-separator-space" style="${styles}"></div>`
+      }
     } else {
-      // 标准版本 - 使用CSS样式
-      const style = getStringProp(module, 'style', 'solid')
-      const width = getStringProp(module, 'width', '100%')
+      // 线条分隔类型
+      const lineColor = getStringProp(module, 'lineColor', '#e5e7eb')
+      const lineThickness = getNumberProp(module, 'lineThickness', 1)
+      const lineStyle = getStringProp(module, 'lineStyle', 'solid')
 
-      const styles = this.generateInlineStyles({
-        'border-top': `${thickness}px ${style} ${color}`,
-        width: width,
-        'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
-        'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
-        'margin-left': 'auto',
-        'margin-right': 'auto'
-      })
+      if (options.mobileMode) {
+        // 乐天移动端约束版本
+        if (lineStyle === 'solid') {
+          // 实线使用标准hr标签
+          return `<hr color="${lineColor}" size="${lineThickness}">`
+        } else {
+          // 虚线和点线使用table+border实现（更好的兼容性）
+          const borderStyle = lineStyle === 'dashed' ? 'dashed' : 'dotted'
+          return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr>
+<td style="border-top: ${lineThickness}px ${borderStyle} ${lineColor}; height: 0; line-height: 0; font-size: 0;">&nbsp;</td>
+</tr>
+</table>`
+        }
+      } else {
+        // 标准版本 - 使用CSS样式
+        const styles = this.generateInlineStyles({
+          'border-top': `${lineThickness}px ${lineStyle} ${lineColor}`,
+          'border-bottom': 'none',
+          'border-left': 'none',
+          'border-right': 'none',
+          width: '100%',
+          margin: '16px 0',
+          height: '0'
+        })
 
-      return `        <hr class="pm-separator" style="${styles}">`
+        return `        <hr class="pm-separator-line" style="${styles}">`
+      }
     }
   }
 

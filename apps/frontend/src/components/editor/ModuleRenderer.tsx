@@ -7,6 +7,7 @@ import { Type, FileText, Image, Minus, Layout, Columns, AlertTriangle } from 'lu
 import { TitleModule } from '@/components/modules/TitleModule'
 import { TextModule } from '@/components/modules/TextModule'
 import { ImageModule } from '@/components/modules/ImageModule'
+import { SeparatorModule } from '@/components/modules/SeparatorModule'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface ModuleRendererProps {
@@ -69,15 +70,14 @@ export function ModuleRenderer({
 
       case PageModuleType.SEPARATOR:
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Minus className="h-4 w-4 text-gray-600" />
-              <Badge variant="secondary">{tEditor('分隔线模块')}</Badge>
-            </div>
-            <div className="py-4">
-              <hr className="border-t-2 border-gray-300" />
-            </div>
-          </div>
+          <SeparatorModule
+            module={module as any}
+            isSelected={isSelected}
+            isEditing={isEditing}
+            onUpdate={onUpdate}
+            onStartEdit={onStartEdit}
+            onEndEdit={onEndEdit}
+          />
         )
 
       case PageModuleType.KEY_VALUE:

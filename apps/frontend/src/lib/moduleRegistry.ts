@@ -76,14 +76,16 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
     [PageModuleType.SEPARATOR]: {
       type: PageModuleType.SEPARATOR,
       name: tEditor('分隔线'),
-      description: tEditor('添加分隔线'),
+      description: tEditor('添加分隔线或空白间距'),
       icon: 'Minus',
       category: 'basic',
       color: 'text-gray-600',
       defaultConfig: {
+        separatorType: 'line',
         lineStyle: 'solid',
-        color: '#e5e7eb',
-        thickness: 1
+        lineColor: '#e5e7eb',
+        lineThickness: 1,
+        spaceHeight: 'medium'
       },
       isEnabled: true,
       sortOrder: 4

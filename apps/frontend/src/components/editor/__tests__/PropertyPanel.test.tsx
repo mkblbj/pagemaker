@@ -144,7 +144,8 @@ describe('PropertyPanel', () => {
     render(<PropertyPanel />)
 
     expect(screen.getByText('separator 模块')).toBeInTheDocument()
-    expect(screen.getByText('分隔线模块暂无可配置属性')).toBeInTheDocument()
+    expect(screen.getByText('分隔类型')).toBeInTheDocument()
+    expect(screen.getByText('线条分隔')).toBeInTheDocument()
   })
 
   it('应该显示多列布局模块的属性编辑器', () => {

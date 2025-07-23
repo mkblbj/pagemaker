@@ -117,7 +117,11 @@ describe('ModuleRenderer', () => {
 
     render(<ModuleRenderer module={separatorModule} />)
 
-    expect(screen.getByText('分隔线模块')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return !!(element?.textContent?.includes('分隔模块') && element?.textContent?.includes('线条'))
+      })[0]
+    ).toBeInTheDocument()
   })
 
   it('应该渲染多列布局模块', () => {

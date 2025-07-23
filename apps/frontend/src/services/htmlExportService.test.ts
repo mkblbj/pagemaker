@@ -26,6 +26,22 @@ describe('HtmlExportService', () => {
     backgroundColor: 'transparent'
   }
 
+  const mockSeparatorModule: PageModule = {
+    id: 'separator-1',
+    type: PageModuleType.SEPARATOR,
+    separatorType: 'line',
+    lineStyle: 'solid',
+    lineColor: '#e5e7eb',
+    lineThickness: 1
+  }
+
+  const mockSpaceSeparatorModule: PageModule = {
+    id: 'separator-2',
+    type: PageModuleType.SEPARATOR,
+    separatorType: 'space',
+    spaceHeight: 'medium'
+  }
+
   describe('generateHTML', () => {
     it('应该默认生成纯内容HTML（不包含文档结构）', () => {
       const html = HtmlExportService.generateHTML([mockTitleModule])
@@ -205,6 +221,102 @@ describe('HtmlExportService', () => {
 
       expect(html).toContain('タイトルテキスト')
       expect(html).not.toContain('タイトルテキスト\n')
+    })
+
+    it('应该正确生成线条分隔模块的HTML', () => {
+      const html = HtmlExportService.generateHTML([mockSeparatorModule])
+
+      expect(html).toContain('<hr class="pm-separator-line"')
+      expect(html).toContain('border-top: 1px solid #e5e7eb')
+      expect(html).toContain('width: 100%')
+      expect(html).toContain('margin: 16px 0')
+    })
+
+    it('应该正确生成空白间距分隔模块的HTML', () => {
+      const html = HtmlExportService.generateHTML([mockSpaceSeparatorModule])
+
+      expect(html).toContain('<div class="pm-separator-space"')
+      expect(html).toContain('height: 40px')
+      expect(html).toContain('width: 100%')
+    })
+
+    it('应该在移动端模式下正确生成线条分隔模块', () => {
+      const html = HtmlExportService.generateHTML([mockSeparatorModule], { mobileMode: true })
+
+      // 实线应该使用hr标签
+      expect(html).toContain('<hr color="#e5e7eb" size="1">')
+    })
+
+    it('应该在移动端模式下正确生成虚线分隔模块', () => {
+      const dashedSeparatorModule = {
+        ...mockSeparatorModule,
+        lineStyle: 'dashed',
+        lineColor: '#ff0000',
+        lineThickness: 2
+      }
+
+      const html = HtmlExportService.generateHTML([dashedSeparatorModule], { mobileMode: true })
+
+      // 虚线应该使用table+border实现
+      expect(html).toContain('<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">')
+      expect(html).toContain('border-top: 2px dashed #ff0000')
+      expect(html).toContain('height: 0; line-height: 0; font-size: 0;')
+    })
+
+    it('应该在移动端模式下正确生成点线分隔模块', () => {
+      const dottedSeparatorModule = {
+        ...mockSeparatorModule,
+        lineStyle: 'dotted',
+        lineColor: '#0000ff',
+        lineThickness: 3
+      }
+
+      const html = HtmlExportService.generateHTML([dottedSeparatorModule], { mobileMode: true })
+
+      // 点线应该使用table+border实现
+      expect(html).toContain('<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">')
+      expect(html).toContain('border-top: 3px dotted #0000ff')
+      expect(html).toContain('height: 0; line-height: 0; font-size: 0;')
+    })
+
+    it('应该在移动端模式下正确生成空白间距分隔模块', () => {
+      const html = HtmlExportService.generateHTML([mockSpaceSeparatorModule], { mobileMode: true })
+
+      expect(html).toContain('<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">')
+      expect(html).toContain('<td height="40px">&nbsp;</td>')
+      expect(html).not.toContain('<div')
+    })
+
+    it('应该支持不同的分隔模块配置', () => {
+      const customSeparatorModule = {
+        ...mockSeparatorModule,
+        lineStyle: 'dashed',
+        lineColor: '#ff0000',
+        lineThickness: 3
+      }
+
+      const html = HtmlExportService.generateHTML([customSeparatorModule])
+
+      expect(html).toContain('border-top: 3px dashed #ff0000')
+    })
+
+    it('应该支持不同的空白间距高度', () => {
+      const testCases = [
+        { spaceHeight: 'small', expectedHeight: '20px' },
+        { spaceHeight: 'medium', expectedHeight: '40px' },
+        { spaceHeight: 'large', expectedHeight: '60px' },
+        { spaceHeight: 'extra-large', expectedHeight: '80px' }
+      ]
+
+      testCases.forEach(({ spaceHeight, expectedHeight }) => {
+        const spaceModule = {
+          ...mockSpaceSeparatorModule,
+          spaceHeight
+        }
+
+        const html = HtmlExportService.generateHTML([spaceModule])
+        expect(html).toContain(`height: ${expectedHeight}`)
+      })
     })
   })
 

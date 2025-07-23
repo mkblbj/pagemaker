@@ -172,7 +172,11 @@ describe('Canvas', () => {
     expect(screen.getByText('标题1')).toBeInTheDocument()
     expect(screen.getByText('标题2')).toBeInTheDocument()
     expect(screen.getByText('文本1')).toBeInTheDocument()
-    expect(screen.getByText('分隔线模块')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return !!(element?.textContent?.includes('分隔模块') && element?.textContent?.includes('线条'))
+      })[0]
+    ).toBeInTheDocument()
     expect(screen.getByAltText('测试图片')).toBeInTheDocument()
   })
 

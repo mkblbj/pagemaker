@@ -10,6 +10,17 @@ export enum PageModuleType {
   MULTI_COLUMN = 'multiColumn',
 }
 
+// 分隔模块配置接口
+export interface SeparatorModuleConfig {
+  separatorType: 'line' | 'space';
+  // 线条配置
+  lineStyle?: 'solid' | 'dashed' | 'dotted';
+  lineColor?: string;
+  lineThickness?: number;
+  // 空白配置
+  spaceHeight?: 'small' | 'medium' | 'large' | 'extra-large';
+}
+
 // 模块元数据接口
 export interface ModuleMetadata {
   type: PageModuleType;
