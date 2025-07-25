@@ -9,6 +9,7 @@ import { TextModule } from '@/components/modules/TextModule'
 import { ImageModule } from '@/components/modules/ImageModule'
 import { SeparatorModule } from '@/components/modules/SeparatorModule'
 import { KeyValueModule } from '@/components/modules/KeyValueModule'
+import { MultiColumnModule } from '@/components/modules/MultiColumnModule'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface ModuleRendererProps {
@@ -95,50 +96,22 @@ export function ModuleRenderer({
 
       case PageModuleType.MULTI_COLUMN:
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Columns className="h-4 w-4 text-red-600" />
-              <Badge variant="secondary">{tEditor('多列布局模块')}</Badge>
-            </div>
-            <div
-              className={`grid gap-4 ${
-                (module as any).columns === 2
-                  ? 'grid-cols-2'
-                  : (module as any).columns === 3
-                    ? 'grid-cols-3'
-                    : (module as any).columns === 4
-                      ? 'grid-cols-4'
-                      : 'grid-cols-2'
-              }`}
-            >
-              {Array.from({ length: (module as any).columns || 2 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="border border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-500"
-                >
-                  {tEditor('列 {index}', { index: index + 1 })}
-                  <br />
-                  <span className="text-xs">{tEditor('拖拽内容到此处')}</span>
-                </div>
-              ))}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {tEditor('{columns} 列布局', { columns: (module as any).columns || 2 })}
-            </div>
-          </div>
+          <MultiColumnModule
+            module={module as any}
+            isSelected={isSelected}
+            isEditing={isEditing}
+            onUpdate={onUpdate}
+            onStartEdit={onStartEdit}
+            onEndEdit={onEndEdit}
+          />
         )
 
       default:
         return (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <Badge variant="destructive">{tEditor('未知模块类型')}</Badge>
-            </div>
-            <div className="text-sm text-gray-500 p-4 bg-yellow-50 border border-yellow-200 rounded">
-              <p className="font-medium">{tEditor('模块类型: {type}', { type: module.type })}</p>
-              <p className="text-xs mt-1">{tEditor('该模块类型暂不支持预览')}</p>
-            </div>
+          <div className="p-4 border border-red-300 bg-red-50 rounded-lg">
+            <p className="text-red-600 text-sm">
+              {tEditor('未知模块类型')}: {module.type}
+            </p>
           </div>
         )
     }

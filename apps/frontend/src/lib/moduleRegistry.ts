@@ -107,14 +107,28 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
     },
     [PageModuleType.MULTI_COLUMN]: {
       type: PageModuleType.MULTI_COLUMN,
-      name: tEditor('多列布局'),
-      description: tEditor('添加多列布局'),
+      name: tEditor('多列图文'),
+      description: tEditor('添加多列图文组合'),
       icon: 'Columns',
       category: 'layout',
       color: 'text-red-600',
       defaultConfig: {
-        columns: 2,
-        items: []
+        layout: 'imageLeft',
+        imageConfig: {
+          src: '',
+          alt: tEditor('图片描述'),
+          alignment: 'center',
+          width: '50%'
+        },
+        textConfig: {
+          content: tEditor('输入文本内容'),
+          alignment: 'left',
+          font: 'inherit',
+          fontSize: '14px',
+          color: '#000000',
+          backgroundColor: 'transparent'
+        },
+        columnRatio: '1:1' // MVP阶段固定比例
       },
       isEnabled: true,
       sortOrder: 6

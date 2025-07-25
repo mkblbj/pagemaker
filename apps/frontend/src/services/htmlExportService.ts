@@ -560,66 +560,347 @@ ${tableRows}
     module: PageModule,
     options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
   ): string {
-    const columns = getArrayProp(module, 'columns')
-    const backgroundColor = getStringProp(module, 'backgroundColor')
+    const layout = getStringProp(module, 'layout', 'imageLeft')
+    const imageConfig = (module.imageConfig as any) || {}
+    const textConfig = (module.textConfig as any) || {}
 
-    if (options.mobileMode) {
-      // 乐天移动端约束版本 - 使用table布局
-      const bgColorAttr = backgroundColor && backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
-
-      // 计算每列的宽度百分比
-      const columnWidth = Math.floor(100 / columns.length)
-
-      const columnsHTML = columns
-        .map((column: any) => {
-          const content = this.escapeHtml(String(column?.content || ''))
-          return `<td width="${columnWidth}%" valign="top"><font size="2">${content.replace(/\n/g, '<br>')}</font></td>`
-        })
-        .join('\n')
-
-      return `<table width="100%" cellpadding="5" cellspacing="0" border="0"${bgColorAttr}>
+    // 如果图片和文本都为空，返回占位符
+    if (!imageConfig.src && !textConfig.content) {
+      if (options.mobileMode) {
+        return `<table width="100%" cellpadding="8" cellspacing="0" border="0" align="center">
 <tr>
-${columnsHTML}
+<td align="center"><font size="2" color="#666666">多列图文模块：内容未设置</font></td>
 </tr>
 </table>`
-    } else {
-      // 标准版本 - 使用div和CSS样式
-      const gap = getNumberProp(module, 'gap', 16)
-
-      const containerStyles = this.generateInlineStyles({
-        display: 'flex',
-        gap: `${gap}px`,
-        'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
-        'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
-        'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
-        'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
-        'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
-        'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
-        'background-color': backgroundColor,
-        'flex-wrap': 'wrap'
-      })
-
-      const columnsHTML = columns
-        .map((column: any) => {
-          const width = String(column?.width || 'auto')
-          const content = this.escapeHtml(String(column?.content || ''))
-
-          const columnStyles = this.generateInlineStyles({
-            flex: width === 'auto' ? '1' : 'none',
-            width: width !== 'auto' ? width : undefined,
-            'min-width': '0'
-          })
-
-          return `            <div class="pm-column" style="${columnStyles}">
-                ${content.replace(/\n/g, '<br>')}
-            </div>`
-        })
-        .join('\n')
-
-      return `        <div class="pm-multi-column" style="${containerStyles}">
-${columnsHTML}
+      } else {
+        return `        <div class="pm-multi-column-placeholder" style="text-align: center; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
+            <p style="margin: 0; color: #666;">多列图文模块：内容未设置</p>
         </div>`
+      }
     }
+
+    if (options.mobileMode) {
+      // 乐天移动端约束版本 - 所有布局都使用垂直堆叠
+      return this.generateMultiColumnHTMLMobile(module, imageConfig, textConfig)
+    } else {
+      // 标准版本 - 支持四种布局和响应式
+      return this.generateMultiColumnHTMLStandard(module, layout, imageConfig, textConfig)
+    }
+  }
+
+  /**
+   * 生成多列图文模块HTML（移动端乐天约束版本）
+   */
+  private static generateMultiColumnHTMLMobile(module: PageModule, imageConfig: any, textConfig: any): string {
+    const layout = getStringProp(module, 'layout', 'imageLeft')
+
+    // 如果图片和文本都不存在，返回空
+    if (!imageConfig.src && !textConfig.content) {
+      return ''
+    }
+
+    // 如果只有图片或只有文本，使用单独的table
+    if (!imageConfig.src || !textConfig.content) {
+      return this.generateSingleContentMobile(imageConfig, textConfig)
+    }
+
+    // 根据布局生成HTML
+    switch (layout) {
+      case 'imageLeft':
+      case 'textLeft':
+        return this.generateHorizontalLayoutMobile(layout, imageConfig, textConfig)
+      case 'imageTop':
+      case 'textTop':
+        return this.generateVerticalLayoutMobile(layout, imageConfig, textConfig)
+      default:
+        return this.generateHorizontalLayoutMobile('imageLeft', imageConfig, textConfig)
+    }
+  }
+
+  /**
+   * 生成单内容移动端HTML（只有图片或只有文本）
+   */
+  private static generateSingleContentMobile(imageConfig: any, textConfig: any): string {
+    if (imageConfig.src) {
+      const imageWidth = this.parseWidth(imageConfig.width, '100%')
+      const imageAlignment = imageConfig.alignment || 'center'
+
+      let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
+
+      if (imageConfig.link && imageConfig.link.value) {
+        const href = this.generateLinkHref(imageConfig.link)
+        imgElement = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
+      }
+
+      return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+<tr>
+<td align="${imageAlignment}">${imgElement}</td>
+</tr>
+</table>`
+    }
+
+    if (textConfig.content) {
+      const textAlignment = textConfig.alignment || 'left'
+      const fontSize = this.convertToFontSize(textConfig.fontSize || '14px')
+      const textColor = textConfig.color || '#000000'
+      const backgroundColor = textConfig.backgroundColor || 'transparent'
+
+      const bgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+      const alignAttr = textAlignment !== 'left' ? ` align="${textAlignment}"` : ''
+
+      const sanitizedContent = this.sanitizeHTMLForRakuten(textConfig.content)
+
+      return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+<tr>
+<td${alignAttr}${bgColorAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>
+</tr>
+</table>`
+    }
+
+    return ''
+  }
+
+  /**
+   * 生成水平布局移动端HTML（左图右文/左文右图）
+   */
+  private static generateHorizontalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
+    const imageWidth = this.parseWidth(imageConfig.width, '95%')
+    const imageAlignment = imageConfig.alignment || 'center'
+
+    let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
+
+    if (imageConfig.link && imageConfig.link.value) {
+      const href = this.generateLinkHref(imageConfig.link)
+      imgElement = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
+    }
+
+    const textAlignment = textConfig.alignment || 'left'
+    const fontSize = this.convertToFontSize(textConfig.fontSize || '14px')
+    const textColor = textConfig.color || '#000000'
+    const backgroundColor = textConfig.backgroundColor || 'transparent'
+
+    const textBgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+    const textAlignAttr = textAlignment !== 'left' ? ` align="${textAlignment}"` : ''
+
+    const sanitizedContent = this.sanitizeHTMLForRakuten(textConfig.content)
+
+    // 根据布局决定图片和文本的顺序
+    const isImageLeft = layout === 'imageLeft'
+    const imageCell = `<td width="49%" align="${imageAlignment}">${imgElement}</td>`
+    const textCell = `<td${textBgColorAttr} width="49%"${textAlignAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>`
+
+    return `<table width="100%" cellspacing="0" cellpadding="10" border="0">
+<tr align="center">
+${isImageLeft ? imageCell : textCell}
+${isImageLeft ? textCell : imageCell}
+</tr>
+</table>`
+  }
+
+  /**
+   * 生成垂直布局移动端HTML（上图下文/上文下图）
+   */
+  private static generateVerticalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
+    const imageWidth = this.parseWidth(imageConfig.width, '100%')
+    const imageAlignment = imageConfig.alignment || 'center'
+
+    let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
+
+    if (imageConfig.link && imageConfig.link.value) {
+      const href = this.generateLinkHref(imageConfig.link)
+      imgElement = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
+    }
+
+    const textAlignment = textConfig.alignment || 'left'
+    const fontSize = this.convertToFontSize(textConfig.fontSize || '14px')
+    const textColor = textConfig.color || '#000000'
+    const backgroundColor = textConfig.backgroundColor || 'transparent'
+
+    const textBgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+    const textAlignAttr = textAlignment !== 'left' ? ` align="${textAlignment}"` : ''
+
+    const sanitizedContent = this.sanitizeHTMLForRakuten(textConfig.content)
+
+    // 根据布局决定图片和文本的顺序
+    const isImageTop = layout === 'imageTop'
+    const imageRow = `<tr>
+<td align="${imageAlignment}">${imgElement}</td>
+</tr>`
+    const textRow = `<tr>
+<td${textAlignAttr}${textBgColorAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>
+</tr>`
+
+    return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+${isImageTop ? imageRow : textRow}
+${isImageTop ? textRow : imageRow}
+</table>`
+  }
+
+  /**
+   * 生成多列图文模块HTML（标准版本）
+   */
+  private static generateMultiColumnHTMLStandard(
+    module: PageModule,
+    layout: string,
+    imageConfig: any,
+    textConfig: any
+  ): string {
+    const isHorizontal = layout === 'imageLeft' || layout === 'textLeft'
+    const isImageFirst = layout === 'imageLeft' || layout === 'imageTop'
+
+    // 生成图片部分
+    const imagePart = this.generateImagePart(imageConfig, isHorizontal)
+
+    // 生成文本部分
+    const textPart = this.generateTextPart(textConfig, isHorizontal)
+
+    // 根据布局排列内容
+    const parts = isImageFirst ? [imagePart, textPart] : [textPart, imagePart]
+    const validParts = parts.filter(part => part.trim() !== '')
+
+    if (validParts.length === 0) {
+      return ''
+    }
+
+    // 容器样式
+    const containerStyles = this.generateInlineStyles({
+      display: 'flex',
+      'flex-direction': isHorizontal ? 'row' : 'column',
+      gap: '16px',
+      'align-items': isHorizontal ? 'center' : 'stretch',
+      margin: '16px 0'
+    })
+
+    // 由于内联样式不支持媒体查询，我们需要生成带有媒体查询的完整样式
+    const responsiveStyles = `
+      .pm-multi-column {
+        display: flex;
+        flex-direction: ${isHorizontal ? 'row' : 'column'};
+        gap: 16px;
+        align-items: ${isHorizontal ? 'center' : 'stretch'};
+        margin: 16px 0;
+      }
+      @media (max-width: 768px) {
+        .pm-multi-column {
+          flex-direction: column !important;
+        }
+        .pm-multi-column > * {
+          flex: none !important;
+          width: 100% !important;
+        }
+      }
+    `
+
+    return `        <style>
+${responsiveStyles}
+        </style>
+        <div class="pm-multi-column">
+${validParts.join('\n')}
+        </div>`
+  }
+
+  /**
+   * 生成图片部分HTML
+   */
+  private static generateImagePart(imageConfig: any, isHorizontal: boolean): string {
+    if (!imageConfig.src) {
+      return ''
+    }
+
+    const imageWidth = this.parseWidth(imageConfig.width, isHorizontal ? '50%' : '100%')
+    const imageAlignment = imageConfig.alignment || 'center'
+
+    const imgStyles = this.generateInlineStyles({
+      width: imageWidth,
+      'max-width': '100%',
+      height: 'auto',
+      'object-fit': 'cover'
+    })
+
+    const containerStyles = this.generateInlineStyles({
+      flex: isHorizontal ? '1' : 'none',
+      'text-align': imageAlignment
+    })
+
+    let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" style="${imgStyles}">`
+
+    // 处理图片链接
+    if (imageConfig.link && imageConfig.link.value) {
+      const href = this.generateLinkHref(imageConfig.link)
+      imgElement = `<a href="${this.escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${imgElement}</a>`
+    }
+
+    return `            <div class="pm-multi-column-image" style="${containerStyles}">
+                ${imgElement}
+            </div>`
+  }
+
+  /**
+   * 生成文本部分HTML
+   */
+  private static generateTextPart(textConfig: any, isHorizontal: boolean): string {
+    if (!textConfig.content) {
+      return ''
+    }
+
+    const textStyles = this.generateInlineStyles({
+      'font-family': textConfig.font !== 'inherit' ? textConfig.font : undefined,
+      'font-size': textConfig.fontSize || '14px',
+      color: textConfig.color || '#000000',
+      'background-color': textConfig.backgroundColor !== 'transparent' ? textConfig.backgroundColor : undefined,
+      'text-align': textConfig.alignment || 'left',
+      'line-height': '1.6',
+      padding: textConfig.backgroundColor !== 'transparent' ? '12px' : undefined,
+      'border-radius': textConfig.backgroundColor !== 'transparent' ? '4px' : undefined
+    })
+
+    const containerStyles = this.generateInlineStyles({
+      flex: isHorizontal ? '1' : 'none'
+    })
+
+    return `            <div class="pm-multi-column-text" style="${containerStyles}">
+                <div style="${textStyles}">
+                    ${textConfig.content}
+                </div>
+            </div>`
+  }
+
+  /**
+   * 生成链接href
+   */
+  private static generateLinkHref(link: any): string {
+    if (!link || !link.value) return ''
+
+    switch (link.type) {
+      case 'email':
+        return `mailto:${link.value}`
+      case 'phone':
+        return `tel:${link.value}`
+      case 'anchor':
+        return `#${link.value}`
+      default:
+        return link.value
+    }
+  }
+
+  /**
+   * 解析宽度值，确保返回有效的CSS值
+   */
+  private static parseWidth(width: string | undefined, defaultWidth: string): string {
+    if (!width) return defaultWidth
+
+    // 如果已经包含单位，直接返回
+    if (width.includes('%') || width.includes('px') || width.includes('em') || width.includes('rem')) {
+      return width
+    }
+
+    // 如果是纯数字，假设是百分比
+    const num = parseFloat(width)
+    if (!isNaN(num)) {
+      return `${num}%`
+    }
+
+    return defaultWidth
   }
 
   /**

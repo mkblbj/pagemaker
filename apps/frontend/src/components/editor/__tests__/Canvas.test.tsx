@@ -208,12 +208,26 @@ describe('Canvas', () => {
     expect(screen.getByText('￥99.99')).toBeInTheDocument()
   })
 
-  it('应该处理多列布局模块', () => {
+  it('应该处理多列图文模块', () => {
     const modules = [
       {
         id: 'mc-1',
         type: PageModuleType.MULTI_COLUMN,
-        columns: 3
+        layout: 'imageLeft',
+        imageConfig: {
+          src: '',
+          alt: '图片描述',
+          alignment: 'center',
+          width: '50%'
+        },
+        textConfig: {
+          content: '输入文本内容',
+          alignment: 'left',
+          font: 'inherit',
+          fontSize: '14px',
+          color: '#000000',
+          backgroundColor: 'transparent'
+        }
       }
     ]
 
@@ -227,10 +241,21 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
-    expect(screen.getByText('多列布局模块')).toBeInTheDocument()
-    expect(screen.getByText('列 1')).toBeInTheDocument()
-    expect(screen.getByText('列 2')).toBeInTheDocument()
-    expect(screen.getByText('列 3')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return !!(element?.textContent?.includes('多列图文') && element?.textContent?.includes('图左文右'))
+      })[0]
+    ).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return !!element?.textContent?.includes('点击选择图片')
+      })[0]
+    ).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return !!element?.textContent?.includes('点击添加文本')
+      })[0]
+    ).toBeInTheDocument()
   })
 
   it('应该处理未知模块类型', () => {
@@ -251,7 +276,11 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
-    expect(screen.getByText('未知模块类型')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return !!(element?.textContent?.includes('未知模块类型') && element?.textContent?.includes('UNKNOWN_TYPE'))
+      })[0]
+    ).toBeInTheDocument()
   })
 
   it('应该显示正确的画布容器样式', () => {

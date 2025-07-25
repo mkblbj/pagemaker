@@ -18,7 +18,7 @@ def create_default_admin(apps, schema_editor):
         
     # 检查是否为测试环境
     from django.conf import settings
-    if 'test' in settings.DATABASES['default']['NAME']:
+    if getattr(settings, 'TESTING', False) or 'test' in settings.DATABASES['default']['NAME'] or settings.DATABASES['default']['NAME'] == ':memory:':
         print("测试环境，跳过创建默认管理员")
         return
     

@@ -673,24 +673,254 @@ export function PropertyPanel() {
       case PageModuleType.MULTI_COLUMN:
         return (
           <div className="space-y-4">
+            {/* 布局选择 */}
             <div className="space-y-2">
-              <Label htmlFor="columns-count">列数</Label>
+              <Label>{tEditor('布局类型')}</Label>
               <Select
-                value={String((selectedModule as any).columns || 2)}
-                onValueChange={value => handlePropertyUpdate('columns', parseInt(value))}
+                value={(selectedModule as any).layout || 'imageLeft'}
+                onValueChange={(value: 'imageLeft' | 'textLeft' | 'imageTop' | 'textTop') =>
+                  handlePropertyUpdate('layout', value)
+                }
               >
-                <SelectTrigger id="columns-count">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2">2 列</SelectItem>
-                  <SelectItem value="3">3 列</SelectItem>
-                  <SelectItem value="4">4 列</SelectItem>
+                  <SelectItem value="imageLeft">{tEditor('图左文右')}</SelectItem>
+                  <SelectItem value="textLeft">{tEditor('文左图右')}</SelectItem>
+                  <SelectItem value="imageTop">{tEditor('图上文下')}</SelectItem>
+                  <SelectItem value="textTop">{tEditor('文上图下')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="text-sm text-muted-foreground">
-              <p>多列布局功能将在后续版本中完善</p>
+
+            {/* 图片配置 */}
+            <div className="space-y-4 pt-4 border-t">
+              <Label className="text-sm font-medium">{tEditor('图片配置')}</Label>
+
+              {/* 图片展示 */}
+              <div className="space-y-2">
+                <Label>{tEditor('图片')}</Label>
+                {!(selectedModule as any).imageConfig?.src ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <Image className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">{tEditor('暂无图片')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{tEditor('在画布中点击图片区域可添加图片')}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <img
+                      src={(selectedModule as any).imageConfig.src}
+                      alt={(selectedModule as any).imageConfig.alt || '预览图片'}
+                      className="max-w-full h-auto rounded-lg shadow-sm max-h-32 object-cover"
+                    />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {tEditor('图片URL')}: {(selectedModule as any).imageConfig.src}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 图片Alt文本 */}
+              <div className="space-y-2">
+                <Label htmlFor="image-alt">{tEditor('图片描述')}</Label>
+                <Input
+                  id="image-alt"
+                  value={(selectedModule as any).imageConfig?.alt || ''}
+                  onChange={e => {
+                    const currentImageConfig = (selectedModule as any).imageConfig || {}
+                    handlePropertyUpdate('imageConfig', {
+                      ...currentImageConfig,
+                      alt: e.target.value
+                    })
+                  }}
+                  placeholder={tEditor('输入图片描述')}
+                />
+              </div>
+
+              {/* 图片对齐方式 */}
+              <div className="space-y-2">
+                <Label>{tEditor('图片对齐')}</Label>
+                <Select
+                  value={(selectedModule as any).imageConfig?.alignment || 'center'}
+                  onValueChange={(value: 'left' | 'center' | 'right') => {
+                    const currentImageConfig = (selectedModule as any).imageConfig || {}
+                    handlePropertyUpdate('imageConfig', {
+                      ...currentImageConfig,
+                      alignment: value
+                    })
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+                    <SelectItem value="center">{tEditor('居中')}</SelectItem>
+                    <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 图片宽度 */}
+              <div className="space-y-2">
+                <Label htmlFor="image-width">{tEditor('图片宽度')}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="image-width"
+                    value={(selectedModule as any).imageConfig?.width || '50%'}
+                    onChange={e => {
+                      const currentImageConfig = (selectedModule as any).imageConfig || {}
+                      handlePropertyUpdate('imageConfig', {
+                        ...currentImageConfig,
+                        width: e.target.value
+                      })
+                    }}
+                    placeholder="50%"
+                    className="flex-1"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{tEditor('支持百分比(50%)或像素值(200px)')}</p>
+              </div>
+            </div>
+
+            {/* 文本配置 */}
+            <div className="space-y-4 pt-4 border-t">
+              <Label className="text-sm font-medium">{tEditor('文本配置')}</Label>
+
+              {/* 文本内容 */}
+              <div className="space-y-2">
+                <Label htmlFor="text-content">{tEditor('文本内容')}</Label>
+                <Textarea
+                  id="text-content"
+                  value={(selectedModule as any).textConfig?.content || ''}
+                  onChange={e => {
+                    const currentTextConfig = (selectedModule as any).textConfig || {}
+                    handlePropertyUpdate('textConfig', {
+                      ...currentTextConfig,
+                      content: e.target.value
+                    })
+                  }}
+                  placeholder={tEditor('输入文本内容')}
+                  rows={4}
+                />
+              </div>
+
+              {/* 文本对齐方式 */}
+              <div className="space-y-2">
+                <Label>{tEditor('文本对齐')}</Label>
+                <Select
+                  value={(selectedModule as any).textConfig?.alignment || 'left'}
+                  onValueChange={(value: 'left' | 'center' | 'right' | 'justify') => {
+                    const currentTextConfig = (selectedModule as any).textConfig || {}
+                    handlePropertyUpdate('textConfig', {
+                      ...currentTextConfig,
+                      alignment: value
+                    })
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+                    <SelectItem value="center">{tEditor('居中对齐')}</SelectItem>
+                    <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                    <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 字体大小 */}
+              <div className="space-y-2">
+                <Label>{tEditor('字体大小')}</Label>
+                <Select
+                  value={(selectedModule as any).textConfig?.fontSize || '14px'}
+                  onValueChange={(value: string) => {
+                    const currentTextConfig = (selectedModule as any).textConfig || {}
+                    handlePropertyUpdate('textConfig', {
+                      ...currentTextConfig,
+                      fontSize: value
+                    })
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="12px">12px</SelectItem>
+                    <SelectItem value="14px">14px</SelectItem>
+                    <SelectItem value="16px">16px</SelectItem>
+                    <SelectItem value="18px">18px</SelectItem>
+                    <SelectItem value="20px">20px</SelectItem>
+                    <SelectItem value="24px">24px</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 文本颜色 */}
+              <div className="space-y-2">
+                <Label htmlFor="text-color">{tEditor('文本颜色')}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="text-color"
+                    type="color"
+                    value={(selectedModule as any).textConfig?.color || '#000000'}
+                    onChange={e => {
+                      const currentTextConfig = (selectedModule as any).textConfig || {}
+                      handlePropertyUpdate('textConfig', {
+                        ...currentTextConfig,
+                        color: e.target.value
+                      })
+                    }}
+                    className="w-16 h-8 p-1 rounded"
+                  />
+                  <Input
+                    value={(selectedModule as any).textConfig?.color || '#000000'}
+                    onChange={e => {
+                      const currentTextConfig = (selectedModule as any).textConfig || {}
+                      handlePropertyUpdate('textConfig', {
+                        ...currentTextConfig,
+                        color: e.target.value
+                      })
+                    }}
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* 背景颜色 */}
+              <div className="space-y-2">
+                <Label htmlFor="text-bg-color">{tEditor('背景颜色')}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="text-bg-color"
+                    type="color"
+                    value={(selectedModule as any).textConfig?.backgroundColor || '#ffffff'}
+                    onChange={e => {
+                      const currentTextConfig = (selectedModule as any).textConfig || {}
+                      handlePropertyUpdate('textConfig', {
+                        ...currentTextConfig,
+                        backgroundColor: e.target.value
+                      })
+                    }}
+                    className="w-16 h-8 p-1 rounded"
+                  />
+                  <Input
+                    value={(selectedModule as any).textConfig?.backgroundColor || 'transparent'}
+                    onChange={e => {
+                      const currentTextConfig = (selectedModule as any).textConfig || {}
+                      handlePropertyUpdate('textConfig', {
+                        ...currentTextConfig,
+                        backgroundColor: e.target.value
+                      })
+                    }}
+                    placeholder="transparent"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )

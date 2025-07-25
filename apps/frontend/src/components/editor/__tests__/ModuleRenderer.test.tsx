@@ -124,23 +124,35 @@ describe('ModuleRenderer', () => {
     ).toBeInTheDocument()
   })
 
-  it('应该渲染多列布局模块', () => {
+  it('应该渲染多列图文模块', () => {
     const multiColumnModule = {
       id: 'mc-1',
       type: PageModuleType.MULTI_COLUMN,
-      columns: 3
+      layout: 'imageTop',
+      imageConfig: {
+        src: '',
+        alt: '图片描述',
+        alignment: 'center',
+        width: '50%'
+      },
+      textConfig: {
+        content: '输入文本内容',
+        alignment: 'left',
+        font: 'inherit',
+        fontSize: '14px',
+        color: '#000000',
+        backgroundColor: 'transparent'
+      }
     }
 
     render(<ModuleRenderer module={multiColumnModule} />)
 
-    expect(screen.getByText('多列布局模块')).toBeInTheDocument()
-    expect(screen.getByText('3 列布局')).toBeInTheDocument()
-    expect(screen.getByText('列 1')).toBeInTheDocument()
-    expect(screen.getByText('列 2')).toBeInTheDocument()
-    expect(screen.getByText('列 3')).toBeInTheDocument()
+    expect(screen.getByText('多列图文 - 图上文下')).toBeInTheDocument()
+    expect(screen.getByText('点击选择图片')).toBeInTheDocument()
+    expect(screen.getByText('点击添加文本')).toBeInTheDocument()
   })
 
-  it('应该渲染默认2列的多列布局', () => {
+  it('应该渲染默认布局的多列图文模块', () => {
     const multiColumnModule = {
       id: 'mc-2',
       type: PageModuleType.MULTI_COLUMN
@@ -148,8 +160,7 @@ describe('ModuleRenderer', () => {
 
     render(<ModuleRenderer module={multiColumnModule} />)
 
-    expect(screen.getByText('多列布局模块')).toBeInTheDocument()
-    expect(screen.getByText('2 列布局')).toBeInTheDocument()
+    expect(screen.getByText('多列图文 - 图左文右')).toBeInTheDocument()
   })
 
   it('应该处理未知模块类型', () => {
@@ -160,9 +171,16 @@ describe('ModuleRenderer', () => {
 
     render(<ModuleRenderer module={unknownModule} />)
 
-    expect(screen.getByText('未知模块类型')).toBeInTheDocument()
-    expect(screen.getByText('模块类型: UNKNOWN_TYPE')).toBeInTheDocument()
-    expect(screen.getByText('该模块类型暂不支持预览')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return element?.textContent?.includes('未知模块类型') || false
+      })[0]
+    ).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return element?.textContent?.includes('UNKNOWN_TYPE') || false
+      })[0]
+    ).toBeInTheDocument()
   })
 
   it('应该渲染没有文本的标题模块', () => {

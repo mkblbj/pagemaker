@@ -148,11 +148,25 @@ describe('PropertyPanel', () => {
     expect(screen.getByText('线条分隔')).toBeInTheDocument()
   })
 
-  it('应该显示多列布局模块的属性编辑器', () => {
+  it('应该显示多列图文模块的属性编辑器', () => {
     const multiColumnModule = {
       id: 'mc-1',
       type: PageModuleType.MULTI_COLUMN,
-      columns: 3
+      layout: 'imageLeft',
+      imageConfig: {
+        src: '',
+        alt: '图片描述',
+        alignment: 'center',
+        width: '50%'
+      },
+      textConfig: {
+        content: '输入文本内容',
+        alignment: 'left',
+        font: 'inherit',
+        fontSize: '14px',
+        color: '#000000',
+        backgroundColor: 'transparent'
+      }
     }
 
     mockUsePageStore.mockReturnValue({
@@ -167,7 +181,9 @@ describe('PropertyPanel', () => {
     render(<PropertyPanel />)
 
     expect(screen.getByText('multiColumn 模块')).toBeInTheDocument()
-    expect(screen.getByLabelText('列数')).toBeInTheDocument()
+    expect(screen.getByText('布局类型')).toBeInTheDocument()
+    expect(screen.getByText('图片配置')).toBeInTheDocument()
+    expect(screen.getByText('文本配置')).toBeInTheDocument()
   })
 
   it('应该正确处理标题文本更新', () => {

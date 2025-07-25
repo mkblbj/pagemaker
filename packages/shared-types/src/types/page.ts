@@ -31,6 +31,30 @@ export interface KeyValueModuleConfig {
   textColor?: string;
 }
 
+// 多列图文模块配置接口
+export interface MultiColumnModuleConfig {
+  layout: 'imageLeft' | 'textLeft' | 'imageTop' | 'textTop'; // 四种预设布局
+  imageConfig: {
+    src: string; // R-Cabinet图片URL
+    alt: string; // Alt文本
+    alignment: 'left' | 'center' | 'right'; // 对齐方式
+    link?: {
+      type: 'url' | 'email' | 'phone' | 'anchor';
+      value: string;
+    }; // 超链接配置
+    width: string; // 百分比或预设值
+  };
+  textConfig: {
+    content: string; // 支持HTML格式化
+    alignment: 'left' | 'center' | 'right' | 'justify'; // 文本对齐
+    font: string; // 字体
+    fontSize: string; // 字体大小
+    color: string; // 文本颜色
+    backgroundColor?: string; // 背景色
+  };
+  columnRatio?: string; // MVP阶段使用固定预设值
+}
+
 // 模块元数据接口
 export interface ModuleMetadata {
   type: PageModuleType;

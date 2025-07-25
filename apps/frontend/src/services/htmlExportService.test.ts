@@ -53,6 +53,30 @@ describe('HtmlExportService', () => {
     textColor: '#374151'
   }
 
+  const mockMultiColumnModule: PageModule = {
+    id: 'multicolumn-1',
+    type: PageModuleType.MULTI_COLUMN,
+    layout: 'imageLeft',
+    imageConfig: {
+      src: 'https://example.com/image.jpg',
+      alt: '测试图片',
+      alignment: 'center',
+      width: '50%',
+      link: {
+        type: 'url',
+        value: 'https://example.com'
+      }
+    },
+    textConfig: {
+      content: '<p>这是测试文本内容</p>',
+      alignment: 'left',
+      font: 'Arial',
+      fontSize: '16px',
+      color: '#333333',
+      backgroundColor: 'transparent'
+    }
+  }
+
   describe('generateHTML', () => {
     it('应该默认生成纯内容HTML（不包含文档结构）', () => {
       const html = HtmlExportService.generateHTML([mockTitleModule])
@@ -392,6 +416,176 @@ describe('HtmlExportService', () => {
         const html = HtmlExportService.generateHTML([spaceModule])
         expect(html).toContain(`height: ${expectedHeight}`)
       })
+    })
+
+    it('应该正确生成多列图文模块的HTML（标准版本）', () => {
+      const html = HtmlExportService.generateHTML([mockMultiColumnModule])
+
+      expect(html).toContain('<style>')
+      expect(html).toContain('.pm-multi-column')
+      expect(html).toContain('flex-direction: row')
+      expect(html).toContain('@media (max-width: 768px)')
+      expect(html).toContain('<div class="pm-multi-column">')
+      expect(html).toContain('<div class="pm-multi-column-image"')
+      expect(html).toContain('<div class="pm-multi-column-text"')
+      expect(html).toContain('src="https://example.com/image.jpg"')
+      expect(html).toContain('alt="测试图片"')
+      expect(html).toContain('href="https://example.com"')
+      expect(html).toContain('<p>这是测试文本内容</p>')
+    })
+
+    it('应该正确生成多列图文模块的HTML（移动端版本）', () => {
+      const html = HtmlExportService.generateHTML([mockMultiColumnModule], { mobileMode: true })
+
+      expect(html).toContain('<table width="100%" cellspacing="0" cellpadding="10"')
+      expect(html).toContain('src="https://example.com/image.jpg"')
+      expect(html).toContain('alt="测试图片"')
+      expect(html).toContain('href="https://example.com"')
+      expect(html).toContain('<font size="4" color="#333333">')
+      expect(html).toContain('width="49%"') // 水平布局应该有列宽
+      expect(html).not.toContain('<style>')
+      expect(html).not.toContain('flex-direction')
+    })
+
+    it('应该正确处理不同的多列布局类型', () => {
+      const textLeftModule: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'textLeft'
+      }
+      const imageTopModule: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'imageTop'
+      }
+
+      const textLeftHtml = HtmlExportService.generateHTML([textLeftModule])
+      const imageTopHtml = HtmlExportService.generateHTML([imageTopModule])
+
+      expect(textLeftHtml).toContain('flex-direction: row')
+      expect(imageTopHtml).toContain('flex-direction: column')
+    })
+
+    it('应该正确处理移动端不同布局类型', () => {
+      const imageLeftModule: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'imageLeft'
+      }
+      const textLeftModule: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'textLeft'
+      }
+      const imageTopModule: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'imageTop'
+      }
+      const textTopModule: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'textTop'
+      }
+
+      const imageLeftHtml = HtmlExportService.generateHTML([imageLeftModule], { mobileMode: true })
+      const textLeftHtml = HtmlExportService.generateHTML([textLeftModule], { mobileMode: true })
+      const imageTopHtml = HtmlExportService.generateHTML([imageTopModule], { mobileMode: true })
+      const textTopHtml = HtmlExportService.generateHTML([textTopModule], { mobileMode: true })
+
+      // 水平布局（图左文右）应该使用单行双列表格
+      expect(imageLeftHtml).toContain('<tr align="center">')
+      expect(imageLeftHtml).toContain('width="49%"')
+      // 不应该包含乐天不支持的tbody标签
+      expect(imageLeftHtml).not.toContain('<tbody>')
+      expect(imageLeftHtml).not.toContain('</tbody>')
+      // 默认情况下不应该有背景色
+      expect(imageLeftHtml).not.toContain('bgcolor="#fff"')
+      expect(imageLeftHtml).not.toContain('bgcolor="#f5f5f5"')
+
+      // 水平布局（文左图右）应该交换位置
+      expect(textLeftHtml).toContain('<tr align="center">')
+      expect(textLeftHtml).toContain('width="49%"')
+
+      // 垂直布局应该使用多行表格
+      expect(imageTopHtml).not.toContain('width="49%"')
+      expect(imageTopHtml).toContain('<tr>')
+      expect(textTopHtml).not.toContain('width="49%"')
+      expect(textTopHtml).toContain('<tr>')
+    })
+
+    it('应该正确处理移动端背景色设置', () => {
+      const moduleWithBgColor: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'imageLeft',
+        textConfig: {
+          ...(mockMultiColumnModule as any).textConfig,
+          backgroundColor: '#ffeeee'
+        }
+      }
+
+      const moduleWithoutBgColor: PageModule = {
+        ...mockMultiColumnModule,
+        layout: 'imageLeft',
+        textConfig: {
+          ...(mockMultiColumnModule as any).textConfig,
+          backgroundColor: 'transparent'
+        }
+      }
+
+      const htmlWithBg = HtmlExportService.generateHTML([moduleWithBgColor], { mobileMode: true })
+      const htmlWithoutBg = HtmlExportService.generateHTML([moduleWithoutBgColor], { mobileMode: true })
+
+      // 有背景色时应该显示
+      expect(htmlWithBg).toContain('bgcolor="#ffeeee"')
+
+      // 透明背景时不应该有bgcolor属性
+      expect(htmlWithoutBg).not.toContain('bgcolor=')
+    })
+
+    it('应该正确处理多列图文模块的空内容', () => {
+      const emptyModule: PageModule = {
+        ...mockMultiColumnModule,
+        imageConfig: { src: '', alt: '', alignment: 'center', width: '50%' },
+        textConfig: {
+          content: '',
+          alignment: 'left',
+          font: 'inherit',
+          fontSize: '14px',
+          color: '#000000',
+          backgroundColor: 'transparent'
+        }
+      }
+
+      const html = HtmlExportService.generateHTML([emptyModule])
+      const mobileHtml = HtmlExportService.generateHTML([emptyModule], { mobileMode: true })
+
+      expect(html).toContain('多列图文模块：内容未设置')
+      expect(mobileHtml).toContain('多列图文模块：内容未设置')
+    })
+
+    it('应该正确处理多列图文模块的图片链接类型', () => {
+      const emailLinkModule: PageModule = {
+        ...mockMultiColumnModule,
+        imageConfig: {
+          ...(mockMultiColumnModule as any).imageConfig,
+          link: {
+            type: 'email',
+            value: 'test@example.com'
+          }
+        }
+      }
+
+      const phoneLinkModule: PageModule = {
+        ...mockMultiColumnModule,
+        imageConfig: {
+          ...(mockMultiColumnModule as any).imageConfig,
+          link: {
+            type: 'phone',
+            value: '+86 138 0013 8000'
+          }
+        }
+      }
+
+      const emailHtml = HtmlExportService.generateHTML([emailLinkModule])
+      const phoneHtml = HtmlExportService.generateHTML([phoneLinkModule])
+
+      expect(emailHtml).toContain('href="mailto:test@example.com"')
+      expect(phoneHtml).toContain('href="tel:+86 138 0013 8000"')
     })
   })
 

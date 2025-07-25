@@ -26,6 +26,7 @@ export type {
   UpdateShopConfigurationRequest,
   SeparatorModuleConfig,
   KeyValueModuleConfig,
+  MultiColumnModuleConfig,
 } from './types/page';
 
 export type {
