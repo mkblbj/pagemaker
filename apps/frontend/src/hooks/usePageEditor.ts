@@ -3,8 +3,11 @@ import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { pageService } from '@/services/pageService'
 import { useRequest } from 'ahooks'
+import { toastManager } from '@/components/ui/toast'
+import { useTranslation } from '@/contexts/I18nContext'
 
 export function usePageEditor() {
+  const { tEditor } = useTranslation()
   const { currentPage, hasUnsavedChanges, markSaved, markUnsaved, setPage } = usePageStore()
 
   const { setSaving, setError } = useEditorStore()
@@ -39,11 +42,27 @@ export function usePageEditor() {
     },
     {
       manual: true,
-      onSuccess: () => {
+      onSuccess: updatedPage => {
         console.log('页面保存成功')
+        // 显示保存成功提示
+        toastManager.show({
+          type: 'success',
+          title: tEditor('保存成功'),
+          description: tEditor('页面保存成功', { name: updatedPage.name }),
+          duration: 3000
+        })
       },
       onError: error => {
         console.error('页面保存失败:', error)
+        // 显示保存失败提示
+        toastManager.show({
+          type: 'error',
+          title: tEditor('保存失败'),
+          description: tEditor('页面保存失败', {
+            error: error instanceof Error ? error.message : tEditor('未知错误')
+          }),
+          duration: 5000
+        })
       }
     }
   )
@@ -80,6 +99,13 @@ export function usePageEditor() {
       debounceWait: 2000, // 2秒防抖
       onSuccess: () => {
         console.log('自动保存完成')
+        // 显示自动保存成功提示（较短时间）
+        toastManager.show({
+          type: 'info',
+          title: tEditor('自动保存'),
+          description: tEditor('页面已自动保存'),
+          duration: 2000
+        })
       }
     }
   )

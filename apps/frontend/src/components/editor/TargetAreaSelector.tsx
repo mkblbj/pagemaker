@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Monitor, Smartphone, Globe } from 'lucide-react'
@@ -17,7 +17,7 @@ interface TargetArea {
 
 export function TargetAreaSelector() {
   const { targetArea, setTargetArea } = usePageStore()
-  const { setError, setLoading } = useEditorStore()
+  const { setError } = useEditorStore()
   const { tEditor, currentLanguage } = useTranslation()
   const [targetAreas, setTargetAreas] = useState<TargetArea[]>([])
   const [isLoadingAreas, setIsLoadingAreas] = useState(true)
@@ -80,18 +80,13 @@ export function TargetAreaSelector() {
         </Badge>
       ) : (
         <div className="flex items-center gap-2">
-          {/* 当前选中的目标区域显示 */}
-          <div className="flex items-center gap-1">
-            {getTargetAreaIcon(targetArea)}
-            <Badge variant="outline" className="text-xs">
-              {currentTargetArea?.label || targetArea}
-            </Badge>
-          </div>
-
-          {/* 目标区域选择器 */}
+          {/* 目标区域选择器 - 集成显示和选择功能 */}
           <Select value={targetArea} onValueChange={handleTargetAreaChange}>
-            <SelectTrigger className="w-32 h-8">
-              <SelectValue placeholder={tEditor('选择区域')} />
+            <SelectTrigger className="w-36 h-8 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700">
+              <div className="flex items-center gap-2">
+                {getTargetAreaIcon(targetArea)}
+                <span className="text-sm font-medium">{currentTargetArea?.label || targetArea}</span>
+              </div>
             </SelectTrigger>
             <SelectContent>
               {targetAreas?.map(area => (
@@ -106,11 +101,6 @@ export function TargetAreaSelector() {
           </Select>
         </div>
       )}
-
-      {/* 提示信息 */}
-      <div className="text-xs text-muted-foreground">
-        {tEditor('当前编辑')}: {currentTargetArea?.label || targetArea}
-      </div>
     </div>
   )
 }

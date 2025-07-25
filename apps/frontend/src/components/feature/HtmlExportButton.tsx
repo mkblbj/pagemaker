@@ -458,6 +458,7 @@ export function HtmlExportButton({
                   size="sm"
                   onClick={handlePreviewHTML}
                   disabled={!generatedHTML || isGenerating}
+                  data-preview-button
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   {tEditor('预览')}
