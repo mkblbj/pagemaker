@@ -14,7 +14,7 @@ os.environ.setdefault(
 # 使用 .env 文件中的数据库配置，但数据库名改为测试专用
 # 不再硬编码 localhost，而是使用环境变量中的远程数据库
 # os.environ.setdefault("DATABASE_NAME", "pagemaker_test")  # 移除，让它使用.env配置
-# os.environ.setdefault("DATABASE_USER", "root")           # 移除，让它使用.env配置  
+# os.environ.setdefault("DATABASE_USER", "root")           # 移除，让它使用.env配置
 # os.environ.setdefault("DATABASE_PASSWORD", "test_password")  # 移除，让它使用.env配置
 # os.environ.setdefault("DATABASE_HOST", "localhost")      # 移除，让它使用.env配置
 # os.environ.setdefault("DATABASE_PORT", "3306")           # 移除，让它使用.env配置
