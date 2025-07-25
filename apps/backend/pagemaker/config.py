@@ -39,13 +39,26 @@ class ConfigManager:
 
     def _validate_environment(self) -> None:
         """验证关键环境变量是否存在"""
-        required_vars = [
-            "DJANGO_SECRET_KEY",
-            "DATABASE_NAME",
-            "DATABASE_USER",
-            "DATABASE_PASSWORD",
-            "DATABASE_HOST",
-        ]
+        # 检查是否为测试环境
+        import os
+        is_testing = (
+            os.environ.get('DJANGO_SETTINGS_MODULE') == 'pagemaker.test_settings' or
+            os.environ.get('TESTING') == 'true' or
+            os.environ.get('CI') == 'true' or
+            'test' in os.environ.get('DJANGO_SETTINGS_MODULE', '')
+        )
+        
+        # 测试环境中跳过数据库环境变量验证
+        if is_testing:
+            required_vars = ["DJANGO_SECRET_KEY"]
+        else:
+            required_vars = [
+                "DJANGO_SECRET_KEY",
+                "DATABASE_NAME",
+                "DATABASE_USER",
+                "DATABASE_PASSWORD",
+                "DATABASE_HOST",
+            ]
 
         missing_vars = []
         for var in required_vars:

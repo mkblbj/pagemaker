@@ -11,6 +11,17 @@ os.environ.setdefault(
     "DJANGO_SECRET_KEY", "test-secret-key-for-testing-only-do-not-use-in-production"
 )
 
+# 明确标记这是测试环境
+os.environ.setdefault("TESTING", "true")
+
+# 为 CI 环境提供默认的数据库配置（使用 SQLite）
+# 这些值不会在实际的 SQLite 配置中使用，但可以避免配置验证错误
+os.environ.setdefault("DATABASE_NAME", "test_db")
+os.environ.setdefault("DATABASE_USER", "test_user")
+os.environ.setdefault("DATABASE_PASSWORD", "test_password")
+os.environ.setdefault("DATABASE_HOST", "localhost")
+os.environ.setdefault("DATABASE_PORT", "3306")
+
 # 使用 .env 文件中的数据库配置，但数据库名改为测试专用
 # 不再硬编码 localhost，而是使用环境变量中的远程数据库
 # os.environ.setdefault("DATABASE_NAME", "pagemaker_test")  # 移除，让它使用.env配置
