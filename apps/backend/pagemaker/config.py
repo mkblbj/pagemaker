@@ -41,13 +41,14 @@ class ConfigManager:
         """验证关键环境变量是否存在"""
         # 检查是否为测试环境
         import os
+
         is_testing = (
-            os.environ.get('DJANGO_SETTINGS_MODULE') == 'pagemaker.test_settings' or
-            os.environ.get('TESTING') == 'true' or
-            os.environ.get('CI') == 'true' or
-            'test' in os.environ.get('DJANGO_SETTINGS_MODULE', '')
+            os.environ.get("DJANGO_SETTINGS_MODULE") == "pagemaker.test_settings"
+            or os.environ.get("TESTING") == "true"
+            or os.environ.get("CI") == "true"
+            or "test" in os.environ.get("DJANGO_SETTINGS_MODULE", "")
         )
-        
+
         # 测试环境中跳过数据库环境变量验证
         if is_testing:
             required_vars = ["DJANGO_SECRET_KEY"]
