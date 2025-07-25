@@ -8,7 +8,7 @@ import { PageModuleType } from '@pagemaker/shared-types'
 // Mock useTranslation
 vi.mock('@/contexts/I18nContext', () => ({
   useTranslation: () => ({
-    tEditor: (key: string, params?: any) => {
+    tEditor: (key: string, _params?: any) => {
       const translations: Record<string, string> = {
         多列图文: '多列图文',
         图左文右: '图左文右',

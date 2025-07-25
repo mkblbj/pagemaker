@@ -7,7 +7,7 @@ import { PageModuleType } from '@pagemaker/shared-types'
 // Mock useTranslation
 vi.mock('@/contexts/I18nContext', () => ({
   useTranslation: () => ({
-    tEditor: (key: string, params?: any) => {
+    tEditor: (key: string, _params?: any) => {
       const translations: Record<string, string> = {
         文本模块: '文本模块',
         输入文本内容: '输入文本内容',

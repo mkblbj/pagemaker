@@ -7,7 +7,7 @@ import { PageModuleType } from '@pagemaker/shared-types'
 // Mock useTranslation
 vi.mock('@/contexts/I18nContext', () => ({
   useTranslation: () => ({
-    tEditor: (key: string, params?: any) => {
+    tEditor: (key: string, _params?: any) => {
       const translations: Record<string, string> = {
         多列图文: '多列图文',
         图左文右: '图左文右',
@@ -132,11 +132,11 @@ describe('MultiColumnModule', () => {
 
   describe('布局类型', () => {
     it('应该正确渲染图左文右布局', () => {
-      const module = { ...defaultModule, layout: 'imageLeft' as const }
+      const testModule = { ...defaultModule, layout: 'imageLeft' as const }
 
       render(
         <MultiColumnModule
-          module={module}
+          module={testModule}
           onUpdate={mockOnUpdate}
           onStartEdit={mockOnStartEdit}
           onEndEdit={mockOnEndEdit}
@@ -147,11 +147,11 @@ describe('MultiColumnModule', () => {
     })
 
     it('应该正确渲染文左图右布局', () => {
-      const module = { ...defaultModule, layout: 'textLeft' as const }
+      const testModule = { ...defaultModule, layout: 'textLeft' as const }
 
       render(
         <MultiColumnModule
-          module={module}
+          module={testModule}
           onUpdate={mockOnUpdate}
           onStartEdit={mockOnStartEdit}
           onEndEdit={mockOnEndEdit}
@@ -162,11 +162,11 @@ describe('MultiColumnModule', () => {
     })
 
     it('应该正确渲染图上文下布局', () => {
-      const module = { ...defaultModule, layout: 'imageTop' as const }
+      const testModule = { ...defaultModule, layout: 'imageTop' as const }
 
       render(
         <MultiColumnModule
-          module={module}
+          module={testModule}
           onUpdate={mockOnUpdate}
           onStartEdit={mockOnStartEdit}
           onEndEdit={mockOnEndEdit}
@@ -177,11 +177,11 @@ describe('MultiColumnModule', () => {
     })
 
     it('应该正确渲染文上图下布局', () => {
-      const module = { ...defaultModule, layout: 'textTop' as const }
+      const testModule = { ...defaultModule, layout: 'textTop' as const }
 
       render(
         <MultiColumnModule
-          module={module}
+          module={testModule}
           onUpdate={mockOnUpdate}
           onStartEdit={mockOnStartEdit}
           onEndEdit={mockOnEndEdit}

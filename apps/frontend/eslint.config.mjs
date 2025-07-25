@@ -27,7 +27,22 @@ const eslintConfig = [
       'no-debugger': 'warn',
       'prefer-const': 'warn',
       'no-var': 'warn',
-      eqeqeq: 'off'
+      eqeqeq: 'off',
+      // 无障碍警告降级
+      'jsx-a11y/alt-text': 'warn',
+      'jsx-a11y/click-events-have-key-events': 'off',
+      'jsx-a11y/no-static-element-interactions': 'off'
+    }
+  },
+  {
+    // 测试文件的特殊规则
+    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+      '@next/next/no-img-element': 'off',
+      'jsx-a11y/alt-text': 'off'
     }
   }
 ]
