@@ -118,7 +118,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
           src: '',
           alt: tEditor('图片描述'),
           alignment: 'center',
-          width: '50%'
+          width: '100%'
         },
         textConfig: {
           content: tEditor('输入文本内容'),

@@ -755,9 +755,17 @@ export function PropertyPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
-                    <SelectItem value="center">{tEditor('居中')}</SelectItem>
-                    <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                    {targetArea === 'mobile' ? (
+                      // 移动端模式：根据乐天文档，table的left/right对齐会导致页面崩溃
+                      <SelectItem value="center">{tEditor('居中')}</SelectItem>
+                    ) : (
+                      // PC端模式：支持所有对齐方式
+                      <>
+                        <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+                        <SelectItem value="center">{tEditor('居中')}</SelectItem>
+                        <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -768,7 +776,7 @@ export function PropertyPanel() {
                 <div className="flex items-center gap-2">
                   <Input
                     id="image-width"
-                    value={(selectedModule as any).imageConfig?.width || '50%'}
+                    value={(selectedModule as any).imageConfig?.width || '100%'}
                     onChange={e => {
                       const currentImageConfig = (selectedModule as any).imageConfig || {}
                       handlePropertyUpdate('imageConfig', {
@@ -776,11 +784,11 @@ export function PropertyPanel() {
                         width: e.target.value
                       })
                     }}
-                    placeholder="50%"
+                    placeholder="100%"
                     className="flex-1"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">{tEditor('支持百分比(50%)或像素值(200px)')}</p>
+                <p className="text-xs text-muted-foreground">{tEditor('支持百分比(100%)或像素值(200px)')}</p>
               </div>
             </div>
 

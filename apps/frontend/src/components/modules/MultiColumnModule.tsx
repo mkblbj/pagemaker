@@ -47,7 +47,7 @@ export function MultiColumnModule({
     src: '',
     alt: tEditor('图片描述'),
     alignment: 'center',
-    width: '50%'
+    width: '100%'  // 移动端默认全宽
   }
   const textConfig = module.textConfig || {
     content: tEditor('输入文本内容'),
@@ -174,7 +174,7 @@ export function MultiColumnModule({
       link: imageConfig.link,
       size: {
         type: 'percentage',
-        value: imageConfig.width?.replace('%', '') || '50'
+        value: imageConfig.width?.replace('%', '') || '100'
       }
     }
 

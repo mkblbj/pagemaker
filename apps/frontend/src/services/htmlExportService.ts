@@ -634,7 +634,9 @@ ${tableRows}
   private static generateSingleContentMobile(imageConfig: any, textConfig: any): string {
     if (imageConfig.src) {
       const imageWidth = this.parseWidth(imageConfig.width, '100%')
-      const imageAlignment = imageConfig.alignment || 'center'
+      const rawAlignment = imageConfig.alignment || 'center'
+      // 移动端乐天约束：table的left/right对齐会导致页面崩溃，只使用center
+      const imageAlignment = rawAlignment === 'left' || rawAlignment === 'right' ? 'center' : rawAlignment
 
       let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
@@ -675,8 +677,10 @@ ${tableRows}
    * 生成水平布局移动端HTML（左图右文/左文右图）
    */
   private static generateHorizontalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
-    const imageWidth = this.parseWidth(imageConfig.width, '95%')
-    const imageAlignment = imageConfig.alignment || 'center'
+    const imageWidth = this.parseWidth(imageConfig.width, '100%')  // 移动端默认全宽
+    const rawImageAlignment = imageConfig.alignment || 'center'
+    // 移动端乐天约束：table的left/right对齐会导致页面崩溃，只使用center
+    const imageAlignment = rawImageAlignment === 'left' || rawImageAlignment === 'right' ? 'center' : rawImageAlignment
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
@@ -713,7 +717,9 @@ ${isImageLeft ? textCell : imageCell}
    */
   private static generateVerticalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
     const imageWidth = this.parseWidth(imageConfig.width, '100%')
-    const imageAlignment = imageConfig.alignment || 'center'
+    const rawImageAlignment = imageConfig.alignment || 'center'
+    // 移动端乐天约束：table的left/right对齐会导致页面崩溃，只使用center
+    const imageAlignment = rawImageAlignment === 'left' || rawImageAlignment === 'right' ? 'center' : rawImageAlignment
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
