@@ -58,6 +58,27 @@ export class HtmlExportService {
     // 生成完整HTML文档
     const styles = opts.includeStyles ? this.generateCSS() : ''
 
+    // 移动端预览时添加固定宽度样式
+    const mobilePreviewStyles = opts.mobileMode ? `
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .pagemaker-content {
+        width: 390px !important;
+        max-width: 390px !important;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        margin: 0;
+        padding: 0;
+      }
+    </style>` : ''
+
     const html = `<!DOCTYPE html>
 <html lang="${opts.language}">
 <head>
@@ -66,7 +87,7 @@ export class HtmlExportService {
     <title>${this.escapeHtml(opts.title)}</title>
     <meta name="description" content="${this.escapeHtml(opts.description)}">
     <meta name="generator" content="Pagemaker CMS">
-    ${styles ? `<style>\n${styles}\n    </style>` : ''}
+    ${styles ? `<style>\n${styles}\n    </style>` : ''}${mobilePreviewStyles}
 </head>
 <body>
     <div class="pagemaker-content">
@@ -268,7 +289,7 @@ ${htmlContent}
   private static generateImageHTML(module: PageModule, options: Required<HtmlExportOptions> = DEFAULT_OPTIONS): string {
     const src = getStringProp(module, 'src')
     const alt = getStringProp(module, 'alt', '图片')
-    const alignment = getStringProp(module, 'alignment', 'center')
+    // 乐天移动端不支持图片对齐，移除 alignment 相关逻辑
 
     // 获取尺寸配置
     const size = module.size as { type: 'preset' | 'percentage'; value: string } | undefined
@@ -278,13 +299,9 @@ ${htmlContent}
 
     if (!src) {
       if (options.mobileMode) {
-        return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
-<tr>
-<td align="${alignment}"><font size="2" color="#666666">图片未设置</font></td>
-</tr>
-</table>`
+        return `<font size="2" color="#666666">图片未设置</font>`
       } else {
-        return `        <div class="pm-image-placeholder" style="text-align: ${alignment}; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
+        return `        <div class="pm-image-placeholder" style="padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
             <p style="margin: 0; color: #666;">图片未设置</p>
         </div>`
       }
@@ -307,9 +324,7 @@ ${htmlContent}
     }
 
     if (options.mobileMode) {
-      // 乐天移动端约束版本 - 使用table布局
-      const alignValue = alignment === 'justify' ? 'center' : alignment
-
+      // 乐天移动端约束版本 - 导出时不用center，预览时用center保证一致性
       // 生成图片元素（乐天约束：只支持特定属性）
       const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" width="${imageWidth}">`
 
@@ -335,11 +350,8 @@ ${htmlContent}
         content = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
       }
 
-      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
-<tr>
-<td align="${alignValue}">${content}</td>
-</tr>
-</table>`
+      // 预览模式下使用center标签确保居中显示，导出模式下乐天自动居中
+      return options.fullDocument ? `<center>${content}</center>` : content
     } else {
       // 标准版本 - 使用div和CSS样式
       const imgStyles = this.generateInlineStyles({
@@ -349,7 +361,6 @@ ${htmlContent}
       })
 
       const containerStyles = this.generateInlineStyles({
-        'text-align': alignment,
         margin: '16px 0'
       })
 
@@ -665,7 +676,7 @@ ${tableRows}
    */
   private static generateHorizontalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
     const imageWidth = this.parseWidth(imageConfig.width, '95%')
-    const imageAlignment = imageConfig.alignment || 'center'
+    // 多列图文模块仍需要table结构来布局图片和文本
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
@@ -686,7 +697,7 @@ ${tableRows}
 
     // 根据布局决定图片和文本的顺序
     const isImageLeft = layout === 'imageLeft'
-    const imageCell = `<td width="49%" align="${imageAlignment}">${imgElement}</td>`
+    const imageCell = `<td width="49%">${imgElement}</td>`
     const textCell = `<td${textBgColorAttr} width="49%"${textAlignAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>`
 
     return `<table width="100%" cellspacing="0" cellpadding="10" border="0">
@@ -702,7 +713,7 @@ ${isImageLeft ? textCell : imageCell}
    */
   private static generateVerticalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
     const imageWidth = this.parseWidth(imageConfig.width, '100%')
-    const imageAlignment = imageConfig.alignment || 'center'
+    // 多列图文模块仍需要table结构来布局图片和文本
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
@@ -724,7 +735,7 @@ ${isImageLeft ? textCell : imageCell}
     // 根据布局决定图片和文本的顺序
     const isImageTop = layout === 'imageTop'
     const imageRow = `<tr>
-<td align="${imageAlignment}">${imgElement}</td>
+<td align="center">${imgElement}</td>
 </tr>`
     const textRow = `<tr>
 <td${textAlignAttr}${textBgColorAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>
@@ -808,7 +819,7 @@ ${validParts.join('\n')}
     }
 
     const imageWidth = this.parseWidth(imageConfig.width, isHorizontal ? '50%' : '100%')
-    const imageAlignment = imageConfig.alignment || 'center'
+    // 乐天移动端不支持图片对齐，移除 imageAlignment 相关逻辑
 
     const imgStyles = this.generateInlineStyles({
       width: imageWidth,
@@ -818,8 +829,8 @@ ${validParts.join('\n')}
     })
 
     const containerStyles = this.generateInlineStyles({
-      flex: isHorizontal ? '1' : 'none',
-      'text-align': imageAlignment
+      flex: isHorizontal ? '1' : 'none'
+      // 移除 text-align 样式
     })
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" style="${imgStyles}">`

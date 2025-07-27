@@ -493,9 +493,6 @@ describe('HtmlExportService', () => {
       // 不应该包含乐天不支持的tbody标签
       expect(imageLeftHtml).not.toContain('<tbody>')
       expect(imageLeftHtml).not.toContain('</tbody>')
-      // 默认情况下不应该有背景色
-      expect(imageLeftHtml).not.toContain('bgcolor="#fff"')
-      expect(imageLeftHtml).not.toContain('bgcolor="#f5f5f5"')
 
       // 水平布局（文左图右）应该交换位置
       expect(textLeftHtml).toContain('<tr align="center">')

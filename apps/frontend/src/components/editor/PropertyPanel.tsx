@@ -126,23 +126,7 @@ function ImageModuleProperties({
         />
       </div>
 
-      {/* 对齐方式 */}
-      <div className="space-y-2">
-        <Label>{tEditor('对齐方式')}</Label>
-        <Select
-          value={module.alignment || 'center'}
-          onValueChange={(value: 'left' | 'center' | 'right') => onUpdate('alignment', value)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
-            <SelectItem value="center">{tEditor('居中')}</SelectItem>
-            <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* 乐天移动端不支持图片对齐，已移除对齐选项 */}
 
       {/* 尺寸设置 */}
       <div className="space-y-2">
@@ -738,29 +722,7 @@ export function PropertyPanel() {
                 />
               </div>
 
-              {/* 图片对齐方式 */}
-              <div className="space-y-2">
-                <Label>{tEditor('图片对齐')}</Label>
-                <Select
-                  value={(selectedModule as any).imageConfig?.alignment || 'center'}
-                  onValueChange={(value: 'left' | 'center' | 'right') => {
-                    const currentImageConfig = (selectedModule as any).imageConfig || {}
-                    handlePropertyUpdate('imageConfig', {
-                      ...currentImageConfig,
-                      alignment: value
-                    })
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
-                    <SelectItem value="center">{tEditor('居中')}</SelectItem>
-                    <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* 乐天移动端不支持图片对齐，已移除对齐选项 */}
 
               {/* 图片宽度 */}
               <div className="space-y-2">
