@@ -4,7 +4,7 @@ import { useState, forwardRef, useImperativeHandle } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { HelpCircle, Keyboard } from 'lucide-react'
+import { Keyboard } from 'lucide-react'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface ShortcutItem {
@@ -163,12 +163,6 @@ export const KeyboardShortcutsHelp = forwardRef<KeyboardShortcutsHelpRef>((props
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title={tEditor('键盘快捷键帮助 (F1 或 ?)')}>
-          <HelpCircle className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

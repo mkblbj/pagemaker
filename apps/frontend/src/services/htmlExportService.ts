@@ -205,23 +205,34 @@ ${htmlContent}
    * 生成文本模块HTML（移动端乐天约束版本）
    */
   private static generateTextHTMLMobile(module: PageModule): string {
-    const content = getStringProp(module, 'content')
-    const alignment = getStringProp(module, 'alignment', 'left')
-    const textColor = getStringProp(module, 'textColor', '#000000')
-    const fontSize = this.convertToFontSize(getStringProp(module, 'fontSize', '14px'))
-    const backgroundColor = getStringProp(module, 'backgroundColor', 'transparent')
+    // 支持两种属性结构：直接属性和textConfig属性
+    const textConfig = (module as any).textConfig
+    const content = textConfig?.content || getStringProp(module, 'content')
+    const alignment = textConfig?.alignment || getStringProp(module, 'alignment', 'left')
+    const textColor = textConfig?.color || getStringProp(module, 'textColor', '#000000')
+    const fontSize = this.convertToFontSize(textConfig?.fontSize || getStringProp(module, 'fontSize', '14px'))
+    const backgroundColor = textConfig?.backgroundColor || getStringProp(module, 'backgroundColor', 'transparent')
 
     // 转换对齐方式为乐天支持的格式
     const alignValue = alignment === 'justify' ? 'left' : alignment
 
     // 处理富文本内容，确保只使用乐天允许的标签
-    const formattedContent = this.sanitizeHTMLForRakuten(content || '输入文本内容')
+    const rawContent = this.sanitizeHTMLForRakuten(content || '输入文本内容')
 
-    // 使用<p>标签，更语义化且符合乐天约束
-    const bgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+    // 按换行符分割内容，每行用单独的<p>标签包裹
+    const lines = rawContent.split(/\r?\n/).filter(line => line.trim() !== '')
+    
+    // 如果没有内容，返回默认文本
+    if (lines.length === 0) {
+      const alignAttr = alignValue !== 'left' ? ` align="${alignValue}"` : ''
+      return `<p${alignAttr}><font size="${fontSize}" color="${textColor}">输入文本内容</font></p>`
+    }
+
+    // 为每行生成<p>标签
     const alignAttr = alignValue !== 'left' ? ` align="${alignValue}"` : ''
-
-    return `<p${alignAttr}><font size="${fontSize}" color="${textColor}">${formattedContent}</font></p>`
+    return lines
+      .map(line => `<p${alignAttr}><font size="${fontSize}" color="${textColor}">${line.trim()}</font></p>`)
+      .join('')
   }
 
   /**

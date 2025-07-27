@@ -287,7 +287,7 @@ function ImageModuleProperties({
 }
 
 export function PropertyPanel() {
-  const { currentPage, selectedModuleId, updateModule, markUnsaved } = usePageStore()
+  const { currentPage, selectedModuleId, updateModule, markUnsaved, targetArea } = usePageStore()
   const { tEditor } = useTranslation()
 
   const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)

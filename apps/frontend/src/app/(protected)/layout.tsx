@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { apiClient } from '@/lib/apiClient'
@@ -11,7 +11,11 @@ import { LanguageCompact } from '@/components/common/LanguageSwitcher'
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
   const { tAuth, tCommon } = useTranslation()
+
+  // 检查是否是编辑器页面
+  const isEditorPage = pathname?.includes('/editor/')
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -104,7 +108,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-8">{children}</main>
+      <main className={`${isEditorPage ? '' : 'container mx-auto px-4 py-8'}`}>{children}</main>
     </div>
   )
 }
