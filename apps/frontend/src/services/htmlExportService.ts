@@ -58,31 +58,6 @@ export class HtmlExportService {
     // 生成完整HTML文档
     const styles = opts.includeStyles ? this.generateCSS() : ''
 
-    // 移动端预览时添加固定宽度样式
-    const mobilePreviewStyles = opts.mobileMode ? `
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #f5f5f5;
-        display: flex;
-        justify-content: center;
-        min-height: 100vh;
-      }
-      .pagemaker-content {
-        width: 390px !important;
-        max-width: 390px !important;
-        background-color: white;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        margin: 0;
-        padding: 0;
-      }
-      /* 确保居中标签正常工作 */
-      center {
-        text-align: center !important;
-      }
-    </style>` : ''
-
     const html = `<!DOCTYPE html>
 <html lang="${opts.language}">
 <head>
@@ -91,7 +66,7 @@ export class HtmlExportService {
     <title>${this.escapeHtml(opts.title)}</title>
     <meta name="description" content="${this.escapeHtml(opts.description)}">
     <meta name="generator" content="Pagemaker CMS">
-    ${styles ? `<style>\n${styles}\n    </style>` : ''}${mobilePreviewStyles}
+    ${styles ? `<style>\n${styles}\n    </style>` : ''}
 </head>
 <body>
     <div class="pagemaker-content">
@@ -193,9 +168,7 @@ ${htmlContent}
       'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
       'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
       'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
-      'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
-      'box-sizing': 'border-box',
-      'width': '100%'
+      'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight'))
     })
 
     // 文本模块支持富文本HTML内容，无需转义
@@ -214,21 +187,18 @@ ${htmlContent}
     const color = getStringProp(module, 'color', '#000000')
     const fontSize = this.convertToFontSize(getStringProp(module, 'fontSize', '24px'))
 
+    // 转换对齐方式为乐天支持的格式
+    const alignValue = alignment === 'justify' ? 'left' : alignment
+
     // 处理换行符，转换为<br>
     const formattedContent = this.escapeHtml(content).replace(/\n/g, '<br>')
 
-    // 根据乐天约束，只支持center对齐，其他都使用默认（左对齐）
-    if (alignment === 'center') {
-      // 使用center标签进行居中
-      return `<center><font size="${fontSize}" color="${color}"><b>${formattedContent}</b></font></center>`
-    } else {
-      // 默认左对齐，使用table但不设置align属性
-      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+    // 使用table布局和font标签，符合乐天约束
+    return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
 <tr>
-<td><font size="${fontSize}" color="${color}"><b>${formattedContent}</b></font></td>
+<td align="${alignValue}"><font size="${fontSize}" color="${color}"><b>${formattedContent}</b></font></td>
 </tr>
 </table>`
-    }
   }
 
   /**
@@ -241,18 +211,17 @@ ${htmlContent}
     const fontSize = this.convertToFontSize(getStringProp(module, 'fontSize', '14px'))
     const backgroundColor = getStringProp(module, 'backgroundColor', 'transparent')
 
+    // 转换对齐方式为乐天支持的格式
+    const alignValue = alignment === 'justify' ? 'left' : alignment
+
     // 处理富文本内容，确保只使用乐天允许的标签
     const formattedContent = this.sanitizeHTMLForRakuten(content || '输入文本内容')
 
-    // 根据乐天约束，只支持center对齐，其他都使用默认（左对齐）
-    if (alignment === 'center') {
-      // 使用center标签进行居中
-      return `<center><font size="${fontSize}" color="${textColor}">${formattedContent}</font></center>`
-    } else {
-      // 默认左对齐，不使用align属性避免画面崩溃
-      const bgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
-      return `<p${bgColorAttr}><font size="${fontSize}" color="${textColor}">${formattedContent}</font></p>`
-    }
+    // 使用<p>标签，更语义化且符合乐天约束
+    const bgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
+    const alignAttr = alignValue !== 'left' ? ` align="${alignValue}"` : ''
+
+    return `<p${alignAttr}><font size="${fontSize}" color="${textColor}">${formattedContent}</font></p>`
   }
 
   /**
@@ -278,9 +247,6 @@ ${htmlContent}
     // 移除不允许的标签，保留内容
     return (
       html
-        // 首先处理换行符：将画布中的换行转换为<br>标签
-        .replace(/\n/g, '<br>')
-        .replace(/\r/g, '')
         .replace(/<div[^>]*>/gi, '<p>')
         .replace(/<\/div>/gi, '</p>')
         .replace(/<span[^>]*>/gi, '')
@@ -302,7 +268,7 @@ ${htmlContent}
   private static generateImageHTML(module: PageModule, options: Required<HtmlExportOptions> = DEFAULT_OPTIONS): string {
     const src = getStringProp(module, 'src')
     const alt = getStringProp(module, 'alt', '图片')
-    // 乐天移动端不支持图片对齐，移除 alignment 相关逻辑
+    const alignment = getStringProp(module, 'alignment', 'center')
 
     // 获取尺寸配置
     const size = module.size as { type: 'preset' | 'percentage'; value: string } | undefined
@@ -312,9 +278,13 @@ ${htmlContent}
 
     if (!src) {
       if (options.mobileMode) {
-        return `<font size="2" color="#666666">图片未设置</font>`
+        return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr>
+<td align="${alignment}"><font size="2" color="#666666">图片未设置</font></td>
+</tr>
+</table>`
       } else {
-        return `        <div class="pm-image-placeholder" style="padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
+        return `        <div class="pm-image-placeholder" style="text-align: ${alignment}; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
             <p style="margin: 0; color: #666;">图片未设置</p>
         </div>`
       }
@@ -337,7 +307,9 @@ ${htmlContent}
     }
 
     if (options.mobileMode) {
-      // 乐天移动端约束版本 - 导出时不用center，预览时用center保证一致性
+      // 乐天移动端约束版本 - 使用table布局
+      const alignValue = alignment === 'justify' ? 'center' : alignment
+
       // 生成图片元素（乐天约束：只支持特定属性）
       const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" width="${imageWidth}">`
 
@@ -363,8 +335,11 @@ ${htmlContent}
         content = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
       }
 
-      // 预览模式下使用center标签确保居中显示，导出模式下乐天自动居中
-      return options.fullDocument ? `<center>${content}</center>` : content
+      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr>
+<td align="${alignValue}">${content}</td>
+</tr>
+</table>`
     } else {
       // 标准版本 - 使用div和CSS样式
       const imgStyles = this.generateInlineStyles({
@@ -374,6 +349,7 @@ ${htmlContent}
       })
 
       const containerStyles = this.generateInlineStyles({
+        'text-align': alignment,
         margin: '16px 0'
       })
 
@@ -689,7 +665,7 @@ ${tableRows}
    */
   private static generateHorizontalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
     const imageWidth = this.parseWidth(imageConfig.width, '95%')
-    // 多列图文模块仍需要table结构来布局图片和文本
+    const imageAlignment = imageConfig.alignment || 'center'
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
@@ -710,7 +686,7 @@ ${tableRows}
 
     // 根据布局决定图片和文本的顺序
     const isImageLeft = layout === 'imageLeft'
-    const imageCell = `<td width="49%">${imgElement}</td>`
+    const imageCell = `<td width="49%" align="${imageAlignment}">${imgElement}</td>`
     const textCell = `<td${textBgColorAttr} width="49%"${textAlignAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>`
 
     return `<table width="100%" cellspacing="0" cellpadding="10" border="0">
@@ -726,7 +702,7 @@ ${isImageLeft ? textCell : imageCell}
    */
   private static generateVerticalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
     const imageWidth = this.parseWidth(imageConfig.width, '100%')
-    // 多列图文模块仍需要table结构来布局图片和文本
+    const imageAlignment = imageConfig.alignment || 'center'
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" width="${imageWidth}">`
 
@@ -748,7 +724,7 @@ ${isImageLeft ? textCell : imageCell}
     // 根据布局决定图片和文本的顺序
     const isImageTop = layout === 'imageTop'
     const imageRow = `<tr>
-<td align="center">${imgElement}</td>
+<td align="${imageAlignment}">${imgElement}</td>
 </tr>`
     const textRow = `<tr>
 <td${textAlignAttr}${textBgColorAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>
@@ -832,7 +808,7 @@ ${validParts.join('\n')}
     }
 
     const imageWidth = this.parseWidth(imageConfig.width, isHorizontal ? '50%' : '100%')
-    // 乐天移动端不支持图片对齐，移除 imageAlignment 相关逻辑
+    const imageAlignment = imageConfig.alignment || 'center'
 
     const imgStyles = this.generateInlineStyles({
       width: imageWidth,
@@ -842,8 +818,8 @@ ${validParts.join('\n')}
     })
 
     const containerStyles = this.generateInlineStyles({
-      flex: isHorizontal ? '1' : 'none'
-      // 移除 text-align 样式
+      flex: isHorizontal ? '1' : 'none',
+      'text-align': imageAlignment
     })
 
     let imgElement = `<img src="${this.escapeHtml(imageConfig.src)}" alt="${this.escapeHtml(imageConfig.alt || '图片')}" style="${imgStyles}">`

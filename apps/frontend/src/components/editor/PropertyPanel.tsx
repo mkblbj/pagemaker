@@ -126,7 +126,23 @@ function ImageModuleProperties({
         />
       </div>
 
-      {/* 乐天移动端不支持图片对齐，已移除对齐选项 */}
+      {/* 对齐方式 */}
+      <div className="space-y-2">
+        <Label>{tEditor('对齐方式')}</Label>
+        <Select
+          value={module.alignment || 'center'}
+          onValueChange={(value: 'left' | 'center' | 'right') => onUpdate('alignment', value)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+            <SelectItem value="center">{tEditor('居中')}</SelectItem>
+            <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* 尺寸设置 */}
       <div className="space-y-2">
@@ -271,7 +287,7 @@ function ImageModuleProperties({
 }
 
 export function PropertyPanel() {
-  const { currentPage, selectedModuleId, updateModule, markUnsaved, targetArea } = usePageStore()
+  const { currentPage, selectedModuleId, updateModule, markUnsaved } = usePageStore()
   const { tEditor } = useTranslation()
 
   const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)
@@ -381,14 +397,10 @@ export function PropertyPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="left">{tEditor('普通')}</SelectItem>
+                  <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
                   <SelectItem value="center">{tEditor('居中对齐')}</SelectItem>
-                  {targetArea === 'pc' && (
-                    <>
-                      <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
-                      <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
-                    </>
-                  )}
+                  <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                  <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -454,18 +466,8 @@ export function PropertyPanel() {
               <Label htmlFor="text-content">{tEditor('文本内容')}</Label>
               <Textarea
                 id="text-content"
-                value={(() => {
-                  const content = (selectedModule as any).content || ''
-                  // 将HTML转换为纯文本显示，但保留换行
-                  const tempDiv = document.createElement('div')
-                  tempDiv.innerHTML = content
-                  return tempDiv.textContent || tempDiv.innerText || ''
-                })()}
-                onChange={e => {
-                  // 将纯文本转换为HTML，保留换行
-                  const htmlContent = e.target.value.replace(/\n/g, '<br>')
-                  handlePropertyUpdate('content', htmlContent)
-                }}
+                value={(selectedModule as any).content || ''}
+                onChange={e => handlePropertyUpdate('content', e.target.value)}
                 placeholder={tEditor('输入文本内容')}
                 rows={6}
               />
@@ -480,14 +482,10 @@ export function PropertyPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="left">{tEditor('普通')}</SelectItem>
+                  <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
                   <SelectItem value="center">{tEditor('居中对齐')}</SelectItem>
-                  {targetArea === 'pc' && (
-                    <>
-                      <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
-                      <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
-                    </>
-                  )}
+                  <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                  <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -740,7 +738,29 @@ export function PropertyPanel() {
                 />
               </div>
 
-              {/* 乐天移动端不支持图片对齐，已移除对齐选项 */}
+              {/* 图片对齐方式 */}
+              <div className="space-y-2">
+                <Label>{tEditor('图片对齐')}</Label>
+                <Select
+                  value={(selectedModule as any).imageConfig?.alignment || 'center'}
+                  onValueChange={(value: 'left' | 'center' | 'right') => {
+                    const currentImageConfig = (selectedModule as any).imageConfig || {}
+                    handlePropertyUpdate('imageConfig', {
+                      ...currentImageConfig,
+                      alignment: value
+                    })
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
+                    <SelectItem value="center">{tEditor('居中')}</SelectItem>
+                    <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* 图片宽度 */}
               <div className="space-y-2">
@@ -803,14 +823,10 @@ export function PropertyPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="left">{tEditor('普通')}</SelectItem>
+                    <SelectItem value="left">{tEditor('左对齐')}</SelectItem>
                     <SelectItem value="center">{tEditor('居中对齐')}</SelectItem>
-                    {targetArea === 'pc' && (
-                      <>
-                        <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
-                        <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
-                      </>
-                    )}
+                    <SelectItem value="right">{tEditor('右对齐')}</SelectItem>
+                    <SelectItem value="justify">{tEditor('两端对齐')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

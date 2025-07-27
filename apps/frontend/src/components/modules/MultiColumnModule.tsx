@@ -46,7 +46,7 @@ export function MultiColumnModule({
   const imageConfig = module.imageConfig || {
     src: '',
     alt: tEditor('图片描述'),
-    // 乐天移动端不支持图片对齐，移除 alignment 默认值
+    alignment: 'center',
     width: '50%'
   }
   const textConfig = module.textConfig || {
@@ -150,32 +150,6 @@ export function MultiColumnModule({
     setIsEditingText(true)
   }
 
-  // 处理文本编辑模式的初始化
-  useEffect(() => {
-    if (isEditingText && textEditorRef.current) {
-      // 设置初始内容，确保显示当前文本内容
-      const content = textConfig.content || tEditor('点击添加文本')
-      if (textEditorRef.current.innerHTML !== content) {
-        textEditorRef.current.innerHTML = content
-      }
-      textEditorRef.current.focus()
-
-      // 将光标置于末尾
-      try {
-        const range = document.createRange()
-        const selection = window.getSelection()
-        if (selection && selection.removeAllRanges && selection.addRange) {
-          range.selectNodeContents(textEditorRef.current)
-          range.collapse(false)
-          selection.removeAllRanges()
-          selection.addRange(range)
-        }
-      } catch (error) {
-        console.debug('Selection API not available in test environment')
-      }
-    }
-  }, [isEditingText, textConfig.content, tEditor])
-
   // 获取文本样式
   const getTextStyles = () => {
     const styles: React.CSSProperties = {
@@ -196,7 +170,7 @@ export function MultiColumnModule({
       type: 'image',
       src: imageConfig.src || '',
       alt: imageConfig.alt || '',
-      // 乐天移动端不支持图片对齐，移除 alignment 属性
+      alignment: imageConfig.alignment || 'center',
       link: imageConfig.link,
       size: {
         type: 'percentage',
@@ -215,7 +189,7 @@ export function MultiColumnModule({
             const newImageConfig = { ...imageConfig }
             if (typeof updates.src === 'string') newImageConfig.src = updates.src
             if (typeof updates.alt === 'string') newImageConfig.alt = updates.alt
-            // 乐天移动端不支持图片对齐，移除 alignment 更新逻辑
+            if (typeof updates.alignment === 'string') newImageConfig.alignment = updates.alignment as any
             if (updates.size && typeof updates.size === 'object' && 'type' in updates.size && 'value' in updates.size) {
               const size = updates.size as any
               newImageConfig.width = size.type === 'percentage' ? `${size.value}%` : size.value
@@ -280,8 +254,8 @@ export function MultiColumnModule({
         ) : (
           <div
             onClick={startTextEdit}
-            className="cursor-text prose prose-sm max-w-none whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: textConfig.content || tEditor('点击添加文本') }}
+            className="cursor-text prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: textConfig.content }}
           />
         )}
       </div>
