@@ -70,44 +70,8 @@ export default function PagesPage() {
   }
 
   // 处理预览页面
-  const handlePreviewPage = async (pageId: string) => {
-    try {
-      // 获取页面数据
-      const page = await pageService.getPage(pageId)
-      if (!page || !page.content) {
-        alert('页面内容为空或不存在')
-        return
-      }
-
-      // 动态导入HTML导出服务
-      const { generateHTML } = await import('@/services/htmlExportService')
-      
-      // 根据页面目标区域设置导出选项
-      const isMobileMode = page.target_area === 'mobile'
-      const exportOptions = {
-        includeStyles: !isMobileMode,
-        minify: true,
-        title: page.name || '页面预览',
-        description: `使用 Pagemaker CMS 创建的页面：${page.name}`,
-        language: 'ja-JP',
-        fullDocument: true,
-        mobileMode: isMobileMode
-      }
-
-      // 生成HTML
-      const html = generateHTML(page.content, exportOptions)
-
-      // 使用localStorage传递预览内容
-      const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      localStorage.setItem(previewId, html)
-      const previewUrl = `/preview?id=${previewId}`
-      
-      // 在新窗口打开预览页面
-      window.open(previewUrl, '_blank', 'width=500,height=900,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no')
-    } catch (error) {
-      console.error('预览失败:', error)
-      alert('预览失败，请重试')
-    }
+  const handlePreviewPage = (pageId: string) => {
+    window.open(`/preview/${pageId}`, '_blank')
   }
 
   // 处理删除页面

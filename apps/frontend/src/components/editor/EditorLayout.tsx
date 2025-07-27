@@ -123,13 +123,13 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       // 生成HTML
       const html = generateHTML(currentPage.content, exportOptions)
 
-      // 使用localStorage传递预览内容，避免URL长度限制
-      const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      localStorage.setItem(previewId, html)
-      const previewUrl = `/preview?id=${previewId}`
-      
-      // 在新窗口打开预览页面（指定窗口特性以确保打开新窗口而非标签页）
-      window.open(previewUrl, '_blank', 'width=500,height=900,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no')
+      // 在新窗口中预览
+      const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes')
+      if (previewWindow) {
+        previewWindow.document.write(html)
+        previewWindow.document.close()
+        previewWindow.document.title = `预览: ${currentPage.name}`
+      }
     } catch (error) {
       console.error('预览失败:', error)
       // 备用预览方法
@@ -142,7 +142,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       <KeyboardShortcuts onShowHelp={handleShowHelp} />
       <KeyboardShortcutsHelp ref={helpDialogRef} />
       <ToastContainer />
-      <div className="flex h-full bg-gray-50" data-testid="editor-layout">
+      <div className="flex h-screen bg-gray-50" data-testid="editor-layout">
         {/* 左侧面板 - 模块列表 */}
         <div
           className={`bg-white border-r border-gray-200 shadow-sm transition-all duration-300 overflow-x-hidden ${isLeftPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
@@ -288,8 +288,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           </div>
 
           {/* 画布区域 */}
-          <div className="flex-1 bg-gray-50 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-auto p-4">
+          <div className="flex-1 overflow-auto bg-gray-50">
+            <div className="p-4">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-full">
                 <Canvas />
               </div>

@@ -288,13 +288,11 @@ export function HtmlExportButton({
   const handlePreviewHTML = () => {
     if (!generatedHTML) return
 
-    // 使用localStorage传递预览内容，避免URL长度限制
-    const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    localStorage.setItem(previewId, generatedHTML)
-    const previewUrl = `/preview?id=${previewId}`
-    
-    // 在新窗口打开预览页面（指定窗口特性以确保打开新窗口而非标签页）
-    window.open(previewUrl, '_blank', 'width=500,height=900,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no')
+    const previewWindow = window.open('', '_blank', 'width=1200,height=800')
+    if (previewWindow) {
+      previewWindow.document.write(generatedHTML)
+      previewWindow.document.close()
+    }
   }
 
   // 对话框打开时自动生成HTML
