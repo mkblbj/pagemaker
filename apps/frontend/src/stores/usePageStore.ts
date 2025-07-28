@@ -30,6 +30,7 @@ interface PageState {
   markSaved: () => void
   markUnsaved: () => void
   clearPage: () => void
+  clearAllModules: () => void
 }
 
 export const usePageStore = create<PageState>()(
@@ -168,6 +169,24 @@ export const usePageStore = create<PageState>()(
           },
           false,
           'clearPage'
+        ),
+
+      clearAllModules: () =>
+        set(
+          state => {
+            if (!state.currentPage) return state
+            
+            return {
+              currentPage: {
+                ...state.currentPage,
+                content: [],
+                module_count: 0
+              },
+              selectedModuleId: null
+            }
+          },
+          false,
+          'clearAllModules'
         )
     }),
     { name: 'page-store' }

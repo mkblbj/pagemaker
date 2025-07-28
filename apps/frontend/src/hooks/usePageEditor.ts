@@ -86,30 +86,6 @@ export function usePageEditor() {
     }
   }, [currentPage, hasUnsavedChanges, savePage, setError])
 
-  // 自动保存
-  const { run: autoSave } = useRequest(
-    async () => {
-      if (!currentPage || !hasUnsavedChanges) return
-
-      console.log('自动保存中...')
-      await savePage()
-    },
-    {
-      manual: true,
-      debounceWait: 2000, // 2秒防抖
-      onSuccess: () => {
-        console.log('自动保存完成')
-        // 显示自动保存成功提示（较短时间）
-        toastManager.show({
-          type: 'info',
-          title: tEditor('自动保存'),
-          description: tEditor('页面已自动保存'),
-          duration: 2000
-        })
-      }
-    }
-  )
-
   // 发布页面
   const { run: publishPage, loading: isPublishing } = useRequest(
     async () => {
@@ -143,7 +119,6 @@ export function usePageEditor() {
     // 操作
     savePage,
     previewPage,
-    publishPage,
-    autoSave
+    publishPage
   }
 }

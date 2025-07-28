@@ -322,7 +322,7 @@ export function TextModule({
       onClick={onStartEdit}
     >
       {/* 模块标识 */}
-      <div className="flex items-center gap-2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-2 mb-2 opacity-100 transition-opacity">
         <FileText className="h-4 w-4 text-green-600" />
         <Badge variant="secondary" className="text-xs">
           {tEditor('文本模块')}

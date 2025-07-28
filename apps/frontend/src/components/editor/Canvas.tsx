@@ -64,7 +64,7 @@ function SortableModuleContainer({
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 cursor-move opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white rounded-md shadow-sm p-1"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 cursor-move opacity-100 transition-opacity z-10 bg-white rounded-md shadow-sm p-1"
       >
         <GripVertical className="h-4 w-4 text-gray-400" />
       </div>
@@ -83,7 +83,7 @@ function SortableModuleContainer({
 
       {/* 操作按钮 */}
       {isSelected && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="sm"

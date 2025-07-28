@@ -186,7 +186,6 @@
     "页面保存失败": "Save failed: {error}",
     "未知错误": "Unknown error",
     "未保存": "Unsaved",
-    "未保存的更改": "Unsaved changes",
     "取消": "Cancel",
     "确认删除": "Confirm Delete",
     "确定要删除选中的模块吗？": "Are you sure you want to delete the selected module?",
@@ -404,7 +403,16 @@
     "在画布中点击图片区域可添加图片": "Click on the image area in the canvas to add image",
     "点击图片或文本区域直接编辑": "Click on the image or text area to edit directly",
     "添加多列图文组合": "Add multi-column text image",
-    "点击输入文本内容": "Click to enter text content"
+    "点击输入文本内容": "Click to enter text content",
+    "重置": "Reset",
+    "确认重置": "Confirm reset",
+    "重置页面确认": "Reset page confirmation",
+    "此操作将清除所有模块，无法撤销。": "This action will clear all modules and cannot be undone.",
+    "您确定要清除所有模块吗？清除后将无法恢复。": "Are you sure you want to clear all modules? This action cannot be undone.",
+    "重置操作将：": "Reset operation will:",
+    "删除页面中的所有模块": "Delete all modules in the page",
+    "清空页面内容": "Clear page content",
+    "保留页面基本信息": "Keep page basic information"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",

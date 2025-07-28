@@ -437,7 +437,7 @@ export function ImageModule({
       onClick={onStartEdit}
     >
       {/* 模块标识 */}
-      <div className="flex items-center justify-between mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center justify-between mb-2 opacity-100 transition-opacity">
         <div className="flex items-center gap-2">
           <ImageIcon className="h-4 w-4 text-purple-600" />
           <Badge variant="secondary" className="text-xs">

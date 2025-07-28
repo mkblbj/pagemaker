@@ -353,7 +353,7 @@ export function MultiColumnModule({
       onClick={onStartEdit}
     >
       {/* 模块标识 */}
-      <div className="flex items-center justify-between mb-4 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center justify-between mb-4 opacity-100 transition-opacity">
         <div className="flex items-center gap-2">
           <Columns className="h-4 w-4 text-red-600" />
           <Badge variant="secondary" className="text-xs">

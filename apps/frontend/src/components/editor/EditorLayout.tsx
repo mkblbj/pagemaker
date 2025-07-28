@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Button } from '@/components/ui/button'
-import { Save, Eye, Settings, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react'
+import { Save, Eye, Settings, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RotateCcw } from 'lucide-react'
 import { ModuleList } from './ModuleList'
 import { Canvas } from './Canvas'
 import { PropertyPanel } from './PropertyPanel'
@@ -13,6 +13,7 @@ import { usePageEditor } from '@/hooks/usePageEditor'
 import { DragProvider } from './dnd/DragContext'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
 import { KeyboardShortcutsHelp, KeyboardShortcutsHelpRef } from './KeyboardShortcutsHelp'
+import { ResetConfirmDialog } from './ResetConfirmDialog'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportButton } from '@/components/feature/HtmlExportButton'
 import { ToastContainer } from '@/components/ui/toast'
@@ -34,10 +35,13 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     setRightPanelWidth
   } = useEditorStore()
 
-  const { currentPage, hasUnsavedChanges } = usePageStore()
+  const { currentPage, hasUnsavedChanges, clearAllModules, markUnsaved } = usePageStore()
   const { savePage, isSaving, previewPage } = usePageEditor()
 
   const helpDialogRef = useRef<KeyboardShortcutsHelpRef>(null)
+
+  // 重置确认对话框状态
+  const [resetDialogOpen, setResetDialogOpen] = useState(false)
 
   // 面板调整相关状态
   const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null)
@@ -48,6 +52,17 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
   const handleShowHelp = useCallback(() => {
     helpDialogRef.current?.openDialog()
   }, [])
+
+  // 处理重置所有模块
+  const handleResetAllModules = useCallback(() => {
+    setResetDialogOpen(true)
+  }, [])
+
+  // 确认重置所有模块
+  const handleConfirmReset = useCallback(() => {
+    clearAllModules()
+    markUnsaved()
+  }, [clearAllModules, markUnsaved])
 
   // 面板调整处理函数
   const handleMouseDown = useCallback(
@@ -249,6 +264,15 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleResetAllModules}
+                  className="border-red-200 text-red-700 hover:bg-red-50"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {tEditor('重置')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handlePreview}
                   className="border-blue-200 text-blue-700 hover:bg-blue-50"
                 >
@@ -325,6 +349,13 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* 重置确认对话框 */}
+      <ResetConfirmDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        onConfirm={handleConfirmReset}
+      />
     </DragProvider>
   )
 }

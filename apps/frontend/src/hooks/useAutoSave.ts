@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { pageService } from '@/services/pageService'
+import { toastManager } from '@/components/ui/toast'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface AutoSaveOptions {
   interval?: number // 自动保存间隔（毫秒）
@@ -18,6 +20,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     onError
   } = options
 
+  const { tEditor } = useTranslation()
   const { currentPage, hasUnsavedChanges, markSaved, setPage } = usePageStore()
 
   const { setSaving, setError } = useEditorStore()
@@ -48,6 +51,14 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
       console.log('自动保存成功')
       onSave?.()
 
+      // 显示自动保存成功提示（蓝色info类型）
+      toastManager.show({
+        type: 'info',
+        title: tEditor('自动保存'),
+        description: tEditor('页面已自动保存'),
+        duration: 2000
+      })
+
       return updatedPage
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '自动保存失败'
@@ -58,7 +69,7 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     } finally {
       setSaving(false)
     }
-  }, [currentPage, hasUnsavedChanges, setSaving, markSaved, setPage, setError, onSave, onError])
+  }, [currentPage, hasUnsavedChanges, setSaving, markSaved, setPage, setError, onSave, onError, tEditor])
 
   // 设置自动保存定时器
   useEffect(() => {
