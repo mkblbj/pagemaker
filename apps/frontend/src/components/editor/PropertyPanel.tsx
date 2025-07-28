@@ -292,6 +292,22 @@ export function PropertyPanel() {
 
   const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)
 
+  // 移除HTML标签，只保留纯文本
+  const stripHtmlTags = (html: string): string => {
+    if (!html) return ''
+    // 使用正则表达式移除HTML标签，并将<br>转换为换行符
+    return html
+      .replace(/<br\s*\/?>/gi, '\n')  // 将<br>标签转换为换行符
+      .replace(/<[^>]*>/g, '')        // 移除所有HTML标签
+      .trim()
+  }
+
+  // 将纯文本转换回HTML（保留换行）
+  const textToHtml = (text: string): string => {
+    if (!text) return ''
+    return text.replace(/\n/g, '<br>')
+  }
+
   // 处理属性更新
   const handlePropertyUpdate = (property: string, value: any) => {
     if (selectedModuleId) {
@@ -466,8 +482,8 @@ export function PropertyPanel() {
               <Label htmlFor="text-content">{tEditor('文本内容')}</Label>
               <Textarea
                 id="text-content"
-                value={(selectedModule as any).content || ''}
-                onChange={e => handlePropertyUpdate('content', e.target.value)}
+                value={stripHtmlTags((selectedModule as any).content || '')}
+                onChange={e => handlePropertyUpdate('content', textToHtml(e.target.value))}
                 placeholder={tEditor('输入文本内容')}
                 rows={6}
               />
@@ -511,21 +527,20 @@ export function PropertyPanel() {
             <div className="space-y-2">
               <Label htmlFor="text-font-size">{tEditor('字体大小')}</Label>
               <Select
-                value={(selectedModule as any).fontSize || '14px'}
+                value={(selectedModule as any).fontSize || '4'}
                 onValueChange={value => handlePropertyUpdate('fontSize', value)}
               >
                 <SelectTrigger id="text-font-size">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="12px">12px</SelectItem>
-                  <SelectItem value="14px">14px</SelectItem>
-                  <SelectItem value="16px">16px</SelectItem>
-                  <SelectItem value="18px">18px</SelectItem>
-                  <SelectItem value="20px">20px</SelectItem>
-                  <SelectItem value="24px">24px</SelectItem>
-                  <SelectItem value="28px">28px</SelectItem>
-                  <SelectItem value="32px">32px</SelectItem>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="6">6</SelectItem>
+                  <SelectItem value="7">7</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -801,12 +816,12 @@ export function PropertyPanel() {
                 <Label htmlFor="text-content">{tEditor('文本内容')}</Label>
                 <Textarea
                   id="text-content"
-                  value={(selectedModule as any).textConfig?.content || ''}
+                  value={stripHtmlTags((selectedModule as any).textConfig?.content || '')}
                   onChange={e => {
                     const currentTextConfig = (selectedModule as any).textConfig || {}
                     handlePropertyUpdate('textConfig', {
                       ...currentTextConfig,
-                      content: e.target.value
+                      content: textToHtml(e.target.value)
                     })
                   }}
                   placeholder={tEditor('输入文本内容')}
@@ -843,7 +858,7 @@ export function PropertyPanel() {
               <div className="space-y-2">
                 <Label>{tEditor('字体大小')}</Label>
                 <Select
-                  value={(selectedModule as any).textConfig?.fontSize || '14px'}
+                  value={(selectedModule as any).textConfig?.fontSize || '4'}
                   onValueChange={(value: string) => {
                     const currentTextConfig = (selectedModule as any).textConfig || {}
                     handlePropertyUpdate('textConfig', {
@@ -856,12 +871,13 @@ export function PropertyPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="12px">12px</SelectItem>
-                    <SelectItem value="14px">14px</SelectItem>
-                    <SelectItem value="16px">16px</SelectItem>
-                    <SelectItem value="18px">18px</SelectItem>
-                    <SelectItem value="20px">20px</SelectItem>
-                    <SelectItem value="24px">24px</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="6">6</SelectItem>
+                    <SelectItem value="7">7</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

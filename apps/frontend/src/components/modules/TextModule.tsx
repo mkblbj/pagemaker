@@ -124,14 +124,19 @@ export function TextModule({
     if (editorRef.current) {
       let content = editorRef.current.innerHTML
 
-      // 清理空的HTML标签和无意义的标签
+      // 将br标签转换为换行符，以便正确保存和显示
       content = content
-        .replace(/<br\s*\/?>/gi, '') // 移除所有br标签
+        .replace(/<br\s*\/?>/gi, '\n') // 将br标签转换为换行符
         .replace(/<p><\/p>/gi, '') // 移除空的p标签
         .replace(/<div><\/div>/gi, '') // 移除空的div标签
         .replace(/&nbsp;/gi, ' ') // 替换非断空格
         .replace(/<p>\s*<\/p>/gi, '') // 移除只包含空白的p标签
         .replace(/<div>\s*<\/div>/gi, '') // 移除只包含空白的div标签
+        .replace(/<p>/gi, '') // 移除p开始标签
+        .replace(/<\/p>/gi, '\n') // 将p结束标签转换为换行符
+        .replace(/<div>/gi, '') // 移除div开始标签
+        .replace(/<\/div>/gi, '\n') // 将div结束标签转换为换行符
+        .replace(/\n+/g, '\n') // 合并多个连续换行符为单个
         .trim()
 
       // 如果内容为空或只包含空白字符，设置为空字符串
@@ -160,11 +165,16 @@ export function TextModule({
     if (editorRef.current) {
       const rawContent = editorRef.current.innerHTML
       const cleanedContent = rawContent
-        .replace(/<br\s*\/?>/gi, '')
+        .replace(/<br\s*\/?>/gi, '\n') // 将br标签转换为换行符
         .replace(/<p><\/p>/gi, '')
         .replace(/<div><\/div>/gi, '')
         .replace(/<p>\s*<\/p>/gi, '')
         .replace(/<div>\s*<\/div>/gi, '')
+        .replace(/<p>/gi, '') // 移除p开始标签
+        .replace(/<\/p>/gi, '\n') // 将p结束标签转换为换行符
+        .replace(/<div>/gi, '') // 移除div开始标签
+        .replace(/<\/div>/gi, '\n') // 将div结束标签转换为换行符
+        .replace(/\n+/g, '\n') // 合并多个连续换行符为单个
         .replace(/&nbsp;/gi, ' ')
         .trim()
       
@@ -261,7 +271,7 @@ export function TextModule({
   // 获取文本样式
   const getTextStyles = () => {
     const alignment = module.alignment || 'left'
-    const fontSize = module.fontSize || '14px'
+    const fontSize = module.fontSize || '4' // 默认size为4
     const fontFamily = module.fontFamily || 'inherit'
     const textColor = module.textColor || '#000000'
     const backgroundColor = module.backgroundColor || 'transparent'
@@ -273,10 +283,24 @@ export function TextModule({
       justify: 'text-justify'
     }
 
+    // HTML font size标准映射 - 更大的字体
+    const getFontSizeInPx = (size: string) => {
+      const sizeMap: Record<string, string> = {
+        '1': '12px',
+        '2': '16px',  
+        '3': '20px',  // 默认大小
+        '4': '28px',  // 常用大小 - 更大
+        '5': '36px',  // 大标题
+        '6': '48px',  // 特大标题
+        '7': '64px'   // 超大标题
+      }
+      return sizeMap[size] || '20px'
+    }
+
     return {
       className: cn('transition-all duration-200 leading-relaxed', alignmentClasses[alignment]),
       style: {
-        fontSize,
+        fontSize: getFontSizeInPx(fontSize),
         fontFamily: fontFamily !== 'inherit' ? fontFamily : undefined,
         color: textColor,
         backgroundColor: backgroundColor !== 'transparent' ? backgroundColor : undefined,
@@ -370,17 +394,22 @@ export function TextModule({
           tabIndex={0}
         />
       ) : (
-        <div
-          className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
-          style={textStyles.style}
-          onClick={onStartEdit}
-        >
-          {localContent ? (
-            <div dangerouslySetInnerHTML={{ __html: localContent }} />
-          ) : (
+        localContent ? (
+          <div
+            className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
+            style={textStyles.style}
+            onClick={onStartEdit}
+            dangerouslySetInnerHTML={{ __html: localContent.replace(/\n/g, '<br>') }}
+          />
+        ) : (
+          <div
+            className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
+            style={textStyles.style}
+            onClick={onStartEdit}
+          >
             <div className="text-gray-400">{tEditor('点击输入文本内容')}</div>
-          )}
-        </div>
+          </div>
+        )
       )}
     </div>
   )

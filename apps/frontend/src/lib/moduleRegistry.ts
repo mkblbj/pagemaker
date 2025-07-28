@@ -45,7 +45,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
       color: 'text-green-600',
       defaultConfig: {
         content: '', // 空字符串，让组件显示placeholder
-        fontSize: '14px',
+        fontSize: '4', // 修改为4，匹配属性面板默认值
         fontFamily: 'inherit',
         alignment: 'left',
         textColor: '#000000',
@@ -124,7 +124,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
           content: '', // 空字符串，让组件显示placeholder
           alignment: 'left',
           font: 'inherit',
-          fontSize: '14px',
+          fontSize: '4', // 修改为4，匹配属性面板默认值
           color: '#000000',
           backgroundColor: 'transparent'
         },

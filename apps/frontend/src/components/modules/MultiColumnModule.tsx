@@ -37,7 +37,7 @@ export function MultiColumnModule({
   const { tEditor } = useTranslation()
 
   // 文本编辑状态
-  const [isEditingText, setIsEditingText] = useState(false)
+  const [isTextEditing, setIsTextEditing] = useState(false)
   const [localTextContent, setLocalTextContent] = useState('')
   const textEditorRef = useRef<HTMLDivElement>(null)
 
@@ -49,11 +49,12 @@ export function MultiColumnModule({
     alignment: 'center',
     width: '100%'  // 移动端默认全宽
   }
+  // 默认配置
   const textConfig = module.textConfig || {
     content: '', // 空字符串，让组件显示placeholder
     alignment: 'left',
     font: 'inherit',
-    fontSize: '14px',
+    fontSize: '4', // 默认size为4
     color: '#000000',
     backgroundColor: 'transparent'
   }
@@ -69,7 +70,7 @@ export function MultiColumnModule({
 
   // 处理文本编辑模式
   useEffect(() => {
-    if (isEditingText && textEditorRef.current) {
+    if (isTextEditing && textEditorRef.current) {
       // 如果内容是默认提示文本，清空编辑器
       const isPlaceholderText = localTextContent === tEditor('输入文本内容') || !localTextContent
       textEditorRef.current.innerHTML = isPlaceholderText ? '' : localTextContent
@@ -89,7 +90,7 @@ export function MultiColumnModule({
         console.debug('Selection API not available')
       }
     }
-  }, [isEditingText, localTextContent, tEditor])
+  }, [isTextEditing, localTextContent, tEditor])
 
   // 处理图片配置更新
   const handleImageUpdate = (updates: Partial<typeof imageConfig>) => {
@@ -144,14 +145,14 @@ export function MultiColumnModule({
   const handleTextKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.preventDefault()
-      setIsEditingText(false)
+      setIsTextEditing(false)
     }
   }
 
   // 处理文本编辑失焦
   const handleTextBlur = () => {
     handleTextContentChange()
-    setIsEditingText(false)
+    setIsTextEditing(false)
     
     // 额外检查：如果处理后的内容仍然只是空白或无意义的HTML，强制设为空
     if (textEditorRef.current) {
@@ -179,14 +180,28 @@ export function MultiColumnModule({
 
   // 开始文本编辑
   const startTextEdit = () => {
-    setIsEditingText(true)
+    setIsTextEditing(true)
   }
 
   // 获取文本样式
   const getTextStyles = () => {
+    // HTML font size标准映射 - 更大的字体
+    const getFontSizeInPx = (size: string) => {
+      const sizeMap: Record<string, string> = {
+        '1': '12px',
+        '2': '16px',  
+        '3': '20px',  // 默认大小
+        '4': '28px',  // 常用大小 - 更大
+        '5': '36px',  // 大标题
+        '6': '48px',  // 特大标题
+        '7': '64px'   // 超大标题
+      }
+      return sizeMap[size] || '20px'
+    }
+
     const styles: React.CSSProperties = {
       fontFamily: textConfig.font,
-      fontSize: textConfig.fontSize,
+      fontSize: getFontSizeInPx(textConfig.fontSize),
       color: textConfig.color,
       backgroundColor: textConfig.backgroundColor,
       textAlign: textConfig.alignment as any
@@ -254,7 +269,7 @@ export function MultiColumnModule({
 
     const isEmpty = !cleanContent || cleanContent === ''
 
-    if (isEmpty && !isEditingText) {
+    if (isEmpty && !isTextEditing) {
       return (
         <div
           className={cn(
@@ -271,7 +286,7 @@ export function MultiColumnModule({
 
     return (
       <div className={cn('p-4 rounded', isHorizontal ? 'flex-1' : 'w-full')} style={getTextStyles()}>
-        {isEditingText ? (
+        {isTextEditing ? (
           <div
             ref={textEditorRef}
             contentEditable

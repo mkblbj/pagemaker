@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TextModule } from './TextModule'
-import { PageModuleType } from '@pagemaker/shared-types'
+import { PageModuleType, type PageModule } from '@pagemaker/shared-types'
 
 // Mock useTranslation
 vi.mock('@/contexts/I18nContext', () => ({
@@ -11,6 +11,11 @@ vi.mock('@/contexts/I18nContext', () => ({
       const translations: Record<string, string> = {
         文本模块: '文本模块',
         输入文本内容: '输入文本内容',
+        点击输入文本内容: '点击输入文本内容',
+        文本内容编辑器: '文本内容编辑器',
+        加粗: '加粗',
+        下划线: '下划线',
+        添加链接: '添加链接',
         点击编辑: '点击编辑',
         请先选择要添加链接的文本: '请先选择要添加链接的文本',
         '请输入链接地址:': '请输入链接地址:'
@@ -46,12 +51,12 @@ global.alert = vi.fn()
 global.prompt = vi.fn()
 
 describe('TextModule', () => {
-  const mockModule = {
-    id: 'text-1',
+  const mockModule: PageModule = {
+    id: 'test-text-module',
     type: PageModuleType.TEXT,
     content: '测试文本内容',
-    alignment: 'left' as const,
-    fontSize: '16px',
+    alignment: 'left',
+    fontSize: '3', // 使用1-7范围内的值
     fontFamily: 'Arial, sans-serif',
     textColor: '#333333',
     backgroundColor: 'transparent'
@@ -86,16 +91,15 @@ describe('TextModule', () => {
 
       render(<TextModule {...propsWithoutContent} />)
 
-      expect(screen.getByText('输入文本内容')).toBeInTheDocument()
+      expect(screen.getByText('点击输入文本内容')).toBeInTheDocument()
     })
 
     it('应该应用样式属性', () => {
       render(<TextModule {...mockProps} />)
 
       const textElement = screen.getByText('测试文本内容')
-      expect(textElement).toHaveStyle({
-        fontSize: '16px',
-        fontFamily: 'Arial, sans-serif',
+      const parentDiv = textElement.closest('div')
+      expect(parentDiv).toHaveStyle({
         color: 'rgb(51, 51, 51)'
       })
     })

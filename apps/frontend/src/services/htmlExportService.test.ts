@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { HtmlExportService, generateHTML, generatePreviewHTML } from './htmlExportService'
 import type { PageModule } from '@pagemaker/shared-types'
 import { PageModuleType } from '@pagemaker/shared-types'
+import type { PageTemplate } from '@pagemaker/shared-types'
 
 describe('HtmlExportService', () => {
   const mockTitleModule: PageModule = {
@@ -20,7 +21,7 @@ describe('HtmlExportService', () => {
     type: PageModuleType.TEXT,
     content: '这是一段测试文本',
     alignment: 'left',
-    fontSize: '16px',
+    fontSize: '3', // 使用1-7范围内的值
     fontFamily: 'Arial, sans-serif',
     textColor: '#333333',
     backgroundColor: 'transparent'
@@ -71,7 +72,7 @@ describe('HtmlExportService', () => {
       content: '<p>这是测试文本内容</p>',
       alignment: 'left',
       font: 'Arial',
-      fontSize: '16px',
+      fontSize: '3', // 使用1-7范围内的值
       color: '#333333',
       backgroundColor: 'transparent'
     }
@@ -249,7 +250,7 @@ describe('HtmlExportService', () => {
       const html = HtmlExportService.generateHTML([mockTitleModule], { mobileMode: true })
 
       expect(html).toContain('<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">')
-      expect(html).toContain('<font size="5" color="#1975B0">') // 标题默认24px对应size="5"
+      expect(html).toContain('<font size="4" color="#1975B0">') // 使用默认值4
       expect(html).toContain('<b>测试标题</b>')
       expect(html).not.toContain('class=')
       expect(html).not.toContain('style=')
@@ -258,25 +259,24 @@ describe('HtmlExportService', () => {
     it('应该在移动端模式下正确处理文本模块', () => {
       const html = HtmlExportService.generateHTML([mockTextModule], { mobileMode: true })
 
-      expect(html).toContain('<p><font size="4" color="#333333">这是一段测试文本</font></p>')
+      expect(html).toContain('<p><font size="3" color="#333333">这是一段测试文本</font></p>') // 3对应size="3"
       expect(html).not.toContain('<table')
       expect(html).not.toContain('<div')
       expect(html).not.toContain('class=')
     })
 
-    it('应该正确转换CSS字体大小为HTML font size', () => {
+    it('应该正确转换字体大小为HTML font size', () => {
       const testCases = [
-        { css: '10px', expected: '1' },
-        { css: '12px', expected: '2' },
-        { css: '14px', expected: '3' },
-        { css: '18px', expected: '4' },
-        { css: '24px', expected: '5' },
-        { css: '36px', expected: '6' },
-        { css: '48px', expected: '7' }
+        { fontSize: '1', expected: '1' },
+        { fontSize: '3', expected: '3' },
+        { fontSize: '7', expected: '7' },
+        { fontSize: '0', expected: '4' }, // 超出范围使用默认值4
+        { fontSize: '8', expected: '4' }, // 超出范围使用默认值4
+        { fontSize: 'invalid', expected: '4' } // 无效值使用默认值4
       ]
 
-      testCases.forEach(({ css, expected }) => {
-        const titleModule = { ...mockTitleModule, fontSize: css }
+      testCases.forEach(({ fontSize, expected }) => {
+        const titleModule = { ...mockTitleModule, fontSize }
         const html = HtmlExportService.generateHTML([titleModule], { mobileMode: true })
         expect(html).toContain(`<font size="${expected}"`)
       })
@@ -290,7 +290,7 @@ describe('HtmlExportService', () => {
 
       const html = HtmlExportService.generateHTML([textModuleWithRichContent], { mobileMode: true })
 
-      expect(html).toContain('<font size="4" color="#333333"><p><b>加粗文本</b>红色文本下划线</p></font>')
+      expect(html).toContain('<font size="3" color="#333333"><p><b>加粗文本</b>红色文本下划线</p></font>') // 3对应size="3"
       expect(html).not.toContain('<div>')
       expect(html).not.toContain('<span>')
       expect(html).not.toContain('<strong>')
@@ -441,7 +441,7 @@ describe('HtmlExportService', () => {
       expect(html).toContain('src="https://example.com/image.jpg"')
       expect(html).toContain('alt="测试图片"')
       expect(html).toContain('href="https://example.com"')
-      expect(html).toContain('<font size="4" color="#333333">')
+      expect(html).toContain('<font size="3" color="#333333">') // 3对应size="3"
       expect(html).toContain('width="49%"') // 水平布局应该有列宽
       expect(html).not.toContain('<style>')
       expect(html).not.toContain('flex-direction')
@@ -612,6 +612,75 @@ describe('HtmlExportService', () => {
       // 移动端版本也应该包含br标签
       const mobileResult = HtmlExportService.generateHTML([page], { mobileMode: true })
       expect(mobileResult).toContain('第一行文本<br>第二行文本<br>第三行文本')
+    })
+
+    it('应该正确处理文本模块中的换行', () => {
+      const page: PageTemplate = {
+        id: 'test-page',
+        name: 'Test Page',
+        content: [
+          {
+            id: 'text-1',
+            type: PageModuleType.TEXT,
+            content: '333 333\n333\n333 333\n333',
+            alignment: 'left',
+            fontSize: '24', // 改为size数值
+            textColor: '#000000'
+          }
+        ],
+        target_area: 'mobile',
+        owner_id: 'user-1',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        module_count: 1
+      }
+
+      // 标准版本应该包含br标签
+      const standardResult = HtmlExportService.generateHTML(page.content)
+      expect(standardResult).toContain('333 333<br>333<br>333 333<br>333')
+
+      // 移动端版本应该符合楽天格式要求
+      const mobileResult = HtmlExportService.generateHTML(page.content, { mobileMode: true })
+      expect(mobileResult).toContain('<p><font size="4" color="#000000">333 333<br>333<br>333 333<br>333</font></p>') // 使用默认值4
+    })
+
+    it('应该正确处理1-7字号大小', () => {
+      const testCases = [
+        { fontSize: '1', expectedSize: '1' },
+        { fontSize: '2', expectedSize: '2' },
+        { fontSize: '3', expectedSize: '3' },
+        { fontSize: '4', expectedSize: '4' },
+        { fontSize: '5', expectedSize: '5' },
+        { fontSize: '6', expectedSize: '6' },
+        { fontSize: '7', expectedSize: '7' },
+        { fontSize: '8', expectedSize: '4' }, // 超出范围使用默认值4
+        { fontSize: '0', expectedSize: '4' }  // 超出范围使用默认值4
+      ]
+
+      testCases.forEach(({ fontSize, expectedSize }) => {
+        const page: PageTemplate = {
+          id: 'test-page',
+          name: 'Test Page',
+          content: [
+            {
+              id: 'text-1',
+              type: PageModuleType.TEXT,
+              content: '测试文本',
+              alignment: 'left',
+              fontSize: fontSize,
+              textColor: '#000000'
+            }
+          ],
+          target_area: 'mobile',
+          owner_id: 'user-1',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+          module_count: 1
+        }
+
+        const mobileResult = HtmlExportService.generateHTML(page.content, { mobileMode: true })
+        expect(mobileResult).toContain(`<font size="${expectedSize}"`)
+      })
     })
   })
 

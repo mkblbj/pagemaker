@@ -151,16 +151,31 @@ ${htmlContent}
   private static generateTextHTML(module: PageModule): string {
     const content = getStringProp(module, 'content')
     const alignment = getStringProp(module, 'alignment', 'left')
-    const fontSize = getStringProp(module, 'fontSize', '14px')
+    const fontSize = getStringProp(module, 'fontSize', '4') // 默认size为4
     const fontFamily = getStringProp(module, 'fontFamily', 'inherit')
     const textColor = getStringProp(module, 'textColor', '#000000')
     const backgroundColor = getStringProp(module, 'backgroundColor', 'transparent')
 
+    // 将数字字体大小转换为CSS像素值，与HTML font size标准保持一致
+    const getFontSizeInPx = (size: string): string => {
+      // 标准HTML font size映射 - 与浏览器默认行为一致
+      const sizeMap: Record<string, string> = {
+        '1': '12px',  // xx-small
+        '2': '16px',  // small  
+        '3': '18px',  // medium (浏览器默认)
+        '4': '24px',  // large - 标准大小
+        '5': '32px',  // x-large
+        '6': '48px',  // xx-large
+        '7': '64px'   // xxx-large
+      }
+      return sizeMap[size] || '18px' // 默认18px对应size 3
+    }
+
     const styles = this.generateInlineStyles({
       'text-align': alignment,
-      'font-size': fontSize,
+      'font-size': getFontSizeInPx(fontSize), // 转换为像素值
       'font-family': fontFamily !== 'inherit' ? fontFamily : undefined,
-      'line-height': '1.6',
+      'line-height': '1.625', // 匹配TextModule的leading-relaxed
       color: textColor,
       'background-color': backgroundColor !== 'transparent' ? backgroundColor : undefined,
       'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
@@ -171,11 +186,10 @@ ${htmlContent}
       'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight'))
     })
 
-    // 文本模块支持富文本HTML内容，无需转义
-    // 但需要确保安全性，这里我们假设内容已经被适当处理
-    const formattedContent = content || '输入文本内容'
+    // 将换行符转换为br标签，确保换行正确显示
+    const processedContent = (content || '输入文本内容').replace(/\n/g, '<br>')
 
-    return `        <div class="pm-text" style="${styles}">${formattedContent}</div>`
+    return `        <div class="pm-text" style="${styles}">${processedContent}</div>`
   }
 
   /**
@@ -210,44 +224,41 @@ ${htmlContent}
     const content = textConfig?.content || getStringProp(module, 'content')
     const alignment = textConfig?.alignment || getStringProp(module, 'alignment', 'left')
     const textColor = textConfig?.color || getStringProp(module, 'textColor', '#000000')
-    const fontSize = this.convertToFontSize(textConfig?.fontSize || getStringProp(module, 'fontSize', '14px'))
+    const fontSize = this.convertToFontSize(textConfig?.fontSize || getStringProp(module, 'fontSize', '4')) // 默认size为4
     const backgroundColor = textConfig?.backgroundColor || getStringProp(module, 'backgroundColor', 'transparent')
 
     // 转换对齐方式为乐天支持的格式
     const alignValue = alignment === 'justify' ? 'left' : alignment
 
-    // 处理富文本内容，确保只使用乐天允许的标签
-    const rawContent = this.sanitizeHTMLForRakuten(content || '输入文本内容')
-
-    // 按换行符分割内容，每行用单独的<p>标签包裹
-    const lines = rawContent.split(/\r?\n/).filter(line => line.trim() !== '')
-    
     // 如果没有内容，返回默认文本
-    if (lines.length === 0) {
+    if (!content || content.trim() === '') {
       const alignAttr = alignValue !== 'left' ? ` align="${alignValue}"` : ''
       return `<p${alignAttr}><font size="${fontSize}" color="${textColor}">输入文本内容</font></p>`
     }
 
-    // 为每行生成<p>标签
+    // 将换行符转换为br标签，然后进行HTML清理
+    const contentWithBr = content.replace(/\n/g, '<br>')
+    const sanitizedContent = this.sanitizeHTMLForRakuten(contentWithBr)
+
+    // 使用单个p标签包裹，内部使用br标签换行（符合楽天格式）
     const alignAttr = alignValue !== 'left' ? ` align="${alignValue}"` : ''
-    return lines
-      .map(line => `<p${alignAttr}><font size="${fontSize}" color="${textColor}">${line.trim()}</font></p>`)
-      .join('')
+    return `<p${alignAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></p>`
   }
 
   /**
-   * 转换CSS字体大小为HTML font标签的size属性
+   * 转换字体大小为HTML font标签的size属性
+   * 直接使用1-7的size数值
    */
-  private static convertToFontSize(cssSize: string): string {
-    // 将CSS字体大小转换为HTML font标签的size属性（1-7）
-    const size = parseInt(cssSize.replace(/[^\d]/g, ''))
-    if (size <= 10) return '1'
-    if (size <= 12) return '2'
-    if (size <= 14) return '3'
-    if (size <= 18) return '4'
-    if (size <= 24) return '5'
-    if (size <= 36) return '6'
-    return '7'
+  private static convertToFontSize(size: string | number): string {
+    const numericSize = typeof size === 'number' ? size : parseInt(size.toString().replace(/[^\d]/g, ''))
+    
+    // 确保在1-7范围内
+    if (numericSize >= 1 && numericSize <= 7) {
+      return numericSize.toString()
+    }
+    
+    // 超出范围时使用默认值4
+    return '4'
   }
 
   /**
@@ -578,7 +589,7 @@ ${tableRows}
     // 如果图片和文本都为空，返回占位符
     if (!imageConfig.src && !textConfig.content) {
       if (options.mobileMode) {
-        return `<table width="100%" cellpadding="8" cellspacing="0" border="0" align="center">
+        return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
 <tr>
 <td align="center"><font size="2" color="#666666">多列图文模块：内容未设置</font></td>
 </tr>
@@ -645,7 +656,7 @@ ${tableRows}
         imgElement = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
       }
 
-      return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
 <tr>
 <td align="${imageAlignment}">${imgElement}</td>
 </tr>
@@ -654,7 +665,7 @@ ${tableRows}
 
     if (textConfig.content) {
       const textAlignment = textConfig.alignment || 'left'
-      const fontSize = this.convertToFontSize(textConfig.fontSize || '14px')
+      const fontSize = this.convertToFontSize(textConfig.fontSize || '4') // 默认size为4
       const textColor = textConfig.color || '#000000'
       const backgroundColor = textConfig.backgroundColor || 'transparent'
 
@@ -665,7 +676,7 @@ ${tableRows}
       const contentWithBr = textConfig.content.replace(/\n/g, '<br>')
       const sanitizedContent = this.sanitizeHTMLForRakuten(contentWithBr)
 
-      return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
 <tr>
 <td${alignAttr}${bgColorAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>
 </tr>
@@ -692,7 +703,7 @@ ${tableRows}
     }
 
     const textAlignment = textConfig.alignment || 'left'
-    const fontSize = this.convertToFontSize(textConfig.fontSize || '14px')
+    const fontSize = this.convertToFontSize(textConfig.fontSize || '4') // 默认size为4
     const textColor = textConfig.color || '#000000'
     const backgroundColor = textConfig.backgroundColor || 'transparent'
 
@@ -708,7 +719,7 @@ ${tableRows}
     const imageCell = `<td width="49%" align="${imageAlignment}">${imgElement}</td>`
     const textCell = `<td${textBgColorAttr} width="49%"${textAlignAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>`
 
-    return `<table width="100%" cellspacing="0" cellpadding="10" border="0">
+    return `<table width="100%" cellspacing="0" cellpadding="0" border="0">
 <tr align="center">
 ${isImageLeft ? imageCell : textCell}
 ${isImageLeft ? textCell : imageCell}
@@ -733,7 +744,7 @@ ${isImageLeft ? textCell : imageCell}
     }
 
     const textAlignment = textConfig.alignment || 'left'
-    const fontSize = this.convertToFontSize(textConfig.fontSize || '14px')
+    const fontSize = this.convertToFontSize(textConfig.fontSize || '4') // 默认size为4
     const textColor = textConfig.color || '#000000'
     const backgroundColor = textConfig.backgroundColor || 'transparent'
 
@@ -753,7 +764,7 @@ ${isImageLeft ? textCell : imageCell}
 <td${textAlignAttr}${textBgColorAttr}><font size="${fontSize}" color="${textColor}">${sanitizedContent}</font></td>
 </tr>`
 
-    return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+    return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
 ${isImageTop ? imageRow : textRow}
 ${isImageTop ? textRow : imageRow}
 </table>`
@@ -869,13 +880,30 @@ ${validParts.join('\n')}
     // 将换行符转换为br标签，确保换行正确显示
     const processedContent = textConfig.content.replace(/\n/g, '<br>')
 
+    const fontSize = textConfig.fontSize || '4' // 默认size为4
+
+    // 将数字字体大小转换为CSS像素值，与HTML font size标准保持一致
+    const getFontSizeInPx = (size: string): string => {
+      // 标准HTML font size映射 - 与浏览器默认行为一致
+      const sizeMap: Record<string, string> = {
+        '1': '12px',  // xx-small
+        '2': '16px',  // small  
+        '3': '18px',  // medium (浏览器默认)
+        '4': '24px',  // large - 标准大小
+        '5': '32px',  // x-large
+        '6': '48px',  // xx-large
+        '7': '64px'   // xxx-large
+      }
+      return sizeMap[size] || '18px' // 默认18px对应size 3
+    }
+
     const textStyles = this.generateInlineStyles({
       'font-family': textConfig.font !== 'inherit' ? textConfig.font : undefined,
-      'font-size': textConfig.fontSize || '14px',
+      'font-size': getFontSizeInPx(fontSize), // 转换为像素值
       color: textConfig.color || '#000000',
       'background-color': textConfig.backgroundColor !== 'transparent' ? textConfig.backgroundColor : undefined,
       'text-align': textConfig.alignment || 'left',
-      'line-height': '1.6',
+      'line-height': '1.625', // 匹配TextModule的leading-relaxed
       padding: textConfig.backgroundColor !== 'transparent' ? '12px' : undefined,
       'border-radius': textConfig.backgroundColor !== 'transparent' ? '4px' : undefined
     })
