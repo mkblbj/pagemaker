@@ -288,11 +288,21 @@ export function HtmlExportButton({
   const handlePreviewHTML = () => {
     if (!generatedHTML) return
 
-    const previewWindow = window.open('', '_blank', 'width=1200,height=800')
-    if (previewWindow) {
-      previewWindow.document.write(generatedHTML)
-      previewWindow.document.close()
+    // 使用sessionStorage传递HTML内容，避免URL长度限制
+    const previewData = {
+      content: generatedHTML,
+      title: pageTitle,
+      timestamp: Date.now()
     }
+    
+    // 生成唯一的预览ID
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    sessionStorage.setItem(previewId, JSON.stringify(previewData))
+    
+    // 使用预览ID作为URL参数
+    const previewUrl = `/preview?id=${previewId}`
+    
+    window.open(previewUrl, '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
   }
 
   // 对话框打开时自动生成HTML

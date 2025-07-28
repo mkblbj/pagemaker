@@ -78,8 +78,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   // Authenticated - render protected content
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
+    <div className="h-screen bg-background flex flex-col">
+      <header className="border-b border-border bg-card flex-shrink-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">Pagemaker CMS</h1>
@@ -108,7 +108,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </header>
-      <main className={`${isEditorPage ? '' : 'container mx-auto px-4 py-8'}`}>{children}</main>
+      <main className={`flex-1 overflow-hidden ${isEditorPage ? '' : 'container mx-auto px-4 py-8 overflow-y-auto'}`}>{children}</main>
     </div>
   )
 }

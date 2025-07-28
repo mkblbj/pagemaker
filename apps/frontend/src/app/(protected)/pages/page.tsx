@@ -71,7 +71,7 @@ export default function PagesPage() {
 
   // 处理预览页面
   const handlePreviewPage = (pageId: string) => {
-    window.open(`/preview/${pageId}`, '_blank')
+    window.open(`/preview/${pageId}`, '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
   }
 
   // 处理删除页面

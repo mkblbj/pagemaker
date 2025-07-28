@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Button } from '@/components/ui/button'
-import { Save, Eye, Settings, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RotateCcw } from 'lucide-react'
+import { Save, Eye, Settings, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RotateCcw, Clock, Loader2 } from 'lucide-react'
 import { ModuleList } from './ModuleList'
 import { Canvas } from './Canvas'
 import { PropertyPanel } from './PropertyPanel'
@@ -114,41 +114,84 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     }
   }, [isResizing, handleMouseMove, handleMouseUp])
 
-  // 使用HTML导出服务直接预览
+  // 使用新的预览页面进行预览
   const handlePreview = async () => {
-    if (!currentPage?.content) return
+    if (!currentPage) return
 
     try {
-      // 动态导入HTML导出服务
-      const { generateHTML } = await import('@/services/htmlExportService')
-      const { targetArea } = usePageStore.getState()
-
-      // 根据目标区域设置导出选项
-      const isMobileMode = targetArea === 'mobile'
-      const exportOptions = {
-        includeStyles: !isMobileMode,
-        minify: true,
-        title: currentPage.name || '页面预览',
-        description: `使用 Pagemaker CMS 创建的页面：${currentPage.name}`,
-        language: 'ja-JP',
-        fullDocument: true, // 预览时使用完整文档
-        mobileMode: isMobileMode
+      // 如果有未保存的更改，先保存
+      if (hasUnsavedChanges) {
+        await savePage()
       }
 
-      // 生成HTML
-      const html = generateHTML(currentPage.content, exportOptions)
-
-      // 在新窗口中预览
-      const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes')
-      if (previewWindow) {
-        previewWindow.document.write(html)
-        previewWindow.document.close()
-        previewWindow.document.title = `预览: ${currentPage.name}`
-      }
+      // 使用新的预览页面路由
+      const previewUrl = `/preview/${currentPage.id}`
+      window.open(previewUrl, '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
     } catch (error) {
       console.error('预览失败:', error)
-      // 备用预览方法
-      previewPage()
+      // 备用预览方法 - 使用HTML导出服务直接预览
+      try {
+        const { generateHTML } = await import('@/services/htmlExportService')
+        const { targetArea } = usePageStore.getState()
+
+        const isMobileMode = targetArea === 'mobile'
+        const exportOptions = {
+          includeStyles: !isMobileMode,
+          minify: true,
+          title: currentPage.name || '页面预览',
+          description: `使用 Pagemaker CMS 创建的页面：${currentPage.name}`,
+          language: 'ja-JP',
+          fullDocument: true,
+          mobileMode: isMobileMode
+        }
+
+        const html = generateHTML(currentPage.content, exportOptions)
+        
+        // 创建简化的iPhone预览窗口
+        const previewWindow = window.open('', '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
+        if (previewWindow) {
+          const previewHtml = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>预览: ${currentPage.name}</title>
+  <style>
+              body {
+       margin: 0;
+        padding: 54px 12px 0 12px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: white;
+        overflow-x: hidden;
+       }
+       .preview-content {
+         width: 100%;
+          height: calc(100vh - 54px);
+          overflow-y: auto;
+          /* 隐藏滚动条 */
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+         }
+         .preview-content::-webkit-scrollbar {
+           display: none;
+         }
+  </style>
+</head>
+<body>
+  <div class="preview-content">
+    ${html}
+  </div>
+</body>
+</html>`
+          previewWindow.document.write(previewHtml)
+          previewWindow.document.close()
+        }
+      } catch (fallbackError) {
+        console.error('备用预览也失败:', fallbackError)
+        // 最后的备用方法
+        previewPage()
+      }
     }
   }
 
@@ -157,14 +200,14 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       <KeyboardShortcuts onShowHelp={handleShowHelp} />
       <KeyboardShortcutsHelp ref={helpDialogRef} />
       <ToastContainer />
-      <div className="flex h-screen bg-gray-50" data-testid="editor-layout">
+      <div className="flex h-full bg-gray-50 overflow-hidden" data-testid="editor-layout">
         {/* 左侧面板 - 模块列表 */}
         <div
-          className={`bg-white border-r border-gray-200 shadow-sm transition-all duration-300 overflow-x-hidden ${isLeftPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
+          className={`bg-white border-r border-gray-200 shadow-sm transition-all duration-300 overflow-hidden ${isLeftPanelCollapsed ? 'w-0' : ''}`}
           style={{ width: isLeftPanelCollapsed ? 0 : leftPanelWidth }}
         >
           <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-800">{tEditor('模块库')}</h2>
                 <Button variant="ghost" size="sm" onClick={toggleLeftPanel} className="hover:bg-white/50">
@@ -172,7 +215,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 </Button>
               </div>
             </div>
-            <div className="flex-1 overflow-hidden bg-white">
+            <div className="flex-1 overflow-y-auto bg-white">
               <ModuleList />
             </div>
           </div>
@@ -181,15 +224,15 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         {/* 左侧分割条 */}
         {!isLeftPanelCollapsed && (
           <div
-            className={`w-1 bg-gray-200 hover:bg-blue-300 cursor-col-resize transition-colors select-none ${isResizing === 'left' ? 'bg-blue-400' : ''}`}
+            className={`w-1 bg-gray-200 hover:bg-blue-300 cursor-col-resize transition-colors select-none flex-shrink-0 ${isResizing === 'left' ? 'bg-blue-400' : ''}`}
             onMouseDown={e => handleMouseDown('left', e)}
           />
         )}
 
         {/* 中间画布区域 */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* 优化后的顶部工具栏 - 分为两行 */}
-          <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
             {/* 第一行：页面信息和状态 */}
             <div className="h-12 px-4 flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
               <div className="flex items-center gap-6">
@@ -238,8 +281,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 {/* 保存状态指示 */}
                 {hasUnsavedChanges && (
                   <div className="flex items-center gap-1 text-sm text-amber-600">
-                    <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span data-testid="unsaved-indicator">{tEditor('未保存的更改')}</span>
+                    <Clock className="h-4 w-4" />
+                    <span>{tEditor('有未保存更改')}</span>
                   </div>
                 )}
 
@@ -252,15 +295,39 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
               </div>
             </div>
 
-            {/* 第二行：目标区域选择和操作按钮 */}
-            <div className="h-12 px-4 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-4">
-                {/* 简化的目标区域选择器 - 移除冗余显示 */}
-                <TargetAreaSelector />
-              </div>
-
+            {/* 第二行：操作按钮 */}
+            <div className="h-14 px-4 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
-                {/* 操作按钮 - 添加颜色 */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={savePage}
+                  disabled={!hasUnsavedChanges || isSaving}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {tEditor('保存中')}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      {tEditor('保存')}
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreview}
+                  className="border-green-200 text-green-700 hover:bg-green-50"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {tEditor('预览')}
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -270,34 +337,17 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                   <RotateCcw className="h-4 w-4 mr-2" />
                   {tEditor('重置')}
                 </Button>
-                <Button
+              </div>
+
+              <div className="flex items-center gap-2">
+                <HtmlExportButton 
+                  modules={currentPage?.content || []}
+                  pageTitle={currentPage?.name}
                   variant="outline"
                   size="sm"
-                  onClick={handlePreview}
-                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  {tEditor('预览')}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isSaving}
-                  onClick={savePage}
-                  className="border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? tEditor('保存中...') : tEditor('保存')}
-                </Button>
-                <div data-html-export-button>
-                  <HtmlExportButton
-                    modules={currentPage?.content || []}
-                    pageTitle={currentPage?.name}
-                    variant="outline"
-                    size="sm"
-                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                  />
-                </div>
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                />
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -312,10 +362,13 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           </div>
 
           {/* 画布区域 */}
-          <div className="flex-1 overflow-auto bg-gray-50">
-            <div className="p-4">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-full">
-                <Canvas />
+          <div className="flex-1 overflow-hidden bg-gray-50">
+            <div className="h-full overflow-y-auto">
+              <div className="p-4 md:p-6">
+                {/* 移动端画布宽度调整为一半 */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-full w-full md:max-w-[50%] md:mx-auto">
+                  <Canvas />
+                </div>
               </div>
             </div>
           </div>
@@ -324,18 +377,18 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         {/* 右侧分割条 */}
         {!isRightPanelCollapsed && (
           <div
-            className={`w-1 bg-gray-200 hover:bg-blue-300 cursor-col-resize transition-colors select-none ${isResizing === 'right' ? 'bg-blue-400' : ''}`}
+            className={`w-1 bg-gray-200 hover:bg-blue-300 cursor-col-resize transition-colors select-none flex-shrink-0 ${isResizing === 'right' ? 'bg-blue-400' : ''}`}
             onMouseDown={e => handleMouseDown('right', e)}
           />
         )}
 
         {/* 右侧面板 - 属性编辑 */}
         <div
-          className={`bg-white border-l border-gray-200 shadow-sm transition-all duration-300 overflow-x-hidden ${isRightPanelCollapsed ? 'w-0 overflow-hidden' : ''}`}
+          className={`bg-white border-l border-gray-200 shadow-sm transition-all duration-300 overflow-hidden ${isRightPanelCollapsed ? 'w-0' : ''}`}
           style={{ width: isRightPanelCollapsed ? 0 : rightPanelWidth }}
         >
           <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-800">{tEditor('属性设置')}</h2>
                 <Button variant="ghost" size="sm" onClick={toggleRightPanel} className="hover:bg-white/50">
@@ -343,7 +396,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 </Button>
               </div>
             </div>
-            <div className="flex-1 overflow-hidden bg-white">
+            <div className="flex-1 overflow-y-auto bg-white">
               <PropertyPanel />
             </div>
           </div>
