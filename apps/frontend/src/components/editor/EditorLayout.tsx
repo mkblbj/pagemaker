@@ -282,7 +282,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 {hasUnsavedChanges && (
                   <div className="flex items-center gap-1 text-sm text-amber-600">
                     <Clock className="h-4 w-4" />
-                    <span>{tEditor('有未保存更改')}</span>
+                    <span>{tEditor('有未保存的更改')}</span>
                   </div>
                 )}
 

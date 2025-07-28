@@ -69,8 +69,8 @@ const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
             <div className="absolute left-1/2 top-3 z-20 h-[30px] w-[120px] -translate-x-1/2 rounded-full bg-black" />
 
             {/* Status Bar */}
-            <div className="absolute left-0 top-0 z-10 flex w-full items-center justify-between px-8 pt-5 text-sm font-semibold text-white">
-              <time>9:41</time>
+            <div className="absolute left-0 top-0 z-10 flex w-full items-center justify-between px-8 pt-5 text-sm font-semibold text-black dark:text-white">
+              <time>8:24</time>
               <div className="flex items-center gap-2">
                 <Signal size={16} />
                 <Wifi size={16} />

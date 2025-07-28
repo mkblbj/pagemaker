@@ -388,7 +388,6 @@
     "图片配置": "Image configuration",
     "图片对齐": "Image alignment",
     "图片宽度": "Image width",
-    "支持百分比(50%)或像素值(200px)": "Support percentage (50%) or pixel value (200px)",
     "文本配置": "Text configuration",
     "文本对齐": "Text alignment",
     "(功能开发中)": "(功能开发中)",
@@ -412,7 +411,8 @@
     "重置操作将：": "Reset operation will:",
     "删除页面中的所有模块": "Delete all modules in the page",
     "清空页面内容": "Clear page content",
-    "保留页面基本信息": "Keep page basic information"
+    "保留页面基本信息": "Keep page basic information",
+    "支持百分比(100%)或像素值(200px)": "Support percentage (100%) or pixel value (200px)"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",
