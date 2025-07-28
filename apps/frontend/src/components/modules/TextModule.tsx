@@ -39,7 +39,7 @@ export function TextModule({
   onEndEdit
 }: TextModuleProps) {
   const { tEditor } = useTranslation()
-  const [localContent, setLocalContent] = useState(module.content || '输入文本内容')
+  const [localContent, setLocalContent] = useState(module.content || '')
   const [selectedText, setSelectedText] = useState('')
   const [formatState, setFormatState] = useState<FormatState>({
     bold: false,
@@ -58,9 +58,13 @@ export function TextModule({
   // 处理编辑模式
   useEffect(() => {
     if (isEditing && editorRef.current) {
+      // 如果内容是默认提示文本或为空，清空编辑器
+      const isPlaceholderText = localContent === tEditor('输入文本内容') || !localContent
+      const contentToSet = isPlaceholderText ? '' : localContent
+      
       // 设置初始内容（只在刚进入编辑模式时）
-      if (editorRef.current.innerHTML !== localContent) {
-        editorRef.current.innerHTML = localContent
+      if (editorRef.current.innerHTML !== contentToSet) {
+        editorRef.current.innerHTML = contentToSet
       }
       editorRef.current.focus()
 
@@ -113,12 +117,28 @@ export function TextModule({
         }
       }
     }
-  }, [isEditing, localContent])
+      }, [isEditing, localContent, tEditor])
 
   // 处理内容更新
   const handleContentChange = () => {
     if (editorRef.current) {
-      const content = editorRef.current.innerHTML
+      let content = editorRef.current.innerHTML
+
+      // 清理空的HTML标签和无意义的标签
+      content = content
+        .replace(/<br\s*\/?>/gi, '') // 移除所有br标签
+        .replace(/<p><\/p>/gi, '') // 移除空的p标签
+        .replace(/<div><\/div>/gi, '') // 移除空的div标签
+        .replace(/&nbsp;/gi, ' ') // 替换非断空格
+        .replace(/<p>\s*<\/p>/gi, '') // 移除只包含空白的p标签
+        .replace(/<div>\s*<\/div>/gi, '') // 移除只包含空白的div标签
+        .trim()
+
+      // 如果内容为空或只包含空白字符，设置为空字符串
+      if (!content || content === '' || /^[\s\u00A0]*$/.test(content)) {
+        content = ''
+      }
+
       setLocalContent(content)
       onUpdate?.({ content })
     }
@@ -135,6 +155,25 @@ export function TextModule({
   // 处理失焦
   const handleBlur = () => {
     handleContentChange()
+    
+    // 额外检查：如果处理后的内容仍然只是空白或无意义的HTML，强制设为空
+    if (editorRef.current) {
+      const rawContent = editorRef.current.innerHTML
+      const cleanedContent = rawContent
+        .replace(/<br\s*\/?>/gi, '')
+        .replace(/<p><\/p>/gi, '')
+        .replace(/<div><\/div>/gi, '')
+        .replace(/<p>\s*<\/p>/gi, '')
+        .replace(/<div>\s*<\/div>/gi, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim()
+      
+      if (!cleanedContent || /^[\s\u00A0]*$/.test(cleanedContent)) {
+        setLocalContent('')
+        onUpdate?.({ content: '' })
+      }
+    }
+    
     onEndEdit?.()
   }
 
@@ -321,12 +360,13 @@ export function TextModule({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           className={cn(
-            'w-full bg-transparent border-none outline-none min-h-[2em] whitespace-pre-wrap',
+            'w-full bg-transparent border-none outline-none min-h-[2em] whitespace-pre-wrap empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400',
             textStyles.className
           )}
           style={textStyles.style}
           role="textbox"
           aria-label={tEditor('文本内容编辑器')}
+          data-placeholder={tEditor('输入文本内容')}
           tabIndex={0}
         />
       ) : (
@@ -334,8 +374,13 @@ export function TextModule({
           className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
           style={textStyles.style}
           onClick={onStartEdit}
-          dangerouslySetInnerHTML={{ __html: localContent || tEditor('输入文本内容') }}
-        />
+        >
+          {localContent ? (
+            <div dangerouslySetInnerHTML={{ __html: localContent }} />
+          ) : (
+            <div className="text-gray-400">{tEditor('点击输入文本内容')}</div>
+          )}
+        </div>
       )}
     </div>
   )

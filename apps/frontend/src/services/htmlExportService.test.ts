@@ -587,6 +587,32 @@ describe('HtmlExportService', () => {
       expect(emailHtml).toContain('href="mailto:test@example.com"')
       expect(phoneHtml).toContain('href="tel:+86 138 0013 8000"')
     })
+
+    it('应该正确处理多列图文模块中的文本换行', () => {
+      const page: PageModule = {
+        ...mockMultiColumnModule,
+        imageConfig: {
+          src: 'https://example.com/image.jpg',
+          alt: '测试图片',
+          alignment: 'center',
+          width: '50%'
+        },
+        textConfig: {
+          content: '第一行文本\n第二行文本\n第三行文本',
+          alignment: 'left',
+          fontSize: '16px',
+          color: '#333333'
+        }
+      }
+
+      // 标准版本应该包含br标签
+      const standardResult = HtmlExportService.generateHTML([page])
+      expect(standardResult).toContain('第一行文本<br>第二行文本<br>第三行文本')
+
+      // 移动端版本也应该包含br标签
+      const mobileResult = HtmlExportService.generateHTML([page], { mobileMode: true })
+      expect(mobileResult).toContain('第一行文本<br>第二行文本<br>第三行文本')
+    })
   })
 
   describe('generatePreviewHTML', () => {

@@ -38,7 +38,7 @@ describe('MultiColumnModule', () => {
       width: '50%'
     },
     textConfig: {
-      content: '输入文本内容',
+      content: '', // 空字符串，让组件显示placeholder
       alignment: 'left' as const,
       font: 'inherit',
       fontSize: '14px',

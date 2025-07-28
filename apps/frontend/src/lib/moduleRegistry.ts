@@ -44,7 +44,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
       category: 'basic',
       color: 'text-green-600',
       defaultConfig: {
-        content: tEditor('输入文本内容'),
+        content: '', // 空字符串，让组件显示placeholder
         fontSize: '14px',
         fontFamily: 'inherit',
         alignment: 'left',
@@ -121,7 +121,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
           width: '100%'
         },
         textConfig: {
-          content: tEditor('输入文本内容'),
+          content: '', // 空字符串，让组件显示placeholder
           alignment: 'left',
           font: 'inherit',
           fontSize: '14px',

@@ -50,7 +50,7 @@ export function MultiColumnModule({
     width: '100%'  // 移动端默认全宽
   }
   const textConfig = module.textConfig || {
-    content: tEditor('输入文本内容'),
+    content: '', // 空字符串，让组件显示placeholder
     alignment: 'left',
     font: 'inherit',
     fontSize: '14px',
@@ -64,13 +64,15 @@ export function MultiColumnModule({
 
   // 初始化本地文本内容
   useEffect(() => {
-    setLocalTextContent(textConfig.content || tEditor('输入文本内容'))
-  }, [textConfig.content, tEditor])
+    setLocalTextContent(textConfig.content || '')
+  }, [textConfig.content])
 
   // 处理文本编辑模式
   useEffect(() => {
     if (isEditingText && textEditorRef.current) {
-      textEditorRef.current.innerHTML = localTextContent
+      // 如果内容是默认提示文本，清空编辑器
+      const isPlaceholderText = localTextContent === tEditor('输入文本内容') || !localTextContent
+      textEditorRef.current.innerHTML = isPlaceholderText ? '' : localTextContent
       textEditorRef.current.focus()
 
       // 将光标置于末尾
@@ -87,7 +89,7 @@ export function MultiColumnModule({
         console.debug('Selection API not available')
       }
     }
-  }, [isEditingText, localTextContent])
+  }, [isEditingText, localTextContent, tEditor])
 
   // 处理图片配置更新
   const handleImageUpdate = (updates: Partial<typeof imageConfig>) => {
@@ -113,12 +115,19 @@ export function MultiColumnModule({
     if (textEditorRef.current) {
       let content = textEditorRef.current.innerHTML
 
-      // 清理空的HTML标签和无意义的br标签
+      // 将br标签转换为换行符，以便正确保存和显示
       content = content
-        .replace(/<br\s*\/?>/gi, '') // 移除所有br标签
+        .replace(/<br\s*\/?>/gi, '\n') // 将br标签转换为换行符
         .replace(/<p><\/p>/gi, '') // 移除空的p标签
         .replace(/<div><\/div>/gi, '') // 移除空的div标签
         .replace(/&nbsp;/gi, ' ') // 替换非断空格
+        .replace(/<p>\s*<\/p>/gi, '') // 移除只包含空白的p标签
+        .replace(/<div>\s*<\/div>/gi, '') // 移除只包含空白的div标签
+        .replace(/<p>/gi, '') // 移除p开始标签
+        .replace(/<\/p>/gi, '\n') // 将p结束标签转换为换行符
+        .replace(/<div>/gi, '') // 移除div开始标签
+        .replace(/<\/div>/gi, '\n') // 将div结束标签转换为换行符
+        .replace(/\n+/g, '\n') // 合并多个连续换行符为单个
         .trim()
 
       // 如果内容为空或只包含空白字符，设置为空字符串
@@ -143,6 +152,29 @@ export function MultiColumnModule({
   const handleTextBlur = () => {
     handleTextContentChange()
     setIsEditingText(false)
+    
+    // 额外检查：如果处理后的内容仍然只是空白或无意义的HTML，强制设为空
+    if (textEditorRef.current) {
+      const rawContent = textEditorRef.current.innerHTML
+      const cleanedContent = rawContent
+        .replace(/<br\s*\/?>/gi, '\n') // 将br标签转换为换行符
+        .replace(/<p><\/p>/gi, '')
+        .replace(/<div><\/div>/gi, '')
+        .replace(/<p>\s*<\/p>/gi, '')
+        .replace(/<div>\s*<\/div>/gi, '')
+        .replace(/<p>/gi, '') // 移除p开始标签
+        .replace(/<\/p>/gi, '\n') // 将p结束标签转换为换行符
+        .replace(/<div>/gi, '') // 移除div开始标签
+        .replace(/<\/div>/gi, '\n') // 将div结束标签转换为换行符
+        .replace(/\n+/g, '\n') // 合并多个连续换行符为单个
+        .replace(/&nbsp;/gi, ' ')
+        .trim()
+      
+      if (!cleanedContent || /^[\s\u00A0]*$/.test(cleanedContent)) {
+        setLocalTextContent('')
+        handleTextUpdate({ content: '' })
+      }
+    }
   }
 
   // 开始文本编辑
@@ -213,13 +245,14 @@ export function MultiColumnModule({
   const renderTextArea = () => {
     // 检查文本是否为空（包括只有HTML标签的情况）
     const cleanContent = textConfig.content
+      ?.replace(/\n/g, '') // 移除换行符进行空内容检查
       ?.replace(/<br\s*\/?>/gi, '')
       ?.replace(/<p><\/p>/gi, '')
       ?.replace(/<div><\/div>/gi, '')
       ?.replace(/&nbsp;/gi, ' ')
       ?.trim()
 
-    const isEmpty = !cleanContent || cleanContent === '' || cleanContent === tEditor('输入文本内容')
+    const isEmpty = !cleanContent || cleanContent === ''
 
     if (isEmpty && !isEditingText) {
       return (
@@ -246,16 +279,17 @@ export function MultiColumnModule({
             onInput={handleTextContentChange}
             onKeyDown={handleTextKeyDown}
             onBlur={handleTextBlur}
-            className="w-full bg-blue-50 border-2 border-blue-300 rounded-md p-2 outline-none min-h-[2em] whitespace-pre-wrap prose prose-sm max-w-none focus:border-blue-500 focus:bg-blue-100"
+            className="w-full bg-blue-50 border-2 border-blue-300 rounded-md p-2 outline-none min-h-[2em] whitespace-pre-wrap prose prose-sm max-w-none focus:border-blue-500 focus:bg-blue-100 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
             role="textbox"
             aria-label={tEditor('文本内容编辑器')}
+            data-placeholder={tEditor('输入文本内容')}
             tabIndex={0}
           />
         ) : (
           <div
             onClick={startTextEdit}
             className="cursor-text prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: textConfig.content }}
+            dangerouslySetInnerHTML={{ __html: textConfig.content.replace(/\n/g, '<br>') }}
           />
         )}
       </div>

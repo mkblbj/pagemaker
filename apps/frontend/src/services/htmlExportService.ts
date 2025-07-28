@@ -661,7 +661,9 @@ ${tableRows}
       const bgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
       const alignAttr = textAlignment !== 'left' ? ` align="${textAlignment}"` : ''
 
-      const sanitizedContent = this.sanitizeHTMLForRakuten(textConfig.content)
+      // 将换行符转换为br标签，然后进行HTML清理
+      const contentWithBr = textConfig.content.replace(/\n/g, '<br>')
+      const sanitizedContent = this.sanitizeHTMLForRakuten(contentWithBr)
 
       return `<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
 <tr>
@@ -697,7 +699,9 @@ ${tableRows}
     const textBgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
     const textAlignAttr = textAlignment !== 'left' ? ` align="${textAlignment}"` : ''
 
-    const sanitizedContent = this.sanitizeHTMLForRakuten(textConfig.content)
+    // 将换行符转换为br标签，然后进行HTML清理
+    const contentWithBr = textConfig.content.replace(/\n/g, '<br>')
+    const sanitizedContent = this.sanitizeHTMLForRakuten(contentWithBr)
 
     // 根据布局决定图片和文本的顺序
     const isImageLeft = layout === 'imageLeft'
@@ -736,7 +740,9 @@ ${isImageLeft ? textCell : imageCell}
     const textBgColorAttr = backgroundColor !== 'transparent' ? ` bgcolor="${backgroundColor}"` : ''
     const textAlignAttr = textAlignment !== 'left' ? ` align="${textAlignment}"` : ''
 
-    const sanitizedContent = this.sanitizeHTMLForRakuten(textConfig.content)
+    // 将换行符转换为br标签，然后进行HTML清理
+    const contentWithBr = textConfig.content.replace(/\n/g, '<br>')
+    const sanitizedContent = this.sanitizeHTMLForRakuten(contentWithBr)
 
     // 根据布局决定图片和文本的顺序
     const isImageTop = layout === 'imageTop'
@@ -860,6 +866,9 @@ ${validParts.join('\n')}
       return ''
     }
 
+    // 将换行符转换为br标签，确保换行正确显示
+    const processedContent = textConfig.content.replace(/\n/g, '<br>')
+
     const textStyles = this.generateInlineStyles({
       'font-family': textConfig.font !== 'inherit' ? textConfig.font : undefined,
       'font-size': textConfig.fontSize || '14px',
@@ -877,7 +886,7 @@ ${validParts.join('\n')}
 
     return `            <div class="pm-multi-column-text" style="${containerStyles}">
                 <div style="${textStyles}">
-                    ${textConfig.content}
+                    ${processedContent}
                 </div>
             </div>`
   }

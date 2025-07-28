@@ -403,7 +403,8 @@
     "请在画布中点击图片区域添加": "Click on the image area in the canvas to add",
     "在画布中点击图片区域可添加图片": "Click on the image area in the canvas to add image",
     "点击图片或文本区域直接编辑": "Click on the image or text area to edit directly",
-    "添加多列图文组合": "Add multi-column text image"
+    "添加多列图文组合": "Add multi-column text image",
+    "点击输入文本内容": "Click to enter text content"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",
