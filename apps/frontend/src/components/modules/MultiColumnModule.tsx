@@ -366,7 +366,7 @@ export function MultiColumnModule({
       <div className="w-full">{renderContent()}</div>
 
       {/* 编辑提示 */}
-      {isSelected && !isEditing && (
+      {!isEditing && (
         <div className="absolute inset-0 flex items-center justify-center bg-blue-50/80 rounded-lg border-2 border-blue-300 border-dashed">
           <div className="text-sm text-blue-600 font-medium">{tEditor('点击图片或文本区域直接编辑')}</div>
         </div>

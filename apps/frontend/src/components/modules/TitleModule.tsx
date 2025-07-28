@@ -145,7 +145,7 @@ export function TitleModule({
         <Badge variant="secondary" className="text-xs">
           {tEditor('标题模块 (H{level})', { level: module.level || 1 })}
         </Badge>
-        {isSelected && !isEditing && (
+        {!isEditing && (
           <Badge variant="outline" className="text-xs text-blue-600">
             {tEditor('点击编辑')}
           </Badge>

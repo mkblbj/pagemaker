@@ -67,7 +67,7 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
         alignment: 'center',
         size: {
           type: 'preset',
-          value: 'medium'
+          value: 'full'
         }
       },
       isEnabled: true,

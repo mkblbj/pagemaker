@@ -33,7 +33,7 @@ describe('ImageModule', () => {
     alignment: 'center' as const,
     size: {
       type: 'preset' as const,
-      value: 'medium'
+      value: 'full'
     }
   }
 

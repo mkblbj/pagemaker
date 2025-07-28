@@ -153,7 +153,7 @@ function ImageModuleProperties({
             onValueChange={(value: 'preset' | 'percentage') =>
               onUpdate('size', {
                 type: value,
-                value: value === 'preset' ? 'medium' : '100'
+                value: value === 'preset' ? 'full' : '100'
               })
             }
           >
@@ -168,7 +168,7 @@ function ImageModuleProperties({
 
           {module.size?.type === 'preset' ? (
             <Select
-              value={module.size?.value || 'medium'}
+              value={module.size?.value || 'full'}
               onValueChange={value => onUpdate('size', { type: 'preset', value })}
             >
               <SelectTrigger>

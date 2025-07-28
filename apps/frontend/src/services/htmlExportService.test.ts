@@ -437,7 +437,7 @@ describe('HtmlExportService', () => {
     it('应该正确生成多列图文模块的HTML（移动端版本）', () => {
       const html = HtmlExportService.generateHTML([mockMultiColumnModule], { mobileMode: true })
 
-      expect(html).toContain('<table width="100%" cellspacing="0" cellpadding="10"')
+      expect(html).toContain('<table width="100%" cellspacing="0" cellpadding="0"')
       expect(html).toContain('src="https://example.com/image.jpg"')
       expect(html).toContain('alt="测试图片"')
       expect(html).toContain('href="https://example.com"')
@@ -681,6 +681,73 @@ describe('HtmlExportService', () => {
         const mobileResult = HtmlExportService.generateHTML(page.content, { mobileMode: true })
         expect(mobileResult).toContain(`<font size="${expectedSize}"`)
       })
+    })
+
+    it('应该正确生成图片模块的简化HTML', () => {
+      const imageModule: PageModule = {
+        id: 'image-1',
+        type: PageModuleType.IMAGE,
+        src: 'https://example.com/test.jpg',
+        alt: '测试图片',
+        alignment: 'center',
+        size: {
+          type: 'preset',
+          value: 'full'
+        }
+      }
+
+      const html = HtmlExportService.generateHTML([imageModule])
+      
+      // 应该直接生成img标签，不包装在table中
+      expect(html).toContain('<img src="https://example.com/test.jpg" alt="测试图片" width="100%">')
+      expect(html).not.toContain('<table')
+      expect(html).not.toContain('<td')
+    })
+
+    it('应该正确生成带链接的图片模块HTML', () => {
+      const imageModuleWithLink: PageModule = {
+        id: 'image-1',
+        type: PageModuleType.IMAGE,
+        src: 'https://example.com/test.jpg',
+        alt: '测试图片',
+        alignment: 'center',
+        size: {
+          type: 'preset',
+          value: 'full'
+        },
+        link: {
+          type: 'url',
+          value: 'https://example.com/link'
+        }
+      }
+
+      const html = HtmlExportService.generateHTML([imageModuleWithLink])
+      
+      // 应该包装在a标签中，但不包装在table中
+      expect(html).toContain('<a href="https://example.com/link" target="_blank" rel="noopener noreferrer">')
+      expect(html).toContain('<img src="https://example.com/test.jpg" alt="测试图片" width="100%">')
+      expect(html).not.toContain('<table')
+      expect(html).not.toContain('<td')
+    })
+
+    it('应该正确处理图片对齐方式', () => {
+      const leftAlignedImage: PageModule = {
+        id: 'image-1',
+        type: PageModuleType.IMAGE,
+        src: 'https://example.com/test.jpg',
+        alt: '测试图片',
+        alignment: 'left',
+        size: {
+          type: 'preset',
+          value: 'full'
+        }
+      }
+
+      const html = HtmlExportService.generateHTML([leftAlignedImage])
+      
+      // 左对齐应该包含margin样式
+      expect(html).toContain('style="display: block; margin: 0 auto 0 0;"')
+      expect(html).toContain('<img src="https://example.com/test.jpg"')
     })
   })
 

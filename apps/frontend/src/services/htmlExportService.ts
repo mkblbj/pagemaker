@@ -300,11 +300,7 @@ ${htmlContent}
 
     if (!src) {
       if (options.mobileMode) {
-        return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
-<tr>
-<td align="${alignment}"><font size="2" color="#666666">图片未设置</font></td>
-</tr>
-</table>`
+        return `<p align="${alignment}"><font size="2" color="#666666">图片未设置</font></p>`
       } else {
         return `        <div class="pm-image-placeholder" style="text-align: ${alignment}; padding: 20px; background-color: #f5f5f5; border: 2px dashed #ccc;">
             <p style="margin: 0; color: #666;">图片未设置</p>
@@ -328,82 +324,52 @@ ${htmlContent}
       }
     }
 
-    if (options.mobileMode) {
-      // 乐天移动端约束版本 - 使用table布局
-      const alignValue = alignment === 'justify' ? 'center' : alignment
+    // 生成图片元素的基本属性
+    const imgAttributes = [
+      `src="${this.escapeHtml(src)}"`,
+      `alt="${this.escapeHtml(alt)}"`,
+      `width="${imageWidth}"`
+    ]
 
-      // 生成图片元素（乐天约束：只支持特定属性）
-      const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" width="${imageWidth}">`
-
-      // 如果有链接，包装在链接中
-      let content = imgElement
-      if (link && link.value) {
-        let href = link.value
-
-        // 根据链接类型生成正确的href
-        switch (link.type) {
-          case 'email':
-            href = `mailto:${link.value}`
-            break
-          case 'phone':
-            href = `tel:${link.value}`
-            break
-          case 'anchor':
-            href = `#${link.value}`
-            break
-          // 'url' 类型直接使用原值
-        }
-
-        content = `<a href="${this.escapeHtml(href)}">${imgElement}</a>`
+    // 添加对齐样式（仅在非居中时添加）
+    if (alignment !== 'center') {
+      if (options.mobileMode) {
+        imgAttributes.push(`align="${alignment}"`)
+      } else {
+        imgAttributes.push(`style="display: block; margin: 0 ${alignment === 'left' ? 'auto 0 0' : alignment === 'right' ? '0 0 auto' : 'auto'};"`)
       }
-
-      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
-<tr>
-<td align="${alignValue}">${content}</td>
-</tr>
-</table>`
-    } else {
-      // 标准版本 - 使用div和CSS样式
-      const imgStyles = this.generateInlineStyles({
-        width: imageWidth,
-        'max-width': '100%',
-        height: 'auto'
-      })
-
-      const containerStyles = this.generateInlineStyles({
-        'text-align': alignment,
-        margin: '16px 0'
-      })
-
-      // 生成图片元素
-      const imgElement = `<img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(alt)}" style="${imgStyles}">`
-
-      // 如果有链接，包装在链接中
-      let content = imgElement
-      if (link && link.value) {
-        let href = link.value
-
-        // 根据链接类型生成正确的href
-        switch (link.type) {
-          case 'email':
-            href = `mailto:${link.value}`
-            break
-          case 'phone':
-            href = `tel:${link.value}`
-            break
-          case 'anchor':
-            href = `#${link.value}`
-            break
-          // 'url' 类型直接使用原值
-        }
-
-        content = `<a href="${this.escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${imgElement}</a>`
-      }
-
-      return `        <div class="pm-image" style="${containerStyles}">
-            ${content}
-        </div>`
     }
+
+    const imgElement = `<img ${imgAttributes.join(' ')}>`
+
+    // 如果有链接，包装在链接中
+    if (link && link.value) {
+      let href = link.value
+
+      // 根据链接类型生成正确的href
+      switch (link.type) {
+        case 'email':
+          href = `mailto:${link.value}`
+          break
+        case 'phone':
+          href = `tel:${link.value}`
+          break
+        case 'anchor':
+          href = `#${link.value}`
+          break
+        // 'url' 类型直接使用原值
+      }
+
+      const linkAttributes = [`href="${this.escapeHtml(href)}"`]
+      if (!options.mobileMode && link.type === 'url') {
+        linkAttributes.push('target="_blank"', 'rel="noopener noreferrer"')
+      }
+
+      return `<a ${linkAttributes.join(' ')}>${imgElement}</a>`
+    }
+
+    // 直接返回图片元素
+    return imgElement
   }
 
   /**

@@ -82,8 +82,7 @@ function SortableModuleContainer({
       </div>
 
       {/* 操作按钮 */}
-      {isSelected && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="sm"
@@ -135,7 +134,6 @@ function SortableModuleContainer({
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>
-      )}
     </div>
   )
 }

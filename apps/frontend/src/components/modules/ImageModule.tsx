@@ -304,7 +304,7 @@ export function ImageModule({
     const alignment = module.alignment || 'center'
 
     // 尺寸设置
-    const size = module.size || { type: 'preset', value: 'medium' }
+    const size = module.size || { type: 'preset', value: 'full' }
     if (size.type === 'preset') {
       const preset = PRESET_SIZES.find(p => p.value === size.value)
       if (preset) {
