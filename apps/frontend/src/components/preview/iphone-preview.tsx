@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Wifi, BatteryFull, Signal } from "lucide-react"
+import { Wifi, BatteryFull, Signal, Store, Heart } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -79,7 +79,34 @@ const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
             </div>
 
             {/* Screen Content */}
-            <div className="h-full w-full bg-white dark:bg-zinc-800">{children}</div>
+            <div className="relative h-full w-full bg-white dark:bg-zinc-800">
+              <div className="h-full w-full overflow-y-auto pb-0">{children}</div>
+              
+              {/* Rakuten-style Bottom Bar */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
+                <div className="flex items-center gap-1.5">
+                  {/* Left Icons */}
+                  <button className="flex flex-col items-center justify-center text-red-600 text-xs min-w-[45px]">
+                    <Store size={16} />
+                    <span className="mt-0.5">ショップ</span>
+                  </button>
+                  <button className="flex flex-col items-center justify-center text-red-600 text-xs min-w-[45px]">
+                    <Heart size={16} />
+                    <span className="mt-0.5">お気に入り</span>
+                  </button>
+                  
+                  {/* Right Buttons */}
+                  <div className="flex flex-1 gap-1.5 ml-1.5">
+                    <button className="flex-1 bg-red-600 text-white text-sm font-medium py-2 px-3 rounded">
+                      かごに追加
+                    </button>
+                    <button className="flex-1 bg-red-700 text-white text-sm font-medium py-2 px-3 rounded">
+                      購入手続きへ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Reflection */}
             {showReflection && (

@@ -340,6 +340,9 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
               </div>
 
               <div className="flex items-center gap-2">
+                {/* 目标区域选择器 */}
+                <TargetAreaSelector />
+
                 <HtmlExportButton 
                   modules={currentPage?.content || []}
                   pageTitle={currentPage?.name}
