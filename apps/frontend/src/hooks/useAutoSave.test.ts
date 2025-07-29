@@ -1,10 +1,28 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import React from 'react'
 import { useAutoSave, useVersionHistory } from './useAutoSave'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { pageService } from '@/services/pageService'
 import { PageModuleType } from '@pagemaker/shared-types'
+import { I18nProvider } from '@/contexts/I18nContext'
+
+// Mock localStorage before other imports
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    getItem: vi.fn(() => 'zh-CN'),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn()
+  },
+  writable: true
+})
+
+// Test wrapper with I18nProvider
+const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement(I18nProvider, { defaultLanguage: 'zh-CN', children })
+}
 
 // Mock stores
 vi.mock('@/stores/usePageStore')
@@ -54,7 +72,7 @@ describe('useAutoSave', () => {
   })
 
   it('应该初始化默认配置', () => {
-    const { result } = renderHook(() => useAutoSave())
+    const { result } = renderHook(() => useAutoSave(), { wrapper: TestWrapper })
 
     expect(result.current.autoSave).toBeDefined()
     expect(result.current.lastSaveTime).toBe(0)
@@ -69,7 +87,7 @@ describe('useAutoSave', () => {
     ;(usePageStore as any).mockReturnValue(mockStoreWithChanges)
 
     const onSave = vi.fn()
-    const { result } = renderHook(() => useAutoSave({ interval: 1000, onSave }))
+    const { result } = renderHook(() => useAutoSave({ interval: 1000, onSave }), { wrapper: TestWrapper })
 
     // 执行自动保存
     await act(async () => {
@@ -99,7 +117,7 @@ describe('useAutoSave', () => {
     mockPageService.updatePage.mockRejectedValue(error)
 
     const onError = vi.fn()
-    const { result } = renderHook(() => useAutoSave({ onError }))
+    const { result } = renderHook(() => useAutoSave({ onError }), { wrapper: TestWrapper })
 
     await act(async () => {
       try {
@@ -115,7 +133,7 @@ describe('useAutoSave', () => {
   })
 
   it('应该在没有未保存更改时跳过保存', async () => {
-    const { result } = renderHook(() => useAutoSave())
+    const { result } = renderHook(() => useAutoSave(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.autoSave()
@@ -132,7 +150,7 @@ describe('useAutoSave', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreNoPage)
 
-    const { result } = renderHook(() => useAutoSave())
+    const { result } = renderHook(() => useAutoSave(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.autoSave()
@@ -148,7 +166,7 @@ describe('useAutoSave', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreWithChanges)
 
-    const { result } = renderHook(() => useAutoSave({ interval: 1000 }))
+    const { result } = renderHook(() => useAutoSave({ interval: 1000 }), { wrapper: TestWrapper })
 
     // 手动调用自动保存而不是依赖定时器
     await act(async () => {
@@ -161,7 +179,7 @@ describe('useAutoSave', () => {
   it('应该在组件卸载时清理定时器', () => {
     const clearIntervalSpy = vi.spyOn(global, 'clearInterval')
 
-    const { unmount } = renderHook(() => useAutoSave())
+    const { unmount } = renderHook(() => useAutoSave(), { wrapper: TestWrapper })
 
     unmount()
 
@@ -171,7 +189,7 @@ describe('useAutoSave', () => {
   it('应该在禁用时不启动自动保存', () => {
     const setIntervalSpy = vi.spyOn(global, 'setInterval')
 
-    renderHook(() => useAutoSave({ enabled: false }))
+    renderHook(() => useAutoSave({ enabled: false }), { wrapper: TestWrapper })
 
     expect(setIntervalSpy).not.toHaveBeenCalled()
   })
@@ -187,6 +205,12 @@ describe('useVersionHistory', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // 重置localStorage mock为默认行为
+    mockLocalStorage.getItem.mockImplementation((key: string) => {
+      if (key === 'language') return 'zh-CN'
+      return null
+    })
+    mockLocalStorage.setItem.mockClear()
     Object.defineProperty(window, 'localStorage', {
       value: mockLocalStorage,
       writable: true
@@ -195,7 +219,7 @@ describe('useVersionHistory', () => {
   })
 
   it('应该初始化空版本历史', () => {
-    const { result } = renderHook(() => useVersionHistory())
+    const { result } = renderHook(() => useVersionHistory(), { wrapper: TestWrapper })
 
     expect(result.current.versions).toEqual([])
     expect(result.current.saveVersion).toBeDefined()
@@ -203,7 +227,7 @@ describe('useVersionHistory', () => {
   })
 
   it('应该保存版本到localStorage', () => {
-    const { result } = renderHook(() => useVersionHistory())
+    const { result } = renderHook(() => useVersionHistory(), { wrapper: TestWrapper })
 
     act(() => {
       result.current.saveVersion('手动保存')
@@ -230,20 +254,23 @@ describe('useVersionHistory', () => {
     ]
     mockLocalStorage.getItem.mockReturnValue(JSON.stringify(savedVersions))
 
-    const { result } = renderHook(() => useVersionHistory())
+    const { result } = renderHook(() => useVersionHistory(), { wrapper: TestWrapper })
 
     expect(mockLocalStorage.getItem).toHaveBeenCalledWith('page-versions-test-page-id')
     expect(result.current.versions).toEqual(savedVersions)
   })
 
   it('应该处理localStorage加载错误', () => {
-    mockLocalStorage.getItem.mockImplementation(() => {
-      throw new Error('localStorage错误')
+    mockLocalStorage.getItem.mockImplementation((key: string) => {
+      if (key === 'page-versions-test-page-id') {
+        throw new Error('localStorage错误')
+      }
+      return 'zh-CN' // 为I18nContext返回默认值
     })
 
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-    const { result } = renderHook(() => useVersionHistory())
+    const { result } = renderHook(() => useVersionHistory(), { wrapper: TestWrapper })
 
     expect(result.current.versions).toEqual([])
     expect(consoleSpy).toHaveBeenCalledWith('加载版本历史失败:', expect.any(Error))
@@ -252,7 +279,7 @@ describe('useVersionHistory', () => {
   })
 
   it('应该限制版本数量为10个', () => {
-    const { result } = renderHook(() => useVersionHistory())
+    const { result } = renderHook(() => useVersionHistory(), { wrapper: TestWrapper })
 
     // 保存15个版本，每次act单独处理
     for (let i = 0; i < 15; i++) {
@@ -277,7 +304,7 @@ describe('useVersionHistory', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreNoPage)
 
-    const { result } = renderHook(() => useVersionHistory())
+    const { result } = renderHook(() => useVersionHistory(), { wrapper: TestWrapper })
 
     act(() => {
       result.current.saveVersion('测试')

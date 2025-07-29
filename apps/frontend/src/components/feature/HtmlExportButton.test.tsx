@@ -186,9 +186,15 @@ describe('HtmlExportButton', () => {
     const previewButton = screen.getByRole('button', { name: /预览/i })
     await user.click(previewButton)
 
-    expect(window.open).toHaveBeenCalledWith('', '_blank', 'width=1200,height=800')
-    expect(mockWindow.document.write).toHaveBeenCalledWith('<html><body><h1>测试HTML</h1></body></html>')
-    expect(mockWindow.document.close).toHaveBeenCalled()
+    // 验证使用了预览URL而不是空白页面
+    expect(window.open).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/preview\?id=preview_\d+_[a-z0-9]+$/),
+      '_blank',
+      'width=480,height=900,scrollbars=no,resizable=yes'
+    )
+    // 使用预览URL时不再需要document.write
+    expect(mockWindow.document.write).not.toHaveBeenCalled()
+    expect(mockWindow.document.close).not.toHaveBeenCalled()
   })
 
   it('应该支持重新生成HTML', async () => {

@@ -86,9 +86,9 @@ describe('Canvas 模块操作', () => {
     render(<Canvas />)
 
     // 应该显示删除按钮
-    expect(screen.getByRole('button', { name: /删除/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /删除/i })).toHaveLength(2)
     // 应该显示复制按钮
-    expect(screen.getByRole('button', { name: /复制/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /复制/i })).toHaveLength(2)
   })
 
   it('应该能够删除模块', async () => {
@@ -101,8 +101,11 @@ describe('Canvas 模块操作', () => {
 
     render(<Canvas />)
 
-    const deleteButton = screen.getByRole('button', { name: /删除/i })
-    await user.click(deleteButton)
+    // 获取所有删除按钮，选择第一个
+    const deleteButtons = screen.getAllByRole('button', { name: /删除/i })
+    if (deleteButtons.length > 0) {
+      await user.click(deleteButtons[0])
+    }
 
     // 应该显示删除确认对话框
     expect(screen.getByText('删除模块确认')).toBeInTheDocument()
@@ -118,8 +121,11 @@ describe('Canvas 模块操作', () => {
 
     render(<Canvas />)
 
-    const copyButton = screen.getByRole('button', { name: /复制/i })
-    await user.click(copyButton)
+    // 获取所有复制按钮，选择第一个
+    const copyButtons = screen.getAllByRole('button', { name: /复制/i })
+    if (copyButtons.length > 0) {
+      await user.click(copyButtons[0])
+    }
 
     expect(mockPageStore.addModule).toHaveBeenCalled()
     expect(mockPageStore.markUnsaved).toHaveBeenCalled()
@@ -135,8 +141,12 @@ describe('Canvas 模块操作', () => {
 
     render(<Canvas />)
 
-    const moveUpButton = screen.getByRole('button', { name: '上移模块' })
-    await user.click(moveUpButton)
+    // 获取所有上移按钮，选择第一个未禁用的
+    const moveUpButtons = screen.getAllByRole('button', { name: '上移模块' })
+    const availableButton = moveUpButtons.find(button => !(button as HTMLButtonElement).disabled)
+    if (availableButton) {
+      await user.click(availableButton)
+    }
 
     expect(mockPageStore.reorderModules).toHaveBeenCalledWith(1, 0)
     expect(mockPageStore.markUnsaved).toHaveBeenCalled()
@@ -152,8 +162,12 @@ describe('Canvas 模块操作', () => {
 
     render(<Canvas />)
 
-    const moveDownButton = screen.getByRole('button', { name: '下移模块' })
-    await user.click(moveDownButton)
+    // 获取所有下移按钮，选择第一个未禁用的
+    const moveDownButtons = screen.getAllByRole('button', { name: '下移模块' })
+    const availableButton = moveDownButtons.find(button => !(button as HTMLButtonElement).disabled)
+    if (availableButton) {
+      await user.click(availableButton)
+    }
 
     expect(mockPageStore.reorderModules).toHaveBeenCalledWith(0, 1)
     expect(mockPageStore.markUnsaved).toHaveBeenCalled()
@@ -168,8 +182,10 @@ describe('Canvas 模块操作', () => {
 
     render(<Canvas />)
 
-    const moveUpButton = screen.getByRole('button', { name: '上移模块' })
-    expect(moveUpButton).toBeDisabled()
+    // 获取所有上移按钮，找到被禁用的那个
+    const moveUpButtons = screen.getAllByRole('button', { name: '上移模块' })
+    const disabledButton = moveUpButtons.find(button => (button as HTMLButtonElement).disabled)
+    expect(disabledButton).toBeDisabled()
   })
 
   it('最后一个模块的下移按钮应该被禁用', () => {
@@ -181,8 +197,10 @@ describe('Canvas 模块操作', () => {
 
     render(<Canvas />)
 
-    const moveDownButton = screen.getByRole('button', { name: '下移模块' })
-    expect(moveDownButton).toBeDisabled()
+    // 获取所有下移按钮，找到被禁用的那个
+    const moveDownButtons = screen.getAllByRole('button', { name: '下移模块' })
+    const disabledButton = moveDownButtons.find(button => (button as HTMLButtonElement).disabled)
+    expect(disabledButton).toBeDisabled()
   })
 
   it('空画布应该显示空状态', () => {

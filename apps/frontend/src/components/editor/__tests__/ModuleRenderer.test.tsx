@@ -149,7 +149,7 @@ describe('ModuleRenderer', () => {
 
     expect(screen.getByText('多列图文 - 图上文下')).toBeInTheDocument()
     expect(screen.getByText('点击选择图片')).toBeInTheDocument()
-    expect(screen.getByText('点击添加文本')).toBeInTheDocument()
+    expect(screen.getByText('输入文本内容')).toBeInTheDocument()
   })
 
   it('应该渲染默认布局的多列图文模块', () => {
@@ -204,7 +204,7 @@ describe('ModuleRenderer', () => {
 
     render(<ModuleRenderer module={textModule} />)
 
-    expect(screen.getByText('输入文本内容')).toBeInTheDocument()
+    expect(screen.getByText('点击输入文本内容')).toBeInTheDocument()
     expect(screen.getByText('文本模块')).toBeInTheDocument()
   })
 

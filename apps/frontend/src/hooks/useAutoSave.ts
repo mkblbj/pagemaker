@@ -186,6 +186,7 @@ export function useVersionHistory() {
       }
     } catch (error) {
       console.warn('加载版本历史失败:', error)
+      setVersions([]) // 确保在错误时设置为空数组
     }
   }, [currentPage?.id])
 

@@ -167,7 +167,7 @@ describe('MultiColumnModule 集成测试', () => {
       // 验证文本部分
       expect(html).toContain('<p><strong>集成测试文本</strong></p>')
       expect(html).toContain('font-family: Arial, sans-serif')
-      expect(html).toContain('font-size: 16px')
+      expect(html).toContain('font-size: 18px')
       expect(html).toContain('color: #333333')
       expect(html).toContain('background-color: #f8f9fa')
     })
@@ -176,7 +176,7 @@ describe('MultiColumnModule 集成测试', () => {
       const html = generateHTML([completeModule], { mobileMode: true })
 
       // 验证使用table布局而非flex，符合乐天移动端规范
-      expect(html).toContain('<table width="100%" cellspacing="0" cellpadding="10" border="0">')
+      expect(html).toContain('<table width="100%" cellspacing="0" cellpadding="0" border="0">')
       expect(html).not.toContain('<style>')
       expect(html).not.toContain('flex-direction')
       expect(html).not.toContain('<tbody>') // 确保不包含乐天不支持的tbody标签

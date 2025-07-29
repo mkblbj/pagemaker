@@ -109,6 +109,20 @@ export function usePageEditor() {
     }
   )
 
+  // 自动保存页面
+  const autoSave = useCallback(async () => {
+    if (!currentPage || !hasUnsavedChanges) {
+      return // 没有页面或没有未保存的更改时跳过
+    }
+
+    try {
+      await savePage()
+    } catch (error) {
+      console.error('自动保存失败:', error)
+      // 自动保存失败时不显示错误提示，避免打扰用户
+    }
+  }, [currentPage, hasUnsavedChanges, savePage])
+
   return {
     // 状态
     currentPage,
@@ -119,6 +133,7 @@ export function usePageEditor() {
     // 操作
     savePage,
     previewPage,
-    publishPage
+    publishPage,
+    autoSave
   }
 }

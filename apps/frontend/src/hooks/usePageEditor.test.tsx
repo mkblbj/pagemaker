@@ -1,10 +1,17 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
+import React from 'react'
 import { usePageEditor } from './usePageEditor'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { pageService } from '@/services/pageService'
 import { PageModuleType } from '@pagemaker/shared-types'
+import { I18nProvider } from '@/contexts/I18nContext'
+
+// Test wrapper with I18nProvider
+const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+  return <I18nProvider defaultLanguage="zh-CN">{children}</I18nProvider>
+}
 
 // Mock stores and services
 vi.mock('@/stores/usePageStore')
@@ -75,7 +82,7 @@ describe('usePageEditor', () => {
   })
 
   it('应该初始化正确的状态和方法', () => {
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     expect(result.current.currentPage).toEqual(mockPageStore.currentPage)
     expect(result.current.hasUnsavedChanges).toBe(false)
@@ -88,7 +95,7 @@ describe('usePageEditor', () => {
   })
 
   it('应该成功保存页面', async () => {
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.savePage()
@@ -109,7 +116,7 @@ describe('usePageEditor', () => {
     const error = new Error('保存失败')
     mockPageService.updatePage.mockRejectedValue(error)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       try {
@@ -130,7 +137,7 @@ describe('usePageEditor', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreNoPage)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       try {
@@ -142,7 +149,7 @@ describe('usePageEditor', () => {
   })
 
   it('应该成功预览页面', async () => {
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.previewPage()
@@ -158,7 +165,7 @@ describe('usePageEditor', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreWithChanges)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.previewPage()
@@ -178,7 +185,7 @@ describe('usePageEditor', () => {
     const error = new Error('保存失败')
     mockPageService.updatePage.mockRejectedValue(error)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.previewPage()
@@ -194,7 +201,7 @@ describe('usePageEditor', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreNoPage)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.previewPage()
@@ -204,7 +211,7 @@ describe('usePageEditor', () => {
   })
 
   it('应该成功发布页面', async () => {
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.publishPage()
@@ -217,7 +224,7 @@ describe('usePageEditor', () => {
     const error = new Error('发布失败')
     mockPageService.publishPage.mockRejectedValue(error)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       try {
@@ -237,7 +244,7 @@ describe('usePageEditor', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreNoPage)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       try {
@@ -255,7 +262,7 @@ describe('usePageEditor', () => {
     }
     ;(usePageStore as any).mockReturnValue(mockStoreWithChanges)
 
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.autoSave()
@@ -265,7 +272,7 @@ describe('usePageEditor', () => {
   })
 
   it('应该在没有未保存更改时跳过自动保存', async () => {
-    const { result } = renderHook(() => usePageEditor())
+    const { result } = renderHook(() => usePageEditor(), { wrapper: TestWrapper })
 
     await act(async () => {
       await result.current.autoSave()

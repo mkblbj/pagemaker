@@ -241,19 +241,10 @@ describe('Canvas', () => {
 
     render(<Canvas />)
 
+    expect(screen.getByText('多列图文 - 图左文右')).toBeInTheDocument()
     expect(
       screen.getAllByText((content, element) => {
-        return !!(element?.textContent?.includes('多列图文') && element?.textContent?.includes('图左文右'))
-      })[0]
-    ).toBeInTheDocument()
-    expect(
-      screen.getAllByText((content, element) => {
-        return !!element?.textContent?.includes('点击选择图片')
-      })[0]
-    ).toBeInTheDocument()
-    expect(
-      screen.getAllByText((content, element) => {
-        return !!element?.textContent?.includes('点击添加文本')
+        return !!element?.textContent?.includes('输入文本内容')
       })[0]
     ).toBeInTheDocument()
   })

@@ -370,8 +370,8 @@ describe('浏览器兼容性测试', () => {
       )
 
       // 验证移动端可以通过按钮进行操作
-      expect(screen.getByRole('button', { name: '上移模块' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '下移模块' })).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: '上移模块' })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: '下移模块' })).toHaveLength(1)
     })
   })
 
@@ -483,10 +483,10 @@ describe('浏览器兼容性测试', () => {
       )
 
       // 验证按钮有正确的 aria-label
-      expect(screen.getByRole('button', { name: '上移模块' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '下移模块' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '复制模块' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '删除模块' })).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: '上移模块' })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: '下移模块' })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: '复制模块' })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: '删除模块' })).toHaveLength(1)
     })
 
     it('应该支持键盘导航', () => {
