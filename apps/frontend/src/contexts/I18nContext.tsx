@@ -144,6 +144,13 @@ export function useTranslation() {
 
   const tAuth = useCallback((key: string, params?: Record<string, string | number>) => t(`auth.${key}`, params), [t])
 
+  const tPreview = useCallback(
+    (key: string, params?: Record<string, string | number>) => t(`preview.${key}`, params),
+    [t]
+  )
+
+  const tPages = useCallback((key: string, params?: Record<string, string | number>) => t(`pages.${key}`, params), [t])
+
   return {
     t,
     currentLanguage,
@@ -151,6 +158,8 @@ export function useTranslation() {
     tError,
     tCommon,
     tEditor,
-    tAuth
+    tAuth,
+    tPreview,
+    tPages
   }
 }

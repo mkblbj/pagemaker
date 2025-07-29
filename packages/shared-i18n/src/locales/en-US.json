@@ -431,5 +431,8 @@
     "正在跳转到登录页面...": "Redirecting to login page...",
     "检查认证状态...": "Checking authentication status...",
     "退出": "Logout"
+  },
+  "preview": {
+    "加载预览中...": "Loading preview..."
   }
 } 

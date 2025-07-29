@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { IPhonePreview } from '@/components/preview/iphone-preview'
+import { useTranslation } from '@/contexts/I18nContext'
 
-export default function PreviewPage() {
+function PreviewContent() {
   const searchParams = useSearchParams()
   const [htmlContent, setHtmlContent] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -74,5 +75,23 @@ export default function PreviewPage() {
         />
       </IPhonePreview>
     </div>
+  )
+}
+
+export default function PreviewPage() {
+  const { tPreview } = useTranslation()
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">{tPreview('加载预览中...')}</p>
+          </div>
+        </div>
+      }
+    >
+      <PreviewContent />
+    </Suspense>
   )
 }
