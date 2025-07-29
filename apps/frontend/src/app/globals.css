@@ -116,7 +116,8 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html, body {
+  html,
+  body {
     @apply bg-background text-foreground;
     height: 100%;
     overflow: hidden;
@@ -133,7 +134,7 @@
     /* IE and Edge */
     -ms-overflow-style: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     /* Chrome, Safari and Opera */
     display: none;

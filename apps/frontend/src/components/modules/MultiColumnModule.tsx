@@ -47,7 +47,7 @@ export function MultiColumnModule({
     src: '',
     alt: tEditor('图片描述'),
     alignment: 'center',
-    width: '100%'  // 移动端默认全宽
+    width: '100%' // 移动端默认全宽
   }
   // 默认配置
   const textConfig = module.textConfig || {
@@ -153,7 +153,7 @@ export function MultiColumnModule({
   const handleTextBlur = () => {
     handleTextContentChange()
     setIsTextEditing(false)
-    
+
     // 额外检查：如果处理后的内容仍然只是空白或无意义的HTML，强制设为空
     if (textEditorRef.current) {
       const rawContent = textEditorRef.current.innerHTML
@@ -170,7 +170,7 @@ export function MultiColumnModule({
         .replace(/\n+/g, '\n') // 合并多个连续换行符为单个
         .replace(/&nbsp;/gi, ' ')
         .trim()
-      
+
       if (!cleanedContent || /^[\s\u00A0]*$/.test(cleanedContent)) {
         setLocalTextContent('')
         handleTextUpdate({ content: '' })
@@ -189,12 +189,12 @@ export function MultiColumnModule({
     const getFontSizeInPx = (size: string) => {
       const sizeMap: Record<string, string> = {
         '1': '12px',
-        '2': '16px',  
-        '3': '20px',  // 默认大小
-        '4': '28px',  // 常用大小 - 更大
-        '5': '36px',  // 大标题
-        '6': '48px',  // 特大标题
-        '7': '64px'   // 超大标题
+        '2': '16px',
+        '3': '20px', // 默认大小
+        '4': '28px', // 常用大小 - 更大
+        '5': '36px', // 大标题
+        '6': '48px', // 特大标题
+        '7': '64px' // 超大标题
       }
       return sizeMap[size] || '20px'
     }

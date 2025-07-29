@@ -1,38 +1,38 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Wifi, BatteryFull, Signal, Store, Heart } from "lucide-react"
+import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { Wifi, BatteryFull, Signal, Store, Heart } from 'lucide-react'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 const iphoneFrameVariants = cva(
-  "relative mx-auto h-[868px] w-[428px] rounded-[60px] shadow-2xl overflow-hidden bg-zinc-900 border-4",
+  'relative mx-auto h-[868px] w-[428px] rounded-[60px] shadow-2xl overflow-hidden bg-zinc-900 border-4',
   {
     variants: {
       deviceColor: {
-        black: "border-zinc-800",
-        white: "border-zinc-300",
-        gold: "border-yellow-600",
-        purple: "border-purple-800",
-      },
+        black: 'border-zinc-800',
+        white: 'border-zinc-300',
+        gold: 'border-yellow-600',
+        purple: 'border-purple-800'
+      }
     },
     defaultVariants: {
-      deviceColor: "black",
-    },
-  },
+      deviceColor: 'black'
+    }
+  }
 )
 
-const sideButtonVariants = cva("absolute", {
+const sideButtonVariants = cva('absolute', {
   variants: {
     deviceColor: {
-      black: "bg-zinc-800",
-      white: "bg-zinc-400",
-      gold: "bg-yellow-500",
-      purple: "bg-purple-700",
-    },
+      black: 'bg-zinc-800',
+      white: 'bg-zinc-400',
+      gold: 'bg-yellow-500',
+      purple: 'bg-purple-700'
+    }
   },
   defaultVariants: {
-    deviceColor: "black",
-  },
+    deviceColor: 'black'
+  }
 })
 
 export interface IPhonePreviewProps
@@ -43,24 +43,24 @@ export interface IPhonePreviewProps
 }
 
 const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
-  ({ className, deviceColor = "black", showReflection = false, children, ...props }, ref) => {
+  ({ className, deviceColor = 'black', showReflection = false, children, ...props }, ref) => {
     return (
       <div className={cn(iphoneFrameVariants({ deviceColor }), className)} ref={ref} {...props}>
         {/* Mute Switch */}
         <div
-          className={cn(sideButtonVariants({ deviceColor }), "left-[-2px] top-[128px] h-[30px] w-[5px] rounded-r-md")}
+          className={cn(sideButtonVariants({ deviceColor }), 'left-[-2px] top-[128px] h-[30px] w-[5px] rounded-r-md')}
         />
         {/* Volume Up */}
         <div
-          className={cn(sideButtonVariants({ deviceColor }), "left-[-2px] top-[178px] h-[50px] w-[5px] rounded-r-md")}
+          className={cn(sideButtonVariants({ deviceColor }), 'left-[-2px] top-[178px] h-[50px] w-[5px] rounded-r-md')}
         />
         {/* Volume Down */}
         <div
-          className={cn(sideButtonVariants({ deviceColor }), "left-[-2px] top-[240px] h-[50px] w-[5px] rounded-r-md")}
+          className={cn(sideButtonVariants({ deviceColor }), 'left-[-2px] top-[240px] h-[50px] w-[5px] rounded-r-md')}
         />
         {/* Power Button */}
         <div
-          className={cn(sideButtonVariants({ deviceColor }), "right-[-2px] top-[188px] h-[80px] w-[5px] rounded-l-md")}
+          className={cn(sideButtonVariants({ deviceColor }), 'right-[-2px] top-[188px] h-[80px] w-[5px] rounded-l-md')}
         />
 
         <div className="h-full w-full rounded-[56px] bg-black p-1">
@@ -81,7 +81,7 @@ const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
             {/* Screen Content */}
             <div className="relative h-full w-full bg-white dark:bg-zinc-800">
               <div className="h-full w-full overflow-y-auto pb-0">{children}</div>
-              
+
               {/* Rakuten-style Bottom Bar */}
               <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
                 <div className="flex items-center gap-1.5">
@@ -94,7 +94,7 @@ const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
                     <Heart size={16} />
                     <span className="mt-0.5">お気に入り</span>
                   </button>
-                  
+
                   {/* Right Buttons */}
                   <div className="flex flex-1 gap-1.5 ml-1.5">
                     <button className="flex-1 bg-red-600 text-white text-sm font-medium py-2 px-3 rounded">
@@ -116,8 +116,8 @@ const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
         </div>
       </div>
     )
-  },
+  }
 )
-IPhonePreview.displayName = "IPhonePreview"
+IPhonePreview.displayName = 'IPhonePreview'
 
 export { IPhonePreview }

@@ -19,11 +19,7 @@ interface ResetConfirmDialogProps {
   onConfirm: () => void
 }
 
-export function ResetConfirmDialog({
-  open,
-  onOpenChange,
-  onConfirm
-}: ResetConfirmDialogProps) {
+export function ResetConfirmDialog({ open, onOpenChange, onConfirm }: ResetConfirmDialogProps) {
   const { tEditor } = useTranslation()
 
   const handleConfirm = () => {
@@ -78,4 +74,4 @@ export function ResetConfirmDialog({
       </DialogContent>
     </Dialog>
   )
-} 
+}

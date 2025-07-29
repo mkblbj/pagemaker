@@ -160,13 +160,13 @@ ${htmlContent}
     const getFontSizeInPx = (size: string): string => {
       // 标准HTML font size映射 - 与浏览器默认行为一致
       const sizeMap: Record<string, string> = {
-        '1': '12px',  // xx-small
-        '2': '16px',  // small  
-        '3': '18px',  // medium (浏览器默认)
-        '4': '24px',  // large - 标准大小
-        '5': '32px',  // x-large
-        '6': '48px',  // xx-large
-        '7': '64px'   // xxx-large
+        '1': '12px', // xx-small
+        '2': '16px', // small
+        '3': '18px', // medium (浏览器默认)
+        '4': '24px', // large - 标准大小
+        '5': '32px', // x-large
+        '6': '48px', // xx-large
+        '7': '64px' // xxx-large
       }
       return sizeMap[size] || '18px' // 默认18px对应size 3
     }
@@ -251,12 +251,12 @@ ${htmlContent}
    */
   private static convertToFontSize(size: string | number): string {
     const numericSize = typeof size === 'number' ? size : parseInt(size.toString().replace(/[^\d]/g, ''))
-    
+
     // 确保在1-7范围内
     if (numericSize >= 1 && numericSize <= 7) {
       return numericSize.toString()
     }
-    
+
     // 超出范围时使用默认值4
     return '4'
   }
@@ -325,18 +325,16 @@ ${htmlContent}
     }
 
     // 生成图片元素的基本属性
-    const imgAttributes = [
-      `src="${this.escapeHtml(src)}"`,
-      `alt="${this.escapeHtml(alt)}"`,
-      `width="${imageWidth}"`
-    ]
+    const imgAttributes = [`src="${this.escapeHtml(src)}"`, `alt="${this.escapeHtml(alt)}"`, `width="${imageWidth}"`]
 
     // 添加对齐样式（仅在非居中时添加）
     if (alignment !== 'center') {
       if (options.mobileMode) {
         imgAttributes.push(`align="${alignment}"`)
       } else {
-        imgAttributes.push(`style="display: block; margin: 0 ${alignment === 'left' ? 'auto 0 0' : alignment === 'right' ? '0 0 auto' : 'auto'};"`)
+        imgAttributes.push(
+          `style="display: block; margin: 0 ${alignment === 'left' ? 'auto 0 0' : alignment === 'right' ? '0 0 auto' : 'auto'};"`
+        )
       }
     }
 
@@ -656,7 +654,7 @@ ${tableRows}
    * 生成水平布局移动端HTML（左图右文/左文右图）
    */
   private static generateHorizontalLayoutMobile(layout: string, imageConfig: any, textConfig: any): string {
-    const imageWidth = this.parseWidth(imageConfig.width, '100%')  // 移动端默认全宽
+    const imageWidth = this.parseWidth(imageConfig.width, '100%') // 移动端默认全宽
     const rawImageAlignment = imageConfig.alignment || 'center'
     // 移动端乐天约束：table的left/right对齐会导致页面崩溃，只使用center
     const imageAlignment = rawImageAlignment === 'left' || rawImageAlignment === 'right' ? 'center' : rawImageAlignment
@@ -852,13 +850,13 @@ ${validParts.join('\n')}
     const getFontSizeInPx = (size: string): string => {
       // 标准HTML font size映射 - 与浏览器默认行为一致
       const sizeMap: Record<string, string> = {
-        '1': '12px',  // xx-small
-        '2': '16px',  // small  
-        '3': '18px',  // medium (浏览器默认)
-        '4': '24px',  // large - 标准大小
-        '5': '32px',  // x-large
-        '6': '48px',  // xx-large
-        '7': '64px'   // xxx-large
+        '1': '12px', // xx-small
+        '2': '16px', // small
+        '3': '18px', // medium (浏览器默认)
+        '4': '24px', // large - 标准大小
+        '5': '32px', // x-large
+        '6': '48px', // xx-large
+        '7': '64px' // xxx-large
       }
       return sizeMap[size] || '18px' // 默认18px对应size 3
     }

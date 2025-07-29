@@ -61,7 +61,7 @@ export function TextModule({
       // 如果内容是默认提示文本或为空，清空编辑器
       const isPlaceholderText = localContent === tEditor('输入文本内容') || !localContent
       const contentToSet = isPlaceholderText ? '' : localContent
-      
+
       // 设置初始内容（只在刚进入编辑模式时）
       if (editorRef.current.innerHTML !== contentToSet) {
         editorRef.current.innerHTML = contentToSet
@@ -117,7 +117,7 @@ export function TextModule({
         }
       }
     }
-      }, [isEditing, localContent, tEditor])
+  }, [isEditing, localContent, tEditor])
 
   // 处理内容更新
   const handleContentChange = () => {
@@ -160,7 +160,7 @@ export function TextModule({
   // 处理失焦
   const handleBlur = () => {
     handleContentChange()
-    
+
     // 额外检查：如果处理后的内容仍然只是空白或无意义的HTML，强制设为空
     if (editorRef.current) {
       const rawContent = editorRef.current.innerHTML
@@ -177,13 +177,13 @@ export function TextModule({
         .replace(/\n+/g, '\n') // 合并多个连续换行符为单个
         .replace(/&nbsp;/gi, ' ')
         .trim()
-      
+
       if (!cleanedContent || /^[\s\u00A0]*$/.test(cleanedContent)) {
         setLocalContent('')
         onUpdate?.({ content: '' })
       }
     }
-    
+
     onEndEdit?.()
   }
 
@@ -287,12 +287,12 @@ export function TextModule({
     const getFontSizeInPx = (size: string) => {
       const sizeMap: Record<string, string> = {
         '1': '12px',
-        '2': '16px',  
-        '3': '20px',  // 默认大小
-        '4': '28px',  // 常用大小 - 更大
-        '5': '36px',  // 大标题
-        '6': '48px',  // 特大标题
-        '7': '64px'   // 超大标题
+        '2': '16px',
+        '3': '20px', // 默认大小
+        '4': '28px', // 常用大小 - 更大
+        '5': '36px', // 大标题
+        '6': '48px', // 特大标题
+        '7': '64px' // 超大标题
       }
       return sizeMap[size] || '20px'
     }
@@ -393,23 +393,21 @@ export function TextModule({
           data-placeholder={tEditor('输入文本内容')}
           tabIndex={0}
         />
+      ) : localContent ? (
+        <div
+          className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
+          style={textStyles.style}
+          onClick={onStartEdit}
+          dangerouslySetInnerHTML={{ __html: localContent.replace(/\n/g, '<br>') }}
+        />
       ) : (
-        localContent ? (
-          <div
-            className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
-            style={textStyles.style}
-            onClick={onStartEdit}
-            dangerouslySetInnerHTML={{ __html: localContent.replace(/\n/g, '<br>') }}
-          />
-        ) : (
-          <div
-            className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
-            style={textStyles.style}
-            onClick={onStartEdit}
-          >
-            <div className="text-gray-400">{tEditor('点击输入文本内容')}</div>
-          </div>
-        )
+        <div
+          className={cn(textStyles.className, 'cursor-text whitespace-pre-wrap min-h-[1.5em]')}
+          style={textStyles.style}
+          onClick={onStartEdit}
+        >
+          <div className="text-gray-400">{tEditor('点击输入文本内容')}</div>
+        </div>
       )}
     </div>
   )

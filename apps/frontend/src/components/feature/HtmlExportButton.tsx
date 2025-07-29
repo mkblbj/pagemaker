@@ -294,14 +294,14 @@ export function HtmlExportButton({
       title: pageTitle,
       timestamp: Date.now()
     }
-    
+
     // 生成唯一的预览ID
     const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     sessionStorage.setItem(previewId, JSON.stringify(previewData))
-    
+
     // 使用预览ID作为URL参数
     const previewUrl = `/preview?id=${previewId}`
-    
+
     window.open(previewUrl, '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
   }
 

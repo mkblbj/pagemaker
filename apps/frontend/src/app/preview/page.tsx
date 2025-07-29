@@ -12,7 +12,7 @@ export default function PreviewPage() {
   useEffect(() => {
     // 检查是否有预览ID（来自HTML导出）
     const previewId = searchParams.get('id')
-    
+
     if (previewId) {
       try {
         // 从sessionStorage获取预览数据
@@ -32,7 +32,7 @@ export default function PreviewPage() {
     } else {
       // 从URL参数获取预览内容（兼容旧方式）
       const content = searchParams.get('content')
-      
+
       if (content) {
         try {
           // 解码HTML内容
@@ -46,7 +46,7 @@ export default function PreviewPage() {
         setHtmlContent('<div style="padding: 20px; text-align: center;">暂无预览内容</div>')
       }
     }
-    
+
     setIsLoading(false)
   }, [searchParams])
 
@@ -61,9 +61,9 @@ export default function PreviewPage() {
   return (
     <div className="h-screen bg-gray-100 flex items-center justify-center overflow-hidden">
       <IPhonePreview deviceColor="black" showReflection={false}>
-        <div 
+        <div
           className="h-full w-full overflow-auto scrollbar-hide"
-          style={{ 
+          style={{
             paddingTop: '54px', // 避开Dynamic Island和状态栏区域
             paddingLeft: '12px', // 左边距
             paddingRight: '12px', // 右边距
@@ -75,4 +75,4 @@ export default function PreviewPage() {
       </IPhonePreview>
     </div>
   )
-} 
+}

@@ -74,9 +74,9 @@ export default function PreviewPageById() {
   return (
     <div className="h-screen bg-gray-100 flex items-center justify-center overflow-hidden">
       <IPhonePreview deviceColor="black" showReflection={false}>
-        <div 
+        <div
           className="h-full w-full overflow-auto scrollbar-hide"
-          style={{ 
+          style={{
             paddingTop: '54px', // 避开Dynamic Island和状态栏区域
             paddingLeft: '12px', // 左边距
             paddingRight: '12px', // 右边距
@@ -88,4 +88,4 @@ export default function PreviewPageById() {
       </IPhonePreview>
     </div>
   )
-} 
+}

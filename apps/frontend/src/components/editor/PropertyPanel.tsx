@@ -297,8 +297,8 @@ export function PropertyPanel() {
     if (!html) return ''
     // 使用正则表达式移除HTML标签，并将<br>转换为换行符
     return html
-      .replace(/<br\s*\/?>/gi, '\n')  // 将<br>标签转换为换行符
-      .replace(/<[^>]*>/g, '')        // 移除所有HTML标签
+      .replace(/<br\s*\/?>/gi, '\n') // 将<br>标签转换为换行符
+      .replace(/<[^>]*>/g, '') // 移除所有HTML标签
       .trim()
   }
 

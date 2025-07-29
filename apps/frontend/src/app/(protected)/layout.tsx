@@ -108,7 +108,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </header>
-      <main className={`flex-1 overflow-hidden ${isEditorPage ? '' : 'container mx-auto px-4 py-8 overflow-y-auto'}`}>{children}</main>
+      <main className={`flex-1 overflow-hidden ${isEditorPage ? '' : 'container mx-auto px-4 py-8 overflow-y-auto'}`}>
+        {children}
+      </main>
     </div>
   )
 }

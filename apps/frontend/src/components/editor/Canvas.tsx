@@ -83,57 +83,57 @@ function SortableModuleContainer({
 
       {/* 操作按钮 */}
       <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={e => {
-              e.stopPropagation()
-              onMoveUp()
-            }}
-            disabled={isFirst}
-            className="h-6 w-6 p-0"
-            aria-label={tEditor('上移模块')}
-          >
-            <MoveUp className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={e => {
-              e.stopPropagation()
-              onMoveDown()
-            }}
-            disabled={isLast}
-            className="h-6 w-6 p-0"
-            aria-label={tEditor('下移模块')}
-          >
-            <MoveDown className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={e => {
-              e.stopPropagation()
-              onCopy()
-            }}
-            className="h-6 w-6 p-0"
-            aria-label={tEditor('复制模块')}
-          >
-            <Copy className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={e => {
-              e.stopPropagation()
-              onDelete()
-            }}
-            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-            aria-label={tEditor('删除模块')}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={e => {
+            e.stopPropagation()
+            onMoveUp()
+          }}
+          disabled={isFirst}
+          className="h-6 w-6 p-0"
+          aria-label={tEditor('上移模块')}
+        >
+          <MoveUp className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={e => {
+            e.stopPropagation()
+            onMoveDown()
+          }}
+          disabled={isLast}
+          className="h-6 w-6 p-0"
+          aria-label={tEditor('下移模块')}
+        >
+          <MoveDown className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={e => {
+            e.stopPropagation()
+            onCopy()
+          }}
+          className="h-6 w-6 p-0"
+          aria-label={tEditor('复制模块')}
+        >
+          <Copy className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={e => {
+            e.stopPropagation()
+            onDelete()
+          }}
+          className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+          aria-label={tEditor('删除模块')}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
     </div>
   )
 }

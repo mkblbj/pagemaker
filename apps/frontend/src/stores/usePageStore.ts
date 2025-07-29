@@ -175,7 +175,7 @@ export const usePageStore = create<PageState>()(
         set(
           state => {
             if (!state.currentPage) return state
-            
+
             return {
               currentPage: {
                 ...state.currentPage,

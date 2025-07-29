@@ -4,7 +4,18 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Button } from '@/components/ui/button'
-import { Save, Eye, Settings, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, RotateCcw, Clock, Loader2 } from 'lucide-react'
+import {
+  Save,
+  Eye,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  RotateCcw,
+  Clock,
+  Loader2
+} from 'lucide-react'
 import { ModuleList } from './ModuleList'
 import { Canvas } from './Canvas'
 import { PropertyPanel } from './PropertyPanel'
@@ -146,7 +157,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
         }
 
         const html = generateHTML(currentPage.content, exportOptions)
-        
+
         // 创建简化的iPhone预览窗口
         const previewWindow = window.open('', '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
         if (previewWindow) {
@@ -343,7 +354,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                 {/* 目标区域选择器 */}
                 <TargetAreaSelector />
 
-                <HtmlExportButton 
+                <HtmlExportButton
                   modules={currentPage?.content || []}
                   pageTitle={currentPage?.name}
                   variant="outline"
@@ -407,11 +418,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       </div>
 
       {/* 重置确认对话框 */}
-      <ResetConfirmDialog
-        open={resetDialogOpen}
-        onOpenChange={setResetDialogOpen}
-        onConfirm={handleConfirmReset}
-      />
+      <ResetConfirmDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} onConfirm={handleConfirmReset} />
     </DragProvider>
   )
 }

@@ -654,7 +654,7 @@ describe('HtmlExportService', () => {
         { fontSize: '6', expectedSize: '6' },
         { fontSize: '7', expectedSize: '7' },
         { fontSize: '8', expectedSize: '4' }, // 超出范围使用默认值4
-        { fontSize: '0', expectedSize: '4' }  // 超出范围使用默认值4
+        { fontSize: '0', expectedSize: '4' } // 超出范围使用默认值4
       ]
 
       testCases.forEach(({ fontSize, expectedSize }) => {
@@ -697,7 +697,7 @@ describe('HtmlExportService', () => {
       }
 
       const html = HtmlExportService.generateHTML([imageModule])
-      
+
       // 应该直接生成img标签，不包装在table中
       expect(html).toContain('<img src="https://example.com/test.jpg" alt="测试图片" width="100%">')
       expect(html).not.toContain('<table')
@@ -722,7 +722,7 @@ describe('HtmlExportService', () => {
       }
 
       const html = HtmlExportService.generateHTML([imageModuleWithLink])
-      
+
       // 应该包装在a标签中，但不包装在table中
       expect(html).toContain('<a href="https://example.com/link" target="_blank" rel="noopener noreferrer">')
       expect(html).toContain('<img src="https://example.com/test.jpg" alt="测试图片" width="100%">')
@@ -744,7 +744,7 @@ describe('HtmlExportService', () => {
       }
 
       const html = HtmlExportService.generateHTML([leftAlignedImage])
-      
+
       // 左对齐应该包含margin样式
       expect(html).toContain('style="display: block; margin: 0 auto 0 0;"')
       expect(html).toContain('<img src="https://example.com/test.jpg"')
