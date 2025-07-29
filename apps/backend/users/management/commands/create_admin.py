@@ -80,12 +80,12 @@ class Command(BaseCommand):
                 )
 
                 # 输出成功信息
-                self.stdout.write(self.style.SUCCESS(f"✅ 成功创建超级管理员!"))
+                self.stdout.write(self.style.SUCCESS("✅ 成功创建超级管理员!"))
                 self.stdout.write(f"   用户名: {username}")
                 self.stdout.write(f"   邮箱: {email}")
                 self.stdout.write(f"   密码: {password}")
-                self.stdout.write(f"   角色: admin")
-                self.stdout.write(f"   超级用户: 是")
+                self.stdout.write("   角色: admin")
+                self.stdout.write("   超级用户: 是")
 
                 # 安全提示
                 if password == "admin123":

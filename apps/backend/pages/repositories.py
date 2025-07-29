@@ -20,7 +20,7 @@ class PageTemplateRepository:
         try:
             profile = get_user_profile(user)
             return profile.role
-        except:
+        except Exception:
             return "editor"  # 默认角色
 
     @staticmethod

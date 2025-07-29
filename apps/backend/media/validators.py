@@ -106,7 +106,8 @@ def validate_image_dimensions(
             if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION:
                 return (
                     False,
-                    f"图片尺寸 {width}x{height} 超过限制 {MAX_IMAGE_DIMENSION}x{MAX_IMAGE_DIMENSION}",
+                    f"图片尺寸 {width}x{height} 超过限制 "
+                    f"{MAX_IMAGE_DIMENSION}x{MAX_IMAGE_DIMENSION}",
                 )
 
         # 重置文件指针

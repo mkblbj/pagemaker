@@ -212,7 +212,9 @@ class CabinetImagesViewTestCase(TestCase):
                         {
                             "file_id": "125",
                             "file_name": "search_result.jpg",
-                            "file_url": "https://image.rakuten.co.jp/test/search_result.jpg",
+                            "file_url": (
+                                "https://image.rakuten.co.jp/test/search_result.jpg"
+                            ),
                             "file_size": 512,
                             "content_type": "image/jpeg",
                             "created_date": "2023-01-03T00:00:00Z",
@@ -380,7 +382,9 @@ class MediaAPIIntegrationTestCase(TestCase):
                             "file_id": 107928054,
                             "file_name": "integration.jpg",
                             "file_path": "integration.jpg",
-                            "file_url": "https://image.rakuten.co.jp/test/integration.jpg",
+                            "file_url": (
+                                "https://image.rakuten.co.jp/test/integration.jpg"
+                            ),
                             "file_size": 1024,
                             "content_type": "image/jpeg",
                             "created_date": "2023-01-01T00:00:00Z",

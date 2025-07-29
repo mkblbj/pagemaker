@@ -1,7 +1,6 @@
 'use client'
 
 import { usePageStore } from '@/stores/usePageStore'
-import { useEditorStore } from '@/stores/useEditorStore'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Image, Plus, Trash2, Upload, Link, X } from 'lucide-react'
+import { Settings, Image, Plus, Trash2, Upload, X } from 'lucide-react'
 import { PageModuleType } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -26,7 +25,7 @@ function ImageModuleProperties({
 }) {
   const { tEditor } = useTranslation()
   const [showImageSelector, setShowImageSelector] = useState(false)
-  const [uploadingFile, setUploadingFile] = useState<File | null>(null)
+
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -41,7 +40,6 @@ function ImageModuleProperties({
       return
     }
 
-    setUploadingFile(file)
     setUploadStatus('uploading')
     setUploadProgress(0)
     setUploadError(null)
@@ -65,8 +63,6 @@ function ImageModuleProperties({
       console.error('图片上传失败:', error)
       setUploadError(error instanceof Error ? error.message : '图片上传失败，请重试')
       setUploadStatus('error')
-    } finally {
-      setUploadingFile(null)
     }
   }
 

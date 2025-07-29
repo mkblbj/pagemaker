@@ -40,8 +40,6 @@ class ConfigManager:
     def _validate_environment(self) -> None:
         """验证关键环境变量是否存在"""
         # 检查是否为测试环境
-        import os
-
         is_testing = (
             os.environ.get("DJANGO_SETTINGS_MODULE") == "pagemaker.test_settings"
             or os.environ.get("TESTING") == "true"

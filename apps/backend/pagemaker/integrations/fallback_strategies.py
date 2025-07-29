@@ -96,7 +96,7 @@ class CircuitBreaker:
                 result = func(*args, **kwargs)
                 self._on_success()
                 return result
-            except self.expected_exception as e:
+            except self.expected_exception:
                 self._on_failure()
                 raise
 
@@ -205,7 +205,7 @@ class FallbackManager:
             # 直接执行（无断路器保护）
             try:
                 return primary_func(*args, **kwargs)
-            except Exception as e:
+            except Exception:
                 if fallback_func:
                     self.logger.info(f"执行服务 {service_name} 的降级方案")
                     return fallback_func(*args, **kwargs)

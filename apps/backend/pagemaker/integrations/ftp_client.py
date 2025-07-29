@@ -197,14 +197,14 @@ class RakutenFTPClient:
         if self.sftp_client:
             try:
                 self.sftp_client.close()
-            except:
+            except Exception:
                 pass
             self.sftp_client = None
 
         if self.ssh_client:
             try:
                 self.ssh_client.close()
-            except:
+            except Exception:
                 pass
             self.ssh_client = None
 

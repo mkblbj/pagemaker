@@ -28,7 +28,7 @@ def health_check(request):
             cursor.execute("SELECT 1")
         db_status = "connected"
     except Exception as e:
-        logger.error(f"数据库连接检查失败: { e}")
+        logger.error(f"数据库连接检查失败: {e}")
         db_status = "disconnected"
 
     return Response(

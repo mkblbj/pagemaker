@@ -25,7 +25,7 @@ class Command(BaseCommand):
             permanent = options["permanent"]
             reason = options["reason"]
 
-            self.stdout.write(self.style.WARNING(f"准备禁用R-Cabinet集成功能..."))
+            self.stdout.write(self.style.WARNING("准备禁用R-Cabinet集成功能..."))
             self.stdout.write(f"禁用原因: {reason}")
 
             if permanent:

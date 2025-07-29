@@ -326,7 +326,7 @@ class UserProfilePermissionIntegrationTestCase(TestCase):
 
         try:
             list_url = reverse("configurations:shop-configurations-list")
-        except:
+        except Exception:
             # 如果configurations URL不存在，跳过测试
             self.skipTest("Configurations app not available")
 
@@ -344,7 +344,7 @@ class UserProfilePermissionIntegrationTestCase(TestCase):
 
         try:
             list_url = reverse("configurations:shop-configurations-list")
-        except:
+        except Exception:
             self.skipTest("Configurations app not available")
 
         token = self.get_jwt_token(self.editor_user)
@@ -361,7 +361,7 @@ class UserProfilePermissionIntegrationTestCase(TestCase):
 
         try:
             list_url = reverse("configurations:shop-configurations-list")
-        except:
+        except Exception:
             self.skipTest("Configurations app not available")
 
         token = self.get_jwt_token(self.superuser)
@@ -378,7 +378,7 @@ class UserProfilePermissionIntegrationTestCase(TestCase):
 
         try:
             list_url = reverse("configurations:shop-configurations-list")
-        except:
+        except Exception:
             self.skipTest("Configurations app not available")
 
         token = self.get_jwt_token(self.regular_user)
