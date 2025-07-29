@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Columns, Image as ImageIcon, FileText, X, Upload } from 'lucide-react'
+import { Columns, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PageModule, MultiColumnModuleConfig } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
@@ -32,7 +31,7 @@ export function MultiColumnModule({
   isEditing = false,
   onUpdate,
   onStartEdit,
-  onEndEdit
+  onEndEdit: _onEndEdit
 }: MultiColumnModuleProps) {
   const { tEditor } = useTranslation()
 
@@ -86,7 +85,7 @@ export function MultiColumnModule({
           selection.removeAllRanges()
           selection.addRange(range)
         }
-      } catch (error) {
+      } catch {
         console.debug('Selection API not available')
       }
     }
@@ -104,11 +103,6 @@ export function MultiColumnModule({
     onUpdate?.({
       textConfig: { ...textConfig, ...updates }
     })
-  }
-
-  // 处理布局切换
-  const handleLayoutChange = (newLayout: keyof typeof LAYOUT_CONFIGS) => {
-    onUpdate?.({ layout: newLayout })
   }
 
   // 处理文本内容更新

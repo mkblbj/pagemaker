@@ -1,7 +1,6 @@
 import { apiClient } from '@/lib/apiClient'
 import type {
   PageTemplate,
-  PageTemplateListItem,
   CreatePageTemplateRequest,
   UpdatePageTemplateRequest,
   ApiResponse,

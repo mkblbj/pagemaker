@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { AlertTriangle, Clock, User, FileText, ArrowRight, CheckCircle, XCircle } from 'lucide-react'
+import { AlertTriangle, Clock, User, FileText, CheckCircle } from 'lucide-react'
 import type { PageTemplate } from '@pagemaker/shared-types'
 
 interface ConflictData {

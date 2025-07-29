@@ -131,7 +131,7 @@ function detectFeatureSupport(): FeatureSupport {
   try {
     eval('const test = () => {}; class Test {}')
     features.es6 = true
-  } catch (e) {
+  } catch {
     features.es6 = false
   }
 
@@ -142,7 +142,7 @@ function detectFeatureSupport(): FeatureSupport {
   try {
     const canvas = document.createElement('canvas')
     features.webgl = !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-  } catch (e) {
+  } catch {
     features.webgl = false
   }
 
@@ -255,7 +255,6 @@ export function checkScreenResolution(): { isSupported: boolean; warnings: strin
   const screenWidth = window.screen.width
   const screenHeight = window.screen.height
   const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
 
   const isSupported = screenWidth >= minWidth && screenHeight >= minHeight
 

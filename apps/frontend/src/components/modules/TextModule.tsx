@@ -40,7 +40,7 @@ export function TextModule({
 }: TextModuleProps) {
   const { tEditor } = useTranslation()
   const [localContent, setLocalContent] = useState(module.content || '')
-  const [selectedText, setSelectedText] = useState('')
+
   const [formatState, setFormatState] = useState<FormatState>({
     bold: false,
     underline: false,
@@ -58,27 +58,29 @@ export function TextModule({
   // 处理编辑模式
   useEffect(() => {
     if (isEditing && editorRef.current) {
+      const currentEditor = editorRef.current
+
       // 如果内容是默认提示文本或为空，清空编辑器
       const isPlaceholderText = localContent === tEditor('输入文本内容') || !localContent
       const contentToSet = isPlaceholderText ? '' : localContent
 
       // 设置初始内容（只在刚进入编辑模式时）
-      if (editorRef.current.innerHTML !== contentToSet) {
-        editorRef.current.innerHTML = contentToSet
+      if (currentEditor.innerHTML !== contentToSet) {
+        currentEditor.innerHTML = contentToSet
       }
-      editorRef.current.focus()
+      currentEditor.focus()
 
       // 将光标置于末尾
       try {
         const range = document.createRange()
         const selection = window.getSelection()
         if (selection && selection.removeAllRanges && selection.addRange) {
-          range.selectNodeContents(editorRef.current)
+          range.selectNodeContents(currentEditor)
           range.collapse(false)
           selection.removeAllRanges()
           selection.addRange(range)
         }
-      } catch (error) {
+      } catch {
         // 在测试环境中可能会失败，这是正常的
         console.debug('Selection API not available in test environment')
       }
@@ -91,7 +93,7 @@ export function TextModule({
             underline: document.queryCommandState('underline'),
             link: ''
           })
-        } catch (error) {
+        } catch {
           // 在测试环境中可能会失败
           console.debug('queryCommandState not available in test environment')
         }
@@ -105,15 +107,13 @@ export function TextModule({
       // 只在浏览器环境中添加事件监听器
       if (typeof document !== 'undefined' && document.addEventListener) {
         document.addEventListener('selectionchange', handleSelectionChange)
-        editorRef.current.addEventListener('keyup', handleSelectionChange)
-        editorRef.current.addEventListener('mouseup', handleSelectionChange)
+        currentEditor.addEventListener('keyup', handleSelectionChange)
+        currentEditor.addEventListener('mouseup', handleSelectionChange)
 
         return () => {
           document.removeEventListener('selectionchange', handleSelectionChange)
-          if (editorRef.current) {
-            editorRef.current.removeEventListener('keyup', handleSelectionChange)
-            editorRef.current.removeEventListener('mouseup', handleSelectionChange)
-          }
+          currentEditor.removeEventListener('keyup', handleSelectionChange)
+          currentEditor.removeEventListener('mouseup', handleSelectionChange)
         }
       }
     }

@@ -374,7 +374,7 @@ export async function copyHTMLToClipboard(html: string, plainText?: string): Pro
       success: true,
       message: 'HTML内容已复制到剪贴板'
     }
-  } catch (error) {
+  } catch {
     // 如果HTML复制失败，降级到纯文本
     return await copyToClipboard(plainText || html)
   }

@@ -8,7 +8,7 @@ import { useTranslation } from '@/contexts/I18nContext'
 
 export function usePageEditor() {
   const { tEditor } = useTranslation()
-  const { currentPage, hasUnsavedChanges, markSaved, markUnsaved, setPage } = usePageStore()
+  const { currentPage, hasUnsavedChanges, markSaved, setPage } = usePageStore()
 
   const { setSaving, setError } = useEditorStore()
 

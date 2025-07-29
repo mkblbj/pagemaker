@@ -2,8 +2,6 @@
 
 import { PageModule, PageModuleType } from '@pagemaker/shared-types'
 
-import { Badge } from '@/components/ui/badge'
-import { Type, FileText, Image, Minus, Layout, Columns, AlertTriangle } from 'lucide-react'
 import { TitleModule } from '@/components/modules/TitleModule'
 import { TextModule } from '@/components/modules/TextModule'
 import { ImageModule } from '@/components/modules/ImageModule'

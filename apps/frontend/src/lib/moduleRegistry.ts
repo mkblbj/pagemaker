@@ -206,7 +206,7 @@ export function isValidModuleType(type: string): type is PageModuleType {
 /**
  * 注册新的模块类型（用于扩展）
  */
-export function registerModule(metadata: ModuleMetadata): void {
+export function registerModule(_metadata: ModuleMetadata): void {
   // 这个功能需要重新设计以支持动态注册
   console.warn('registerModule needs to be redesigned for dynamic registration')
 }
@@ -214,7 +214,7 @@ export function registerModule(metadata: ModuleMetadata): void {
 /**
  * 禁用/启用模块类型
  */
-export function toggleModuleEnabled(type: PageModuleType, enabled: boolean): void {
+export function toggleModuleEnabled(_type: PageModuleType, _enabled: boolean): void {
   // 这个功能需要重新设计以支持动态切换
   console.warn('toggleModuleEnabled needs to be redesigned for dynamic toggling')
 }

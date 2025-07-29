@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePageStore } from '@/stores/usePageStore'
-import { useEditorStore } from '@/stores/useEditorStore'
+
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface KeyboardShortcutsProps {

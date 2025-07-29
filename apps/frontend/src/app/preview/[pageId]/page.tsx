@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation'
 import { IPhonePreview } from '@/components/preview/iphone-preview'
 import { pageService } from '@/services/pageService'
 import { generateHTML } from '@/services/htmlExportService'
-import type { PageTemplate } from '@pagemaker/shared-types'
 
 export default function PreviewPageById() {
   const params = useParams()

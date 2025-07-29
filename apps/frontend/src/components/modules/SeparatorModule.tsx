@@ -3,7 +3,7 @@
 import { Minus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { PageModule, PageModuleType } from '@pagemaker/shared-types'
+import { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface SeparatorModuleProps {
@@ -32,10 +32,10 @@ const SPACE_HEIGHT_MAP = {
 export function SeparatorModule({
   module,
   isSelected = false,
-  isEditing = false,
-  onUpdate,
+  isEditing: _isEditing = false,
+  onUpdate: _onUpdate,
   onStartEdit,
-  onEndEdit
+  onEndEdit: _onEndEdit
 }: SeparatorModuleProps) {
   const { tEditor } = useTranslation()
 

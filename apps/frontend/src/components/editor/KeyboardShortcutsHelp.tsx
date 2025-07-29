@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, forwardRef, useImperativeHandle } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Keyboard } from 'lucide-react'
 import { useTranslation } from '@/contexts/I18nContext'

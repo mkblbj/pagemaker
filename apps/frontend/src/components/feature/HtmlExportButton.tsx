@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Download, Copy, Check, Code, Eye, Settings, AlertCircle, Info } from 'lucide-react'
 import { generateHTML, type HtmlExportOptions } from '@/services/htmlExportService'
-import { copyTextWithFeedback, getClipboardCapabilities } from '@/lib/clipboardUtils'
+import { getClipboardCapabilities } from '@/lib/clipboardUtils'
 import type { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { usePageStore } from '@/stores/usePageStore'
@@ -38,7 +38,7 @@ export function HtmlExportButton({
   size = 'default',
   disabled = false
 }: HtmlExportButtonProps) {
-  const { tEditor, tCommon } = useTranslation()
+  const { tEditor } = useTranslation()
   const { targetArea } = usePageStore()
   const [isOpen, setIsOpen] = useState(false)
   const [generatedHTML, setGeneratedHTML] = useState('')

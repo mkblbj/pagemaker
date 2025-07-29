@@ -5,7 +5,7 @@ import { TestComponent } from '@/components/test-component'
 import { useTranslation } from '@/contexts/I18nContext'
 
 export default function DashboardPage() {
-  const { tCommon, tEditor } = useTranslation()
+  const { tCommon } = useTranslation()
 
   return (
     <div className="space-y-6">

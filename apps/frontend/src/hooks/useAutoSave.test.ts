@@ -21,6 +21,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Test wrapper with I18nProvider
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+  // eslint-disable-next-line react/no-children-prop
   return React.createElement(I18nProvider, { defaultLanguage: 'zh-CN', children })
 }
 

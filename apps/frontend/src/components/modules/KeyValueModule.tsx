@@ -3,7 +3,7 @@
 import { Layout } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { PageModule, PageModuleType, KeyValueModuleConfig } from '@pagemaker/shared-types'
+import { PageModule, KeyValueModuleConfig } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 
 interface KeyValueModuleProps {
@@ -18,10 +18,10 @@ interface KeyValueModuleProps {
 export function KeyValueModule({
   module,
   isSelected = false,
-  isEditing = false,
-  onUpdate,
+  isEditing: _isEditing = false,
+  onUpdate: _onUpdate,
   onStartEdit,
-  onEndEdit
+  onEndEdit: _onEndEdit
 }: KeyValueModuleProps) {
   const { tEditor } = useTranslation()
 

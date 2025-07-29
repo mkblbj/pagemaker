@@ -1,30 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import {
-  Image as ImageIcon,
-  Upload,
-  Link,
-  Settings,
-  Folder,
-  CheckCircle,
-  XCircle,
-  ChevronDown,
-  Search,
-  X
-} from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Image as ImageIcon, Folder, CheckCircle, XCircle, ChevronDown, Search, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { PageModule } from '@pagemaker/shared-types'
@@ -69,7 +49,7 @@ export function ImageModule({
   isEditing = false,
   onUpdate,
   onStartEdit,
-  onEndEdit
+  onEndEdit: _onEndEdit
 }: ImageModuleProps) {
   const { tEditor } = useTranslation()
   const [showImageSelector, setShowImageSelector] = useState(false)

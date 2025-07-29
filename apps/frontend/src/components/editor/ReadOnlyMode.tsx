@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { PageTemplate, PageModule, PageModuleType } from '@pagemaker/shared-types'
 import { performCompatibilityCheck } from '@/lib/browserCompatibility'
-import { createAppError, ErrorType, ErrorSeverity } from '@/lib/errorHandler'
+
 import { copyTextWithFeedback } from '@/lib/clipboardUtils'
 
 interface ReadOnlyModeProps {

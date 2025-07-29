@@ -6,24 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import {
-  AlertTriangle,
-  XCircle,
-  Info,
-  X,
-  ChevronDown,
-  ChevronUp,
-  Monitor,
-  Wifi,
-  Cpu,
-  HardDrive,
-  Globe
-} from 'lucide-react'
+import { AlertTriangle, XCircle, Info, X, ChevronDown, ChevronUp, Monitor, Wifi, Cpu, Globe } from 'lucide-react'
 import {
   performCompatibilityCheck,
   generateCompatibilityReport,
-  setupCompatibilityMonitoring,
-  type BrowserInfo
+  setupCompatibilityMonitoring
 } from '@/lib/browserCompatibility'
 
 interface CompatibilityWarningProps {
@@ -34,7 +21,6 @@ interface CompatibilityWarningProps {
 
 export function CompatibilityWarning({ onClose, showDetails = false, persistent = false }: CompatibilityWarningProps) {
   const [compatibilityData, setCompatibilityData] = useState(() => performCompatibilityCheck())
-  const [isOpen, setIsOpen] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   useEffect(() => {
@@ -54,7 +40,6 @@ export function CompatibilityWarning({ onClose, showDetails = false, persistent 
   }
 
   const handleClose = () => {
-    setIsOpen(false)
     onClose?.()
   }
 

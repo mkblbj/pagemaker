@@ -5,10 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import {
   Monitor,
-  Smartphone,
   Wifi,
   Cpu,
   AlertTriangle,
@@ -23,12 +21,7 @@ import {
 import {
   performCompatibilityCheck,
   generateCompatibilityReport,
-  setupCompatibilityMonitoring,
-  getBrowserInfo,
-  checkScreenResolution,
-  checkNetworkConnection,
-  checkPerformance,
-  type BrowserInfo
+  setupCompatibilityMonitoring
 } from '@/lib/browserCompatibility'
 import { CompatibilityWarning } from '@/components/common/CompatibilityWarning'
 

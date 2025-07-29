@@ -3,7 +3,7 @@
  * 提供错误分类、多语言支持、用户友好的错误消息
  */
 
-import { createTranslator, getErrorMessage, type SupportedLanguage } from '@pagemaker/shared-i18n'
+import { getErrorMessage, type SupportedLanguage } from '@pagemaker/shared-i18n'
 
 export enum ErrorType {
   NETWORK = 'NETWORK',

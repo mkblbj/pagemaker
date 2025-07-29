@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { useEditorStore } from '@/stores/useEditorStore'
+
 import { usePageStore } from '@/stores/usePageStore'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
@@ -11,7 +11,7 @@ import { DraggableModuleItem } from './dnd/DraggableModuleItem'
 import { useTranslation } from '@/contexts/I18nContext'
 
 export function ModuleList() {
-  const { selectedModuleId, addModule, targetArea } = usePageStore()
+  const { addModule, targetArea } = usePageStore()
   const { tEditor, tCommon, currentLanguage } = useTranslation()
 
   const [searchTerm, setSearchTerm] = useState('')

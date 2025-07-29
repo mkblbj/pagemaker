@@ -35,7 +35,7 @@ interface PageState {
 
 export const usePageStore = create<PageState>()(
   devtools(
-    (set, get) => ({
+    set => ({
       // Initial state
       currentPage: null,
       selectedModuleId: null,

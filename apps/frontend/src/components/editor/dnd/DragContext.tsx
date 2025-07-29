@@ -112,7 +112,7 @@ export function DragProvider({ children }: DragProviderProps) {
     [setDragging]
   )
 
-  const handleDragOver = useCallback((event: DragOverEvent) => {
+  const handleDragOver = useCallback((_event: DragOverEvent) => {
     // 可以在这里添加拖拽过程中的逻辑
     // 目前保持空白以减少性能开销
   }, [])
@@ -160,7 +160,7 @@ export function DragProvider({ children }: DragProviderProps) {
         // 可以在这里添加错误处理逻辑
       }
     },
-    [addModule, reorderModules, setDragging, markUnsaved]
+    [addModule, reorderModules, setDragging, markUnsaved, currentLanguage]
   )
 
   // 渲染拖拽预览

@@ -225,7 +225,6 @@ ${htmlContent}
     const alignment = textConfig?.alignment || getStringProp(module, 'alignment', 'left')
     const textColor = textConfig?.color || getStringProp(module, 'textColor', '#000000')
     const fontSize = this.convertToFontSize(textConfig?.fontSize || getStringProp(module, 'fontSize', '4')) // 默认size为4
-    const backgroundColor = textConfig?.backgroundColor || getStringProp(module, 'backgroundColor', 'transparent')
 
     // 转换对齐方式为乐天支持的格式
     const alignValue = alignment === 'justify' ? 'left' : alignment
