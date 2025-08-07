@@ -80,10 +80,10 @@ const IPhonePreview = React.forwardRef<HTMLDivElement, IPhonePreviewProps>(
 
             {/* Screen Content */}
             <div className="relative h-full w-full bg-white dark:bg-zinc-800">
-              <div className="h-full w-full overflow-y-auto pb-0">{children}</div>
+              <div className="h-full w-full overflow-y-auto pb-16 mobile-scroll">{children}</div>
 
               {/* Rakuten-style Bottom Bar */}
-              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
+              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-10">
                 <div className="flex items-center gap-1.5">
                   {/* Left Icons */}
                   <button className="flex flex-col items-center justify-center text-red-600 text-xs min-w-[45px]">

@@ -139,4 +139,18 @@
     /* Chrome, Safari and Opera */
     display: none;
   }
+
+  /* 移动端滚动条 - 模拟iOS行为 */
+  .mobile-scroll {
+    /* Firefox - 隐藏滚动条 */
+    scrollbar-width: none;
+    /* IE and Edge */
+    -ms-overflow-style: none;
+    /* iOS smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }
