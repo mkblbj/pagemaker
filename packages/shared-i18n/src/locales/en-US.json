@@ -412,7 +412,8 @@
     "删除页面中的所有模块": "Delete all modules in the page",
     "清空页面内容": "Clear page content",
     "保留页面基本信息": "Keep page basic information",
-    "支持百分比(100%)或像素值(200px)": "Support percentage (100%) or pixel value (200px)"
+    "支持百分比(100%)或像素值(200px)": "Support percentage (100%) or pixel value (200px)",
+    "个图片": "images"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",
