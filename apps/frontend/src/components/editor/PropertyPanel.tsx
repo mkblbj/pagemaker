@@ -12,6 +12,7 @@ import { Settings, Image, Plus, Trash2, Upload, X } from 'lucide-react'
 import { PageModuleType } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import ImageSelectorDialog from '@/components/feature/ImageSelectorDialog'
 import { useState, useRef } from 'react'
 import { imageService } from '@/services/imageService'
 
@@ -239,45 +240,16 @@ function ImageModuleProperties({
         </div>
       </div>
 
-      {/* 图片选择对话框 */}
-      <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tEditor('选择图片')}</DialogTitle>
-            <DialogDescription>{tEditor('从本地上传新图片或从R-Cabinet中选择已有图片')}</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
-              <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-
-              {uploadStatus === 'uploading' && (
-                <div className="space-y-2 mb-4">
-                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className="h-full bg-blue-600 transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {tEditor('上传中')} {uploadProgress}%
-                  </p>
-                </div>
-              )}
-
-              <Button onClick={() => fileInputRef.current?.click()} disabled={uploadStatus === 'uploading'}>
-                {uploadStatus === 'uploading' ? tEditor('上传中...') : tEditor('选择文件')}
-              </Button>
-              <p className="text-sm text-gray-500 mt-2">
-                {tEditor('支持 JPG、PNG、GIF、WebP 格式，文件大小不超过5MB')}
-              </p>
-
-              {uploadError && <p className="text-sm text-red-600 mt-2">{uploadError}</p>}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* 统一图片选择对话框（复用画布中的模态框） */}
+      <ImageSelectorDialog
+        open={showImageSelector}
+        onOpenChange={setShowImageSelector}
+        onSelect={result => {
+          onUpdate('src', result.url)
+          onUpdate('alt', module.alt || result.filename.replace(/\.[^/.]+$/, ''))
+        }}
+        // 默认从 R-Cabinet 选择
+      />
     </div>
   )
 }
@@ -285,6 +257,7 @@ function ImageModuleProperties({
 export function PropertyPanel() {
   const { currentPage, selectedModuleId, updateModule, markUnsaved, targetArea } = usePageStore()
   const { tEditor } = useTranslation()
+  const [showMultiImageSelector, setShowMultiImageSelector] = useState(false)
 
   const selectedModule = currentPage?.content?.find(module => module.id === selectedModuleId)
 
@@ -713,10 +686,13 @@ export function PropertyPanel() {
               <div className="space-y-2">
                 <Label>{tEditor('图片')}</Label>
                 {!(selectedModule as any).imageConfig?.src ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition-colors"
+                    onClick={() => setShowMultiImageSelector(true)}
+                  >
                     <Image className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">{tEditor('暂无图片')}</p>
-                    <p className="text-xs text-gray-400 mt-1">{tEditor('在画布中点击图片区域可添加图片')}</p>
+                    <p className="text-sm text-gray-500">{tEditor('点击选择图片')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{tEditor('从R-Cabinet或上传新图片')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -725,6 +701,28 @@ export function PropertyPanel() {
                       alt={(selectedModule as any).imageConfig.alt || '预览图片'}
                       className="max-w-full h-auto rounded-lg shadow-sm max-h-32 object-cover"
                     />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowMultiImageSelector(true)}
+                        className="flex-1"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {tEditor('更换图片')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const currentImageConfig = (selectedModule as any).imageConfig || {}
+                          handlePropertyUpdate('imageConfig', { ...currentImageConfig, src: '', alt: '' })
+                        }}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {tEditor('图片URL')}: {(selectedModule as any).imageConfig.src}
                     </div>
@@ -942,6 +940,20 @@ export function PropertyPanel() {
                 </div>
               </div>
             </div>
+
+            {/* 统一图片选择对话框（复用画布中的模态框） */}
+            <ImageSelectorDialog
+              open={showMultiImageSelector}
+              onOpenChange={setShowMultiImageSelector}
+              onSelect={result => {
+                const currentImageConfig = (selectedModule as any).imageConfig || {}
+                handlePropertyUpdate('imageConfig', {
+                  ...currentImageConfig,
+                  src: result.url,
+                  alt: (selectedModule as any).imageConfig?.alt || result.filename.replace(/\.[^/.]+$/, '')
+                })
+              }}
+            />
           </div>
         )
 

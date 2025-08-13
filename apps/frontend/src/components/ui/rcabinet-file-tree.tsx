@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ChevronRight, Folder, FolderOpen, Search, X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ChevronRight, Folder, FolderOpen, Search, X, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { imageService, type CabinetFolder } from '@/services/imageService'
 
@@ -25,6 +25,43 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
+  const [sortMode, setSortMode] = useState<'name-asc' | 'name-desc' | 'date-desc' | 'date-asc'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem('rcabinet_tree_sort_mode') as any
+      if (saved === 'name-asc' || saved === 'name-desc' || saved === 'date-desc' || saved === 'date-asc') return saved
+    }
+    return 'name-asc'
+  })
+  const [loadedAll, setLoadedAll] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const childrenCacheRef = useRef<Map<string, RCabinetTreeNode[]>>(new Map())
+  const pendingRef = useRef<Map<string, Promise<RCabinetTreeNode[]>>>(new Map())
+
+  // 比较器
+  const getComparator = () => {
+    switch (sortMode) {
+      case 'name-asc':
+        return (a: RCabinetTreeNode, b: RCabinetTreeNode) => a.name.localeCompare(b.name)
+      case 'name-desc':
+        return (a: RCabinetTreeNode, b: RCabinetTreeNode) => b.name.localeCompare(a.name)
+      case 'date-desc': {
+        return (a: RCabinetTreeNode, b: RCabinetTreeNode) => {
+          const ta = a.updatedAt ? Date.parse(a.updatedAt) : 0
+          const tb = b.updatedAt ? Date.parse(b.updatedAt) : 0
+          return tb - ta
+        }
+      }
+      case 'date-asc': {
+        return (a: RCabinetTreeNode, b: RCabinetTreeNode) => {
+          const ta = a.updatedAt ? Date.parse(a.updatedAt) : 0
+          const tb = b.updatedAt ? Date.parse(b.updatedAt) : 0
+          return ta - tb
+        }
+      }
+      default:
+        return (a: RCabinetTreeNode, b: RCabinetTreeNode) => a.name.localeCompare(b.name)
+    }
+  }
 
   // 构建文件夹树形结构
   const buildFolderTree = (folders: CabinetFolder[]): RCabinetTreeNode[] => {
@@ -69,13 +106,13 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
       folders.forEach(folder => {
         folder.level = level
         if (folder.children && folder.children.length > 0) {
-          folder.children.sort((a, b) => a.name.localeCompare(b.name))
+          folder.children.sort(getComparator())
           setLevelsAndSort(folder.children, level + 1)
         }
       })
     }
 
-    rootFolders.sort((a, b) => a.name.localeCompare(b.name))
+    rootFolders.sort(getComparator())
     setLevelsAndSort(rootFolders)
 
     return rootFolders
@@ -105,16 +142,22 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
     return filtered
   }
 
-  // 初始数据加载
+  // 初始加载根层（懒加载）
   useEffect(() => {
-    const loadFolders = async () => {
+    const loadRoot = async () => {
       try {
         setIsLoading(true)
         setError(null)
-
-        const response = await imageService.getCabinetFolders({ page: 1, pageSize: 1000 })
-        const tree = buildFolderTree(response.folders)
+        // 仅请求根层
+        const resp = await imageService.getCabinetFolders({ page: 1, pageSize: 100, parentPath: '' })
+        const tree = buildFolderTree(resp.folders || [])
         setTreeData(tree)
+        setLoadedAll(false)
+        // 根层缓存
+        childrenCacheRef.current.set(
+          '',
+          (resp.folders || []).map(f => ({ ...(f as any) }))
+        )
       } catch (error) {
         console.error('加载R-Cabinet文件夹失败:', error)
         setError('加载文件夹失败，请重试')
@@ -122,36 +165,132 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
         setIsLoading(false)
       }
     }
-
-    loadFolders()
+    void loadRoot()
+    // 静默预热服务端缓存（不阻塞UI）
+    void Promise.resolve(imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500 })).catch(() => void 0)
   }, [])
 
-  // 切换文件夹展开状态
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(folderId)) {
-        newSet.delete(folderId)
-      } else {
-        newSet.add(folderId)
+  // 搜索时自动加载全量（一次性，从缓存读，避免多次打API）
+  useEffect(() => {
+    const fetchAllIfNeeded = async () => {
+      if (!searchTerm.trim() || loadedAll) return
+      try {
+        setIsLoading(true)
+        setError(null)
+        const pageSize = 500
+        let page = 1
+        let all: CabinetFolder[] = []
+        while (true) {
+          const resp = await imageService.getCabinetFolders({ page, pageSize, all: true })
+          all = all.concat(resp.folders || [])
+          const fetched = page * pageSize
+          if (resp.total !== undefined && fetched >= resp.total) break
+          if (!resp.folders || resp.folders.length === 0) break
+          page += 1
+        }
+        const tree = buildFolderTree(all)
+        setTreeData(tree)
+        setLoadedAll(true)
+      } catch (e) {
+        // 忽略错误，保持已有树
+      } finally {
+        setIsLoading(false)
       }
-      return newSet
-    })
-
-    // 更新树数据中的展开状态
-    const updateTreeData = (nodes: RCabinetTreeNode[]): RCabinetTreeNode[] => {
-      return nodes.map(node => {
-        if (node.id === folderId) {
-          return { ...node, isExpanded: !node.isExpanded }
-        }
-        if (node.children) {
-          return { ...node, children: updateTreeData(node.children) }
-        }
-        return node
-      })
     }
+    void fetchAllIfNeeded()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm])
 
-    setTreeData(updateTreeData)
+  // 懒加载展开：若无子节点，按需请求 parentPath = 当前path
+  const toggleFolder = (folderId: string) => {
+    const loadChildrenIfNeeded = async () => {
+      const prevScroll = scrollRef.current?.scrollTop ?? 0
+      // 深拷贝并定位节点
+      const clone = (nodes: RCabinetTreeNode[]): RCabinetTreeNode[] =>
+        nodes.map(n => ({ ...n, children: n.children ? clone(n.children) : [] }))
+      const next = clone(treeData)
+      const stack: RCabinetTreeNode[] = [...next]
+      let target: RCabinetTreeNode | null = null
+      while (stack.length) {
+        const n = stack.shift()!
+        if (n.id === folderId) {
+          target = n
+          break
+        }
+        if (n.children) stack.push(...n.children)
+      }
+      if (!target) {
+        setTreeData(next)
+        return
+      }
+      const willExpand = !target.isExpanded
+      target.isExpanded = willExpand
+      // 只以节点上的 isExpanded 为准，移除 expandedFolders 作为单一真相，避免竞态
+      setExpandedFolders(new Set(Array.from(expandedFolders)))
+      const hadChildren = !!(target.children && target.children.length)
+      const couldHave = (target as any).hasChildren !== false
+      if (willExpand && !hadChildren && couldHave) {
+        // 命中本地缓存，直接填充
+        const cached = childrenCacheRef.current.get(target.path)
+        if (cached) {
+          target.children = cached.map(c => ({ ...c, level: (target!.level || 0) + 1 }))
+          target.isLoading = false
+          setTreeData(next)
+          return
+        }
+        // 请求子节点（第一时间显示loading并保持展开态）
+        try {
+          target.isLoading = true
+          setTreeData(next) // 立即渲染展开+loading
+          // 恢复滚动位置，避免跳到顶部
+          requestAnimationFrame(() => {
+            if (scrollRef.current) scrollRef.current.scrollTop = prevScroll
+          })
+          // 去重并复用正在进行的请求
+          let p = pendingRef.current.get(target.path)
+          if (!p) {
+            p = imageService
+              .getCabinetFolders({ parentPath: target.path, page: 1, pageSize: 100 })
+              .then(resp => (resp.folders || []) as RCabinetTreeNode[])
+            pendingRef.current.set(target.path, p)
+          }
+          const children = await p
+          pendingRef.current.delete(target.path)
+          children.forEach(c => {
+            c.level = (target!.level || 0) + 1
+          })
+          target.children = children
+          target.isLoading = false
+          if (!children.length) {
+            ;(target as any).hasChildren = false
+          }
+          // 缓存子列表（浅拷贝）
+          childrenCacheRef.current.set(
+            target.path,
+            children.map(c => ({ ...c }))
+          )
+          // 按当前排序排序子节点
+          const cmp = getComparator()
+          target.children.sort(cmp)
+          setTreeData(next)
+          requestAnimationFrame(() => {
+            if (scrollRef.current) scrollRef.current.scrollTop = prevScroll
+          })
+        } catch (e) {
+          target.isLoading = false
+          setTreeData(next)
+          requestAnimationFrame(() => {
+            if (scrollRef.current) scrollRef.current.scrollTop = prevScroll
+          })
+        }
+      } else {
+        setTreeData(next)
+        requestAnimationFrame(() => {
+          if (scrollRef.current) scrollRef.current.scrollTop = prevScroll
+        })
+      }
+    }
+    void loadChildrenIfNeeded()
   }
 
   // 处理文件夹选择
@@ -161,9 +300,11 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
 
   // 递归渲染树节点
   const TreeNodeComponent = ({ node }: { node: RCabinetTreeNode }) => {
-    const hasChildren = node.children && node.children.length > 0
+    const mayHaveChildren = (node as any).hasChildren !== false
+    const hasChildren = !!(node.children && node.children.length > 0)
+    const showCaret = hasChildren || mayHaveChildren || node.isLoading
     const isSelected = selectedFolderId === node.id
-    const isExpanded = expandedFolders.has(node.id)
+    const isExpanded = !!node.isExpanded
 
     return (
       <div className="select-none">
@@ -177,8 +318,8 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
           style={{ paddingLeft: `${12 + (node.level || 0) * 20}px` }}
           onClick={() => handleFolderSelect(node)}
         >
-          {/* 展开/收起按钮 */}
-          {hasChildren ? (
+          {/* 展开/收起按钮（未知是否有子时也显示，以触发懒加载）*/}
+          {showCaret ? (
             <button
               onClick={e => {
                 e.stopPropagation()
@@ -210,18 +351,27 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
             {node.name}
           </span>
 
-          {/* 文件数量 */}
-          {node.fileCount !== undefined && node.fileCount > 0 && (
-            <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{node.fileCount}</span>
+          {/* 文件数量/加载中 */}
+          {node.isLoading ? (
+            <span className="ml-2 flex-shrink-0">
+              <span className="inline-block h-3 w-3 rounded-full border border-t-transparent border-gray-400 animate-spin" />
+            </span>
+          ) : (
+            node.fileCount !== undefined &&
+            node.fileCount > 0 && <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{node.fileCount}</span>
           )}
         </div>
 
-        {/* 子文件夹 */}
-        {hasChildren && isExpanded && (
+        {/* 子文件夹/加载占位：展开即渲染容器 */}
+        {isExpanded && (
           <div className="mt-1">
-            {node.children!.map(childNode => (
-              <TreeNodeComponent key={childNode.id} node={childNode} />
-            ))}
+            {node.isLoading ? (
+              <div className="pl-6 py-1">
+                <span className="inline-block h-3 w-3 rounded-full border border-t-transparent border-gray-400 animate-spin" />
+              </div>
+            ) : hasChildren ? (
+              node.children!.map(childNode => <TreeNodeComponent key={childNode.id} node={childNode} />)
+            ) : null}
           </div>
         )}
       </div>
@@ -230,14 +380,64 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
 
   const filteredTree = filterFolderTree(treeData, searchTerm)
 
+  // 排序模式切换时，对现有树做就地排序
+  useEffect(() => {
+    const sortTree = (nodes: RCabinetTreeNode[]): RCabinetTreeNode[] => {
+      const cmp = getComparator()
+      const cloned = nodes.map(n => ({ ...n, children: n.children ? sortTree(n.children) : [] }))
+      cloned.sort(cmp)
+      return cloned
+    }
+    setTreeData(prev => sortTree(prev))
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('rcabinet_tree_sort_mode', sortMode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortMode])
+
   return (
     <div className={cn('flex flex-col h-full bg-gray-50', className)}>
       {/* 头部 */}
       <div className="p-3 border-b bg-white">
-        <div className="flex items-center gap-2 mb-3">
-          <Folder className="h-4 w-4 text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">文件夹</span>
-          {isLoading && <span className="text-xs text-gray-500">加载中...</span>}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Folder className="h-4 w-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">文件夹</span>
+            {isLoading && <span className="text-xs text-gray-500">加载中...</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500">排序</label>
+            <select
+              className="border border-gray-200 rounded px-2 py-1 text-xs"
+              value={sortMode}
+              onChange={e => setSortMode(e.target.value as any)}
+            >
+              <option value="name-asc">名称 A→Z</option>
+              <option value="name-desc">名称 Z→A</option>
+              <option value="date-desc">更新日期 新→旧</option>
+              <option value="date-asc">更新日期 旧→新</option>
+            </select>
+            <button
+              className="inline-flex items-center justify-center h-7 w-7 border rounded hover:bg-gray-50"
+              title="刷新文件夹"
+              onClick={async () => {
+                try {
+                  setIsLoading(true)
+                  setError(null)
+                  const resp = await imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500, force: true })
+                  const tree = buildFolderTree(resp.folders || [])
+                  setTreeData(tree)
+                  setLoadedAll(true)
+                } catch (e) {
+                  setError('刷新失败，请重试')
+                } finally {
+                  setIsLoading(false)
+                }
+              }}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* 搜索框 */}
@@ -263,7 +463,7 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
       </div>
 
       {/* 文件夹树 */}
-      <div className="flex-1 overflow-y-auto p-2">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-2">
         {/* 根目录 */}
         {!searchTerm.trim() && (
           <div

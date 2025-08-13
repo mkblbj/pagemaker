@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { PageModule, MultiColumnModuleConfig } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { ImageModule } from './ImageModule'
+import ImageSelectorDialog from '@/components/feature/ImageSelectorDialog'
 
 interface MultiColumnModuleProps {
   module: PageModule & MultiColumnModuleConfig
@@ -203,7 +204,7 @@ export function MultiColumnModule({
     return styles
   }
 
-  // 渲染图片区域 - 使用ImageModule组件
+  // 渲染图片区域 - 使用ImageModule组件，并统一复用图片选择Dialog
   const renderImageArea = () => {
     // 创建兼容的图片模块数据
     const imageModuleData = {

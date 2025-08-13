@@ -1,16 +1,13 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Image as ImageIcon, CheckCircle, XCircle, ChevronDown, X } from 'lucide-react'
+import { useState } from 'react'
+import { Image as ImageIcon, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
-import { imageService, type CabinetImage, type CabinetFolder } from '@/services/imageService'
-import { RCabinetFileTree } from '@/components/ui/rcabinet-file-tree'
+import ImageSelectorDialog from '@/components/feature/ImageSelectorDialog'
 
 // 图片模块配置接口
 interface ImageModuleConfig {
@@ -55,97 +52,12 @@ export function ImageModule({
   const { tEditor } = useTranslation()
   const [showImageSelector, setShowImageSelector] = useState(false)
 
-  const [uploadingFile, setUploadingFile] = useState<File | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [cabinetImages, setCabinetImages] = useState<CabinetImage[]>([])
-  const [selectedFolderId, setSelectedFolderId] = useState<string>('0') // 默认根目录
-  const [selectedFolderName, setSelectedFolderName] = useState<string>('根目录')
-  const [loadingCabinet, setLoadingCabinet] = useState(false)
-  const [activeTab, setActiveTab] = useState<'upload' | 'cabinet'>('upload')
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // 处理文件夹选择
-  const handleFolderSelect = (folderId: string, folderName: string) => {
-    setSelectedFolderId(folderId)
-    setSelectedFolderName(folderName)
-    loadCabinetImages(folderId)
-  }
-
-  // 获取R-Cabinet图片列表
-  const loadCabinetImages = async (folderId?: string) => {
-    const targetFolderId = folderId || selectedFolderId
-    setLoadingCabinet(true)
-    try {
-      const response = await imageService.getCabinetImages({
-        page: 1,
-        pageSize: 20,
-        folderId: targetFolderId
-      })
-      setCabinetImages(response.images)
-    } catch (error) {
-      console.error('加载图片列表失败:', error)
-    } finally {
-      setLoadingCabinet(false)
-    }
-  }
-
-  // 处理文件上传
-  const handleFileUpload = async (file: File) => {
-    const validation = imageService.validateImageFile(file)
-    if (!validation.valid) {
-      setUploadError(validation.error || '文件验证失败')
-      setUploadStatus('error')
-      return
-    }
-
-    setUploadingFile(file)
-    setUploadStatus('uploading')
-    setUploadProgress(0)
-    setUploadError(null)
-
-    try {
-      const uploadResult = await imageService.uploadImage(file, progress => {
-        setUploadProgress(progress)
-      })
-
-      setUploadStatus('success')
-      onUpdate?.({
-        src: uploadResult.url,
-        alt: module.alt || file.name.replace(/\.[^/.]+$/, '')
-      })
-
-      // 延迟关闭对话框以显示成功状态
-      setTimeout(() => {
-        setShowImageSelector(false)
-        setUploadStatus('idle')
-        setUploadProgress(0)
-      }, 1500)
-    } catch (error) {
-      console.error('图片上传失败:', error)
-      setUploadError(error instanceof Error ? error.message : '图片上传失败，请重试')
-      setUploadStatus('error')
-    } finally {
-      setUploadingFile(null)
-    }
-  }
-
-  // 处理文件选择
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      handleFileUpload(file)
-    }
-  }
-
-  // 处理R-Cabinet图片选择
-  const handleCabinetImageSelect = (image: CabinetImage) => {
+  // 统一图片选择回调（来自共享对话框）
+  const handleSelect = (result: { url: string; filename: string }) => {
     onUpdate?.({
-      src: image.url,
-      alt: module.alt || image.filename.replace(/\.[^/.]+$/, '')
+      src: result.url,
+      alt: module.alt || result.filename.replace(/\.[^/.]+$/, '')
     })
-    setShowImageSelector(false)
   }
 
   // 获取图片样式
@@ -260,187 +172,13 @@ export function ImageModule({
         {renderImageContent()}
       </div>
 
-      {/* 图片选择对话框 */}
-      <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
-        <DialogContent
-          className={cn(
-            'max-w-none',
-            activeTab === 'cabinet'
-              ? 'w-[90vw] h-[75vh] sm:max-w-[90vw] md:max-w-[90vw] lg:max-w-[90vw] xl:max-w-[90vw]'
-              : 'w-[600px] h-auto sm:max-w-[600px] md:max-w-[600px] lg:max-w-[600px] xl:max-w-[600px]'
-          )}
-          style={
-            activeTab === 'cabinet'
-              ? { maxWidth: '90vw', width: '90vw', height: '75vh' }
-              : { maxWidth: '600px', width: '600px', height: 'auto' }
-          }
-        >
-          <DialogHeader>
-            <DialogTitle>{tEditor('选择图片')}</DialogTitle>
-            <DialogDescription>{tEditor('从本地上传新图片或从R-Cabinet中选择已有图片')}</DialogDescription>
-          </DialogHeader>
-
-          <div className="w-full">
-            <div className="grid w-full grid-cols-2 border-b">
-              <button
-                className={cn(
-                  'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
-                  activeTab === 'upload'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                )}
-                onClick={() => setActiveTab('upload')}
-              >
-                {tEditor('上传新图片')}
-              </button>
-              <button
-                className={cn(
-                  'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
-                  activeTab === 'cabinet'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                )}
-                onClick={() => {
-                  setActiveTab('cabinet')
-                  // 加载当前选中文件夹的图片
-                  loadCabinetImages(selectedFolderId)
-                }}
-              >
-                {tEditor('从R-Cabinet选择')}
-              </button>
-            </div>
-
-            {activeTab === 'upload' && (
-              <div className="space-y-4 mt-4">
-                {/* 上传状态提示 */}
-                {uploadStatus === 'error' && uploadError && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <XCircle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-800">{uploadError}</AlertDescription>
-                  </Alert>
-                )}
-
-                {uploadStatus === 'success' && (
-                  <Alert className="border-green-200 bg-green-50">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">{tEditor('图片上传成功！')}</AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-
-                  {uploadStatus === 'uploading' && (
-                    <div className="space-y-2 mb-4">
-                      <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                        <div
-                          className="h-full bg-blue-600 transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {tEditor('上传中')} {uploadProgress}%
-                      </p>
-                    </div>
-                  )}
-
-                  <Button onClick={() => fileInputRef.current?.click()} disabled={uploadStatus === 'uploading'}>
-                    {uploadStatus === 'uploading' ? tEditor('上传中...') : tEditor('选择文件')}
-                  </Button>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {tEditor('支持 JPG、PNG、GIF、WebP 格式，文件大小不超过5MB')}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'cabinet' && (
-              <div className="flex h-[500px] mt-4 border rounded-lg overflow-hidden">
-                {/* 左侧文件夹树 */}
-                <div className="w-80 border-r">
-                  <RCabinetFileTree
-                    onFolderSelect={handleFolderSelect}
-                    selectedFolderId={selectedFolderId}
-                    className="h-full"
-                  />
-                </div>
-
-                {/* 右侧图片网格 */}
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  {/* 当前文件夹信息 */}
-                  <div className="flex-shrink-0 bg-white border-b px-4 py-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">{selectedFolderName}</span>
-                        {cabinetImages.length > 0 && (
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            {cabinetImages.length} {tEditor('个图片')}
-                          </span>
-                        )}
-                      </div>
-                      {loadingCabinet && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-blue-500 animate-spin" />
-                          {tEditor('加载中...')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 图片网格区域 */}
-                  <div className="flex-1 overflow-y-auto p-4">
-                    {loadingCabinet ? (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
-                          <div className="h-8 w-8 rounded-full border-2 border-t-transparent border-blue-500 animate-spin mx-auto mb-2" />
-                          <p className="text-gray-500">{tEditor('加载图片中...')}</p>
-                        </div>
-                      </div>
-                    ) : cabinetImages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                        <ImageIcon className="h-16 w-16 mb-4 text-gray-300" />
-                        <p className="text-lg font-medium mb-2">{tEditor('该文件夹中没有图片')}</p>
-                        <p className="text-sm text-gray-400">{tEditor('请选择其他文件夹或上传新图片')}</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-5 gap-3">
-                        {cabinetImages.map(image => (
-                          <div
-                            key={image.id}
-                            className="group cursor-pointer border rounded-lg p-2 hover:border-blue-500 hover:shadow-md transition-all duration-200"
-                            onClick={() => handleCabinetImageSelect(image)}
-                          >
-                            <div className="aspect-square overflow-hidden rounded-md mb-2">
-                              <img
-                                src={image.url}
-                                alt={image.filename}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                              />
-                            </div>
-                            <div className="text-xs text-gray-600 truncate mb-1" title={image.filename}>
-                              {image.filename}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {image.width}×{image.height}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* 统一图片选择对话框（仅复用共享组件） */}
+      <ImageSelectorDialog
+        open={showImageSelector}
+        onOpenChange={setShowImageSelector}
+        onSelect={handleSelect}
+        initialTab="upload"
+      />
     </div>
   )
 }

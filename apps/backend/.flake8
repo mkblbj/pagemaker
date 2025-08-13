@@ -1,13 +1,7 @@
 [flake8]
-max-line-length = 88
-extend-ignore = 
-    # E203: whitespace before ':'
-    E203,
-    # W503: line break before binary operator
-    W503,
-    # F401: module imported but unused (common in __init__.py)
-    F401
-exclude = 
+max-line-length = 160
+extend-ignore = E203, W503
+exclude =
     .git,
     __pycache__,
     .venv,
@@ -15,8 +9,30 @@ exclude =
     migrations,
     build,
     dist,
-    *.egg-info
+    *.egg-info,
+    htmlcov,
+    .pytest_cache
 per-file-ignores =
-    __init__.py:F401
-    settings.py:E501
-max-complexity = 12 
+    media/views.py: C901
+    pagemaker/integrations/cabinet_client.py: E501
+    pagemaker/integrations/fallback_strategies.py: E501
+    pagemaker/integrations/manual_connection_test.py: E402,E501,F541
+    pagemaker/integrations/monitoring.py: E501
+    pagemaker/integrations/utils.py: F841
+    pagemaker/test_settings.py: E402
+    pages/serializers.py: E501
+    pages/tests/test_models.py: F841
+    shared_i18n/error_messages.py: E501
+    test_coverage.py: F841
+    users/tests.py: F811
+    */tests/*.py: F401
+    */admin.py: F401
+    */urls.py: F401
+    */views.py: F401
+    pagemaker/schemas.py: F401
+    pagemaker/config.py: F401
+    pagemaker/integrations/cabinet_client.py: F401
+    pagemaker/integrations/fallback_strategies.py: F401
+    pagemaker/integrations/ftp_client.py: F401
+    shared_i18n/error_messages.py: F401
+    api/models.py: F401

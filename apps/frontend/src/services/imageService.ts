@@ -82,7 +82,13 @@ export const imageService = {
   /**
    * 获取R-Cabinet中的文件夹列表
    */
-  async getCabinetFolders(params?: { page?: number; pageSize?: number }): Promise<CabinetFolderListResponse> {
+  async getCabinetFolders(params?: {
+    page?: number
+    pageSize?: number
+    parentPath?: string
+    all?: boolean
+    force?: boolean
+  }): Promise<CabinetFolderListResponse> {
     const response = await apiClient.get<ApiResponse<CabinetFolderListResponse>>('/api/v1/media/cabinet-folders/', {
       params
     })
