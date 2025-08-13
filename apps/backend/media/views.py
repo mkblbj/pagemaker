@@ -411,13 +411,17 @@ def get_cabinet_folders(request):
                 page_limit = 100
                 while True:
                     _rate_limit_sleep()
-                    result = cabinet_client.get_folders(offset=current_page, limit=page_limit)
+                    result = cabinet_client.get_folders(
+                        offset=current_page, limit=page_limit
+                    )
                     if not result.get("success", True):
                         return Response(
                             {
                                 "error": {
                                     "code": "API_ERROR",
-                                    "message": result.get("message", "获取文件夹列表失败"),
+                                    "message": result.get(
+                                        "message", "获取文件夹列表失败"
+                                    ),
                                 }
                             },
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -425,12 +429,16 @@ def get_cabinet_folders(request):
                     page_folders = result.get("data", {}).get("folders", [])
                     all_raw.extend(page_folders)
                     folder_all_count = result.get("data", {}).get("folder_all_count")
-                    if not page_folders or (folder_all_count and len(all_raw) >= int(folder_all_count)):
+                    if not page_folders or (
+                        folder_all_count and len(all_raw) >= int(folder_all_count)
+                    ):
                         break
                     current_page += 1
                 normalized = _normalize_folders(all_raw)
                 # 基于全量补充 hasChildren
-                normalized = _normalize_folders(all_raw, with_has_children_from=normalized)
+                normalized = _normalize_folders(
+                    all_raw, with_has_children_from=normalized
+                )
                 # 缓存 5 分钟
                 cache.set("cabinet_folders_all", normalized, timeout=600)
                 cache.set("cabinet_folders_all_ts", time.time(), timeout=600)
@@ -440,6 +448,7 @@ def get_cabinet_folders(request):
                 # stale-while-revalidate: 5分钟后后台刷新，不阻塞
                 try:
                     if cached_ts is None or (time.time() - float(cached_ts)) > 300:
+
                         def _refresh_async():
                             try:
                                 cc = RCabinetClient()
@@ -451,19 +460,29 @@ def get_cabinet_folders(request):
                                     res = cc.get_folders(offset=cp, limit=limit)
                                     if not res.get("success", True):
                                         break
-                                    page_folders = res.get("data", {}).get("folders", [])
+                                    page_folders = res.get("data", {}).get(
+                                        "folders", []
+                                    )
                                     all_raw.extend(page_folders)
                                     fac = res.get("data", {}).get("folder_all_count")
-                                    if not page_folders or (fac and len(all_raw) >= int(fac)):
+                                    if not page_folders or (
+                                        fac and len(all_raw) >= int(fac)
+                                    ):
                                         break
                                     cp += 1
                                 norm = _normalize_folders(all_raw)
-                                norm = _normalize_folders(all_raw, with_has_children_from=norm)
+                                norm = _normalize_folders(
+                                    all_raw, with_has_children_from=norm
+                                )
                                 cache.set("cabinet_folders_all", norm, timeout=600)
-                                cache.set("cabinet_folders_all_ts", time.time(), timeout=600)
+                                cache.set(
+                                    "cabinet_folders_all_ts", time.time(), timeout=600
+                                )
                             except Exception:
                                 pass
+
                         import threading
+
                         threading.Thread(target=_refresh_async, daemon=True).start()
                 except Exception:
                     pass
@@ -475,7 +494,9 @@ def get_cabinet_folders(request):
                     # 根层（无父路径）
                     folders = [f for f in folders if not f.get("parentPath")]
                 else:
-                    folders = [f for f in folders if f.get("parentPath") == parent_path_query]
+                    folders = [
+                        f for f in folders if f.get("parentPath") == parent_path_query
+                    ]
                 total = len(folders)
                 # 默认全部返回子节点（不再分页），也可按传入分页
                 start = (page - 1) * page_size
@@ -616,7 +637,11 @@ def get_cabinet_images(request):
         # 根据参数选择API调用方式
         if search:
             # 使用搜索API
-            search_params = {"file_name": search, "offset": record_offset, "limit": page_size}
+            search_params = {
+                "file_name": search,
+                "offset": record_offset,
+                "limit": page_size,
+            }
             if folder_id:
                 search_params["folder_id"] = int(folder_id)
             _rate_limit_sleep()
