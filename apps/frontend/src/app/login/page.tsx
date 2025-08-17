@@ -2,109 +2,167 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { apiClient } from '@/lib/apiClient'
+import { useToast } from '@/hooks/use-toast'
+import { Toaster } from '@/components/ui/toaster'
+import { AuthCard } from '@/components/auth/AuthCard'
+import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/contexts/I18nContext'
 import { LanguageCompact } from '@/components/common/LanguageSwitcher'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const { toast } = useToast()
   const router = useRouter()
-  const { tAuth, tError } = useTranslation()
+  const { signIn, signUp, socialSignIn, forgotPassword, isLoading } = useAuth()
+  const { tAuth } = useTranslation()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
 
-    try {
-      // 调用真实的JWT认证API
-      const response = await apiClient.post('/api/v1/auth/token/', {
-        username,
-        password
+    // 暂时取消邮箱格式验证，开发阶段使用
+    // if (!validateEmail(email)) {
+    //   toast({
+    //     title: tAuth('邮箱格式错误'),
+    //     description: tAuth('请输入有效的邮箱地址'),
+    //     variant: "destructive",
+    //   })
+    //   return
+    // }
+
+    const result = await signIn({ email, password, rememberMe })
+
+    if (result.success) {
+      toast({
+        title: tAuth('登录成功！'),
+        description: tAuth('欢迎回到 Pagemaker CMS')
       })
+      router.push('/dashboard')
+    } else {
+      toast({
+        title: tAuth('登录失败'),
+        description: result.error || tAuth('请检查您的邮箱和密码'),
+        variant: 'destructive'
+      })
+    }
+  }
 
-      if (response.data.access && response.data.refresh) {
-        // 存储JWT tokens
-        localStorage.setItem('access_token', response.data.access)
-        localStorage.setItem('refresh_token', response.data.refresh)
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-        // 跳转到dashboard
-        router.push('/dashboard')
-      } else {
-        setError(tError('登录响应格式错误'))
-      }
-    } catch (err: any) {
-      console.error('Login error:', err)
-      if (err.response?.status === 401) {
-        setError(tAuth('用户名或密码错误'))
-      } else if (err.response?.status === 400) {
-        setError(tAuth('请填写完整的用户名和密码'))
-      } else {
-        setError(tAuth('登录失败，请稍后重试'))
-      }
-    } finally {
-      setIsLoading(false)
+    // 暂时取消邮箱格式验证，开发阶段使用
+    // if (!validateEmail(email)) {
+    //   toast({
+    //     title: tAuth('邮箱格式错误'),
+    //     description: tAuth('请输入有效的邮箱地址'),
+    //     variant: "destructive",
+    //   })
+    //   return
+    // }
+
+    if (password.length < 6) {
+      toast({
+        title: tAuth('密码过短'),
+        description: tAuth('密码至少需要6个字符'),
+        variant: 'destructive'
+      })
+      return
+    }
+
+    const result = await signUp({ email, password })
+
+    if (result.success) {
+      toast({
+        title: tAuth('注册成功！'),
+        description: tAuth('您的账户已创建成功')
+      })
+      router.push('/dashboard')
+    } else {
+      toast({
+        title: tAuth('注册失败'),
+        description: result.error || tAuth('请检查您的信息'),
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleSocialLogin = async (provider: string) => {
+    const result = await socialSignIn(provider)
+
+    if (result.success) {
+      toast({
+        title: `${provider} ${tAuth('登录成功')}`,
+        description: tAuth('正在跳转...')
+      })
+      router.push('/dashboard')
+    } else {
+      toast({
+        title: `${provider} ${tAuth('登录')}`,
+        description: result.error || tAuth('功能开发中...')
+      })
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: tAuth('请输入邮箱'),
+        description: tAuth('请先输入您的邮箱地址'),
+        variant: 'destructive'
+      })
+      return
+    }
+
+    const result = await forgotPassword(email)
+
+    if (result.success) {
+      toast({
+        title: tAuth('重置链接已发送'),
+        description: tAuth('请查看您的邮箱以获取密码重置说明')
+      })
+    } else {
+      toast({
+        title: tAuth('发送失败'),
+        description: result.error || tAuth('请稍后重试'),
+        variant: 'destructive'
+      })
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundImage: "url('/bg.jpeg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* 语言切换器 - 固定在右上角 */}
       <div className="fixed top-4 right-4 z-50">
         <LanguageCompact />
       </div>
 
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{tAuth('登录 Pagemaker CMS')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="username">{tAuth('用户名')}</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder={tAuth('请输入用户名')}
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{tAuth('密码')}</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder={tAuth('请输入密码')}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? tAuth('登录中...') : tAuth('登录')}
-            </Button>
-            <div className="text-sm text-muted-foreground text-center mt-4">
-              <p>{tAuth('测试账号: admin / admin123')}</p>
-              <p>{tAuth('或者: testuser / testpass123')}</p>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <AuthCard
+        isLoading={isLoading}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        rememberMe={rememberMe}
+        setRememberMe={setRememberMe}
+        onSignIn={handleSignIn}
+        onSignUp={handleSignUp}
+        onSocialLogin={handleSocialLogin}
+        onForgotPassword={handleForgotPassword}
+      />
+      <Toaster />
     </div>
   )
 }

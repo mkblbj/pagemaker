@@ -28,11 +28,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # API v1 routes
     path("api/v1/", include("api.urls")),
-    # JWT authentication endpoints
-    path("api/v1/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path(
-        "api/v1/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"
-    ),
+    # Enhanced authentication endpoints
+    path("api/v1/auth/", include("auth.urls")),
 ]
 
 # Serve media files during development
