@@ -589,6 +589,14 @@ def get_cabinet_images(request):
             page: 页码（默认1）
             pageSize: 每页数量（默认20，最大100）
             search: 搜索关键词（可选）
+            folderId: 文件夹ID（可选）
+            sortMode: 排序模式（可选，默认name-asc）
+                - name-asc: 按文件名升序
+                - name-desc: 按文件名降序
+                - date-asc: 按上传时间升序（最旧在前）
+                - date-desc: 按上传时间降序（最新在前）
+                - size-asc: 按文件大小升序
+                - size-desc: 按文件大小降序
 
     Response:
         200: 获取成功
@@ -601,6 +609,7 @@ def get_cabinet_images(request):
         page_size = int(request.GET.get("pageSize", 20))
         search = request.GET.get("search", "")
         folder_id = request.GET.get("folderId")  # 文件夹ID过滤
+        sort_mode = request.GET.get("sortMode", "name-asc")  # 排序模式
 
         # 限制页面大小
         page_size = min(page_size, 100)
@@ -705,6 +714,29 @@ def get_cabinet_images(request):
                             "uploadedAt": timestamp,
                         }
                     )
+
+            # 根据排序模式对图片进行排序
+            def _sort_images(images_list, sort_mode):
+                if sort_mode == "name-asc":
+                    return sorted(images_list, key=lambda x: x["filename"].lower())
+                elif sort_mode == "name-desc":
+                    return sorted(
+                        images_list, key=lambda x: x["filename"].lower(), reverse=True
+                    )
+                elif sort_mode == "date-desc":  # 最新的在前
+                    return sorted(
+                        images_list, key=lambda x: x["uploadedAt"] or "", reverse=True
+                    )
+                elif sort_mode == "date-asc":  # 最旧的在前
+                    return sorted(images_list, key=lambda x: x["uploadedAt"] or "")
+                elif sort_mode == "size-desc":  # 文件大小从大到小
+                    return sorted(images_list, key=lambda x: x["size"], reverse=True)
+                elif sort_mode == "size-asc":  # 文件大小从小到大
+                    return sorted(images_list, key=lambda x: x["size"])
+                else:
+                    return images_list  # 默认不排序
+
+            images = _sort_images(images, sort_mode)
 
             # 计算总数（这里使用当前页的数量作为近似值）
             total = len(images)

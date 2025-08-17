@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { useTranslation } from '@/contexts/I18nContext'
 import { imageService, type CabinetImage } from '@/services/imageService'
 import { RCabinetFileTree } from '@/components/ui/rcabinet-file-tree'
-import { CheckCircle, Image as ImageIcon, XCircle, RefreshCw } from 'lucide-react'
+import { CheckCircle, Image as ImageIcon, XCircle, RefreshCw, ChevronRight, ArrowUpDown } from 'lucide-react'
 
 type ActiveTab = 'upload' | 'cabinet'
 
@@ -85,12 +85,37 @@ export default function ImageSelectorDialog({
     }
   }
 
-  // cabinet
-  const [selectedFolderId, setSelectedFolderId] = useState<string>('0')
-  const [selectedFolderName, setSelectedFolderName] = useState<string>('根目录')
+  // cabinet - 从localStorage恢复上次选择的文件夹
+  const [selectedFolderId, setSelectedFolderId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage.getItem('rcabinet_selected_folder_id') || '0'
+    }
+    return '0'
+  })
+  const [selectedFolderName, setSelectedFolderName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage.getItem('rcabinet_selected_folder_name') || '根目录'
+    }
+    return '根目录'
+  })
+  const [selectedFolderPath, setSelectedFolderPath] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage.getItem('rcabinet_selected_folder_path') || ''
+    }
+    return ''
+  })
   const [cabinetImages, setCabinetImages] = useState<CabinetImage[]>([])
   const [loadingCabinet, setLoadingCabinet] = useState(false)
   const [virtual, setVirtual] = useState(true)
+  const [imageSortMode, setImageSortMode] = useState<
+    'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'size-asc' | 'size-desc'
+  >(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem('rcabinet_image_sort_mode') as any
+      if (['name-asc', 'name-desc', 'date-asc', 'date-desc', 'size-asc', 'size-desc'].includes(saved)) return saved
+    }
+    return 'name-asc'
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
   const itemHeight = 176 // 每行高度估算
@@ -112,10 +137,40 @@ export default function ImageSelectorDialog({
     setScrollTop(containerRef.current.scrollTop)
   }
 
-  const handleFolderSelect = (folderId: string, folderName: string) => {
+  const handleFolderSelect = (folderId: string, folderName: string, folderPath?: string) => {
     setSelectedFolderId(folderId)
     setSelectedFolderName(folderName)
+    setSelectedFolderPath(folderPath || '')
+    // 保存选择状态到localStorage
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('rcabinet_selected_folder_id', folderId)
+      window.localStorage.setItem('rcabinet_selected_folder_name', folderName)
+      window.localStorage.setItem('rcabinet_selected_folder_path', folderPath || '')
+    }
     void loadCabinetImages(folderId)
+  }
+
+  // 构建路径面包屑
+  const buildPathBreadcrumb = () => {
+    if (selectedFolderId === '0') {
+      return [{ name: tEditor('根目录'), path: '', id: '0' }]
+    }
+
+    const pathParts = selectedFolderPath.split('/').filter(part => part.length > 0)
+    const breadcrumbs = [{ name: tEditor('根目录'), path: '', id: '0' }]
+
+    let currentPath = ''
+    for (let i = 0; i < pathParts.length; i++) {
+      currentPath += (i === 0 ? '' : '/') + pathParts[i]
+      const isLast = i === pathParts.length - 1
+      breadcrumbs.push({
+        name: isLast ? selectedFolderName : pathParts[i],
+        path: currentPath,
+        id: isLast ? selectedFolderId : `path_${currentPath}`
+      })
+    }
+
+    return breadcrumbs
   }
 
   const loadCabinetImages = async (folderId?: string) => {
@@ -127,7 +182,12 @@ export default function ImageSelectorDialog({
       let page = 1
       let allImages: CabinetImage[] = []
       while (true) {
-        const resp = await imageService.getCabinetImages({ page, pageSize, folderId: targetFolderId })
+        const resp = await imageService.getCabinetImages({
+          page,
+          pageSize,
+          folderId: targetFolderId,
+          sortMode: imageSortMode
+        })
         allImages = allImages.concat(resp.images || [])
         const fetched = page * pageSize
         if (resp.total !== undefined) {
@@ -143,6 +203,18 @@ export default function ImageSelectorDialog({
       setLoadingCabinet(false)
     }
   }
+
+  // 图片排序模式变化时重新加载图片
+  useEffect(() => {
+    if (activeTab === 'cabinet' && selectedFolderId && typeof window !== 'undefined') {
+      void loadCabinetImages(selectedFolderId)
+    }
+    // 保存排序模式到localStorage
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('rcabinet_image_sort_mode', imageSortMode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageSortMode])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -250,10 +322,30 @@ export default function ImageSelectorDialog({
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-shrink-0 bg-white border-b px-4 py-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700">{selectedFolderName}</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {/* 路径面包屑 */}
+                      <div className="flex items-center gap-1 text-sm text-gray-600 flex-1 min-w-0">
+                        {buildPathBreadcrumb().map((breadcrumb, index, array) => (
+                          <div key={breadcrumb.id} className="flex items-center gap-1 flex-shrink-0">
+                            <span
+                              className={cn(
+                                'truncate max-w-[120px]',
+                                index === array.length - 1
+                                  ? 'font-medium text-gray-900'
+                                  : 'text-gray-500 hover:text-gray-700 cursor-pointer'
+                              )}
+                              title={breadcrumb.name}
+                            >
+                              {breadcrumb.name}
+                            </span>
+                            {index < array.length - 1 && (
+                              <ChevronRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
                       {cabinetImages.length > 0 && (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
                           {cabinetImages.length} {tEditor('个图片')}
                         </span>
                       )}
@@ -265,6 +357,22 @@ export default function ImageSelectorDialog({
                           {tEditor('加载中...')}
                         </div>
                       )}
+                      {/* 图片排序选择 */}
+                      <div className="relative">
+                        <select
+                          value={imageSortMode}
+                          onChange={e => setImageSortMode(e.target.value as any)}
+                          className="appearance-none bg-white border rounded px-3 py-1 pr-8 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="name-asc">{tEditor('文件名 A-Z')}</option>
+                          <option value="name-desc">{tEditor('文件名 Z-A')}</option>
+                          <option value="date-desc">{tEditor('上传时间 新-旧')}</option>
+                          <option value="date-asc">{tEditor('上传时间 旧-新')}</option>
+                          <option value="size-desc">{tEditor('文件大小 大-小')}</option>
+                          <option value="size-asc">{tEditor('文件大小 小-大')}</option>
+                        </select>
+                        <ArrowUpDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
+                      </div>
                       <button
                         className="inline-flex items-center justify-center h-8 w-8 border rounded hover:bg-gray-50"
                         title={tEditor('刷新图片')}

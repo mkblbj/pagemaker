@@ -177,7 +177,7 @@ export function ImageModule({
         open={showImageSelector}
         onOpenChange={setShowImageSelector}
         onSelect={handleSelect}
-        initialTab="upload"
+        initialTab="cabinet"
       />
     </div>
   )

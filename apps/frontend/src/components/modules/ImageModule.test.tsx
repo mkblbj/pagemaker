@@ -212,9 +212,14 @@ describe('ImageModule', () => {
       const placeholder = screen.getByText('点击选择图片').closest('div')
       await user.click(placeholder!)
 
-      // 验证上传选项存在
+      // 验证标签页存在
       expect(screen.getByText('上传新图片')).toBeInTheDocument()
       expect(screen.getByText('从R-Cabinet选择')).toBeInTheDocument()
+      
+      // 切换到上传标签页
+      await user.click(screen.getByText('上传新图片'))
+      
+      // 验证上传选项存在
       expect(screen.getByText('选择文件')).toBeInTheDocument()
     })
   })

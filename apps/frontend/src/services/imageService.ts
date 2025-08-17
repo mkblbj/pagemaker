@@ -108,6 +108,7 @@ export const imageService = {
     pageSize?: number
     search?: string
     folderId?: string
+    sortMode?: 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'size-asc' | 'size-desc'
   }): Promise<CabinetImageListResponse> {
     const response = await apiClient.get<ApiResponse<CabinetImageListResponse>>('/api/v1/media/cabinet-images/', {
       params
