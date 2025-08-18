@@ -428,7 +428,19 @@
     "上传时间 新-旧": "Upload date new→old",
     "上传时间 旧-新": "Upload date old→new",
     "文件大小 大-小": "File size large→small",
-    "文件大小 小-大": "File size small→large"
+    "文件大小 小-大": "File size small→large",
+    "请先选择要添加链接的文本": "Please select the text to add a link",
+    "请先选择要修改字体大小的文本": "Please select the text to change font size first",
+    "请输入链接地址:": "Please enter the link address:",
+    "最小": "Smallest",
+    "较小": "Smaller",
+    "小": "Small",
+    "大": "Large",
+    "较大": "Larger",
+    "最大": "Largest",
+    "默认字体大小": "Default Font Size",
+    "影响整个模块。编辑时可选中文字修改单独字体大小。": "Affects the entire module. When editing, you can select text to change individual font size.",
+    "大小": "Size"
   },
   "auth": {
     "登录 Pagemaker CMS": "Login to Pagemaker CMS",
