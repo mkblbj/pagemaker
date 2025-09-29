@@ -314,12 +314,22 @@ export function HtmlExportButton({
     }
   }
 
-  // 计算HTML大小
-  const getHTMLSize = () => {
-    if (!generatedHTML) return '0 KB'
+  // 计算HTML字符数
+  const getHTMLCharCount = () => {
+    if (!generatedHTML) return '0 字符'
+    const charCount = generatedHTML.length
+    if (charCount < 1000) return `${charCount} 字符`
+    return `${(charCount / 1000).toFixed(1)}k 字符`
+  }
+
+  // 计算HTML大小（同时显示字符数和字节数）
+  const getHTMLStats = () => {
+    if (!generatedHTML) return `0 ${tEditor('字符')} / 0 ${tEditor('B')}`
+    const charCount = generatedHTML.length
     const bytes = new Blob([generatedHTML]).size
-    if (bytes < 1024) return `${bytes} B`
-    return `${(bytes / 1024).toFixed(1)} KB`
+    const charDisplay = charCount < 1000 ? `${charCount} ${tEditor('字符')}` : `${(charCount / 1000).toFixed(1)}${tEditor('k 字符')}`
+    const byteDisplay = bytes < 1024 ? `${bytes} ${tEditor('B')}` : `${(bytes / 1024).toFixed(1)} ${tEditor('KB')}`
+    return `${charDisplay} / ${byteDisplay}`
   }
 
   // 计算模块数量
@@ -354,7 +364,7 @@ export function HtmlExportButton({
               {getModuleCount()} {tEditor('个模块')}
             </Badge>
             <Badge variant="outline" className="text-xs">
-              {getHTMLSize()}
+              {getHTMLStats()}
             </Badge>
             {exportOptions.fullDocument && (
               <Badge variant="secondary" className="text-xs">

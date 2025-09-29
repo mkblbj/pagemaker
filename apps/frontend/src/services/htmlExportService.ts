@@ -43,6 +43,14 @@ function getArrayProp(obj: PageModule, key: string): unknown[] {
  */
 export class HtmlExportService {
   /**
+   * 生成单个模块的HTML
+   */
+  static generateModuleHTML(module: PageModule, options: HtmlExportOptions = {}): string {
+    const opts = { ...DEFAULT_OPTIONS, ...options }
+    return this['generateModuleHTML'](module, opts)
+  }
+
+  /**
    * 生成HTML文档
    */
   static generateHTML(modules: PageModule[], options: HtmlExportOptions = {}): string {

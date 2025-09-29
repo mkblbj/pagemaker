@@ -7,9 +7,19 @@ import { ModuleRenderer } from './ModuleRenderer'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { getModuleMetadata } from '@/lib/moduleRegistry'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from '@/contexts/I18nContext'
+import { HtmlExportService } from '@/services/htmlExportService'
 
-import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical } from 'lucide-react'
+import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical, Code } from 'lucide-react'
 import { DroppableCanvas } from './dnd/DroppableCanvas'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -28,6 +38,7 @@ function SortableModuleContainer({
   onUpdate,
   onStartEdit,
   onEndEdit,
+  onViewCode,
   isFirst,
   isLast,
   isDeleting = false,
@@ -126,6 +137,18 @@ function SortableModuleContainer({
           size="sm"
           onClick={e => {
             e.stopPropagation()
+            onViewCode()
+          }}
+          className="h-6 w-6 p-0"
+          aria-label={tEditor('查看代码')}
+        >
+          <Code className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={e => {
+            e.stopPropagation()
             onDelete()
           }}
           className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
@@ -148,7 +171,8 @@ export function Canvas() {
     addModule,
     updateModule,
     markUnsaved,
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    targetArea
   } = usePageStore()
   const { tEditor, currentLanguage } = useTranslation()
 
@@ -156,6 +180,11 @@ export function Canvas() {
   const [moduleToDelete, setModuleToDelete] = useState<any>(null)
   const [deletingModuleId, setDeletingModuleId] = useState<string | null>(null)
   const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false)
+  const [moduleCode, setModuleCode] = useState('')
+  const [originalModuleCode, setOriginalModuleCode] = useState('')
+  const [currentModuleForCode, setCurrentModuleForCode] = useState<any>(null)
+  const [hasCodeChanges, setHasCodeChanges] = useState(false)
 
   const modules = currentPage?.content || []
 
@@ -235,6 +264,165 @@ export function Canvas() {
     setEditingModuleId(null)
   }
 
+  // 处理查看模块代码
+  const handleViewModuleCode = (module: any) => {
+    try {
+      console.log('生成模块HTML，模块类型:', module.type, '模块数据:', module)
+      console.log('当前目标区域:', targetArea)
+      
+      // 根据目标区域决定是否使用移动端模式
+      const isMobileMode = targetArea === 'mobile'
+      
+      const html = HtmlExportService.generateModuleHTML(module, {
+        includeStyles: false,
+        minify: false,
+        title: '',
+        description: '',
+        language: 'zh-CN',
+        fullDocument: false,
+        mobileMode: isMobileMode // 使用与目标区域一致的模式
+      })
+      console.log('生成的HTML:', html)
+      setModuleCode(html)
+      setOriginalModuleCode(html)
+      setCurrentModuleForCode(module)
+      setHasCodeChanges(false)
+      setCodeDialogOpen(true)
+    } catch (error) {
+      console.error('生成模块HTML失败:', error)
+      const errorMessage = '生成HTML时出错: ' + error.message
+      setModuleCode(errorMessage)
+      setOriginalModuleCode(errorMessage)
+      setCurrentModuleForCode(module)
+      setHasCodeChanges(false)
+      setCodeDialogOpen(true)
+    }
+  }
+
+  // 处理代码变化
+  const handleCodeChange = (newCode: string) => {
+    setModuleCode(newCode)
+    setHasCodeChanges(newCode !== originalModuleCode)
+  }
+
+  // 重置代码
+  const resetCode = () => {
+    setModuleCode(originalModuleCode)
+    setHasCodeChanges(false)
+  }
+
+  // 应用代码修改
+  const applyCodeChanges = () => {
+    if (!currentModuleForCode || !hasCodeChanges) return
+
+    try {
+      // 简单的HTML解析和模块更新逻辑
+      const updatedModule = parseHTMLToModule(moduleCode, currentModuleForCode)
+      if (updatedModule) {
+        updateModule(currentModuleForCode.id, updatedModule)
+        markUnsaved()
+        setOriginalModuleCode(moduleCode)
+        setHasCodeChanges(false)
+        // 可以添加成功提示
+        console.log('模块代码已更新')
+      }
+    } catch (error) {
+      console.error('应用代码修改失败:', error)
+      // 可以添加错误提示
+    }
+  }
+
+  // 简单的HTML解析函数
+  const parseHTMLToModule = (html: string, originalModule: any) => {
+    // 移除前后空白
+    const cleanHtml = html.trim()
+    
+    try {
+      // 根据模块类型进行不同的解析
+      switch (originalModule.type) {
+        case 'title':
+          return parseHTMLToTitleModule(cleanHtml, originalModule)
+        case 'text':
+          return parseHTMLToTextModule(cleanHtml, originalModule)
+        case 'image':
+          return parseHTMLToImageModule(cleanHtml, originalModule)
+        default:
+          console.warn('暂不支持解析此模块类型:', originalModule.type)
+          return null
+      }
+    } catch (error) {
+      console.error('HTML解析失败:', error)
+      return null
+    }
+  }
+
+  // 解析标题模块HTML
+  const parseHTMLToTitleModule = (html: string, originalModule: any) => {
+    // 先尝试匹配乐天移动端格式 <table><tr><td><font><b>
+    const rakutenMatch = html.match(/<table[^>]*>[\s\S]*?<td[^>]*><font[^>]*><b>(.*?)<\/b><\/font><\/td>[\s\S]*?<\/table>/i)
+    if (rakutenMatch) {
+      const content = rakutenMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+      return {
+        text: content,
+        content: content,
+        level: originalModule.level || 'h2' // 保持原有级别
+      }
+    }
+    
+    // 再匹配标准格式 <h1-h6> 标签
+    const titleMatch = html.match(/<(h[1-6])[^>]*>(.*?)<\/\1>/i)
+    if (titleMatch) {
+      const level = titleMatch[1] // h1, h2, etc.
+      const content = titleMatch[2].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+      
+      return {
+        text: content,
+        content: content,
+        level: level
+      }
+    }
+    return null
+  }
+
+  // 解析文本模块HTML
+  const parseHTMLToTextModule = (html: string, originalModule: any) => {
+    // 先尝试匹配乐天移动端格式 <p><font>
+    const rakutenMatch = html.match(/<p[^>]*><font[^>]*>(.*?)<\/font><\/p>/i)
+    if (rakutenMatch) {
+      const content = rakutenMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+      return {
+        content: content
+      }
+    }
+    
+    // 再匹配标准格式 <div> 或 <p> 标签
+    const textMatch = html.match(/<(div|p)[^>]*>(.*?)<\/\1>/i)
+    if (textMatch) {
+      const content = textMatch[2].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+      
+      return {
+        content: content
+      }
+    }
+    return null
+  }
+
+  // 解析图片模块HTML
+  const parseHTMLToImageModule = (html: string, originalModule: any) => {
+    // 匹配 <img> 标签
+    const imgMatch = html.match(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i)
+    if (imgMatch) {
+      const src = imgMatch[1]
+      const alt = imgMatch[2]
+      
+      return {
+        src: src,
+        alt: alt
+      }
+    }
+    return null
+  }
+
   return (
     <DroppableCanvas className="h-full overflow-y-auto p-4 relative">
       {modules.length === 0 ? (
@@ -270,6 +458,7 @@ export function Canvas() {
               onUpdate={(updates: any) => handleModuleUpdate(module.id, updates)}
               onStartEdit={() => handleStartEdit(module.id)}
               onEndEdit={handleEndEdit}
+              onViewCode={() => handleViewModuleCode(module)}
               isFirst={index === 0}
               isLast={index === modules.length - 1}
               isDeleting={deletingModuleId === module.id}
@@ -298,6 +487,81 @@ export function Canvas() {
         moduleName={moduleToDelete?.text || moduleToDelete?.title || moduleToDelete?.alt}
         moduleType={getModuleMetadata(moduleToDelete?.type, currentLanguage)?.name || moduleToDelete?.type}
       />
+
+        {/* 模块代码编辑对话框 */}
+        <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
+          <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center gap-2">
+                <Code className="h-5 w-5" />
+                {tEditor('模块代码')}
+                {hasCodeChanges && (
+                  <span className="text-orange-500 text-sm font-normal">
+                    ({tEditor('代码已修改')})
+                  </span>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {tEditor('模块HTML代码')} - {getModuleMetadata(currentModuleForCode?.type, currentLanguage)?.name || currentModuleForCode?.type}
+                {targetArea === 'mobile' && (
+                  <>
+                    <br />
+                    <span className="text-xs text-blue-600 font-medium">
+                      🏷️ 移动端模式 - 乐天HTML约束格式
+                    </span>
+                  </>
+                )}
+                <br />
+                <span className="text-xs text-muted-foreground">
+                  {tEditor('可以直接编辑HTML代码，修改后点击应用修改更新模块')}
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="h-full border rounded-lg overflow-hidden">
+                <Textarea
+                  value={moduleCode || ''}
+                  onChange={(e) => handleCodeChange(e.target.value)}
+                  className="h-full w-full font-mono text-xs resize-none border-0 focus-visible:ring-0"
+                  placeholder={tEditor('HTML代码将在这里显示...')}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-4 border-t">
+              <div className="flex gap-2">
+                {hasCodeChanges && (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={resetCode}
+                    >
+                      {tEditor('重置代码')}
+                    </Button>
+                    <Button
+                      onClick={applyCodeChanges}
+                      disabled={!hasCodeChanges}
+                    >
+                      {tEditor('应用修改')}
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(moduleCode)
+                  }}
+                >
+                  {tEditor('复制代码')}
+                </Button>
+                <Button onClick={() => setCodeDialogOpen(false)}>
+                  {tEditor('关闭')}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
     </DroppableCanvas>
   )
 }
