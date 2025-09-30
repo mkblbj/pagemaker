@@ -302,6 +302,7 @@ class TestEnumCompatibility:
         assert PageModuleType.SEPARATOR.value == "separator"
         assert PageModuleType.KEY_VALUE.value == "keyValue"
         assert PageModuleType.MULTI_COLUMN.value == "multiColumn"
+        assert PageModuleType.CUSTOM.value == "custom"
 
         # 验证所有枚举值
         expected_types = {
@@ -311,6 +312,7 @@ class TestEnumCompatibility:
             "separator",
             "keyValue",
             "multiColumn",
+            "custom",
         }
         actual_types = {module_type.value for module_type in PageModuleType}
         assert actual_types == expected_types

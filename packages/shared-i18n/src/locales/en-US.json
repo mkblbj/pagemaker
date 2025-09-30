@@ -276,6 +276,8 @@
     "可以直接编辑HTML代码，修改后点击应用修改更新模块": "You can edit HTML code directly, click Apply Changes to update the module after modification",
     "重置代码": "Reset Code",
     "应用修改": "Apply Changes",
+    "自定义HTML模块": "Custom HTML Module",
+    "添加自定义HTML代码": "Add custom HTML code",
     "生成中...": "Generating...",
     "点击重新生成按钮生成HTML代码": "Click the regenerate button to generate HTML code",
     "点击\"重新生成\"按钮生成HTML代码": "Click the \"Regenerate\" button to generate HTML code",

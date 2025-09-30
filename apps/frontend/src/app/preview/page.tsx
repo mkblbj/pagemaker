@@ -62,14 +62,31 @@ function PreviewContent() {
   return (
     <div className="h-screen bg-gray-100 flex items-center justify-center overflow-hidden">
       <IPhonePreview deviceColor="black" showReflection={false}>
-        <div
+        <iframe
           className="w-full"
           style={{
             paddingTop: '54px', // 避开Dynamic Island和状态栏区域
             paddingLeft: '12px', // 左边距
-            paddingRight: '12px' // 右边距
+            paddingRight: '12px', // 右边距
+            border: 'none',
+            height: 'calc(100vh - 54px)'
           }}
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
+          srcDoc={`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body { margin: 0; padding: 12px; font-family: inherit; }
+              </style>
+            </head>
+            <body>
+              ${htmlContent}
+            </body>
+            </html>
+          `}
+          title="HTML Export Preview"
         />
       </IPhonePreview>
     </div>

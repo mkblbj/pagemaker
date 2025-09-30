@@ -17,7 +17,7 @@ export function ModuleList() {
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleAddModule = useCallback(
-    (moduleType: PageModuleType) => {
+    (moduleType: PageModuleType | 'custom') => {
       const newModule = createModuleInstance(moduleType, currentLanguage)
       addModule(newModule)
     },

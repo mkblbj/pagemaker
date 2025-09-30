@@ -12,12 +12,12 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportService } from '@/services/htmlExportService'
+import { PageModuleType } from '@pagemaker/shared-types'
 
 import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical, Code } from 'lucide-react'
 import { DroppableCanvas } from './dnd/DroppableCanvas'
@@ -89,11 +89,19 @@ function SortableModuleContainer({
           onUpdate={onUpdate}
           onStartEdit={onStartEdit}
           onEndEdit={onEndEdit}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onCopy={onCopy}
+          onViewCode={onViewCode}
+          onDelete={onDelete}
+          isFirst={isFirst}
+          isLast={isLast}
         />
       </div>
 
-      {/* 操作按钮 */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 transition-opacity">
+      {/* 操作按钮 - 对自定义HTML模块隐藏 */}
+      {module.type !== 'custom' && (
+        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 transition-opacity bg-white/80 backdrop-blur-sm rounded-md p-1 shadow-sm">
         <Button
           variant="ghost"
           size="sm"
@@ -156,7 +164,8 @@ function SortableModuleContainer({
         >
           <Trash2 className="h-3 w-3" />
         </Button>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -267,12 +276,9 @@ export function Canvas() {
   // 处理查看模块代码
   const handleViewModuleCode = (module: any) => {
     try {
-      console.log('生成模块HTML，模块类型:', module.type, '模块数据:', module)
-      console.log('当前目标区域:', targetArea)
-      
       // 根据目标区域决定是否使用移动端模式
       const isMobileMode = targetArea === 'mobile'
-      
+
       const html = HtmlExportService.generateModuleHTML(module, {
         includeStyles: false,
         minify: false,
@@ -282,7 +288,6 @@ export function Canvas() {
         fullDocument: false,
         mobileMode: isMobileMode // 使用与目标区域一致的模式
       })
-      console.log('生成的HTML:', html)
       setModuleCode(html)
       setOriginalModuleCode(html)
       setCurrentModuleForCode(module)
@@ -316,112 +321,23 @@ export function Canvas() {
     if (!currentModuleForCode || !hasCodeChanges) return
 
     try {
-      // 简单的HTML解析和模块更新逻辑
-      const updatedModule = parseHTMLToModule(moduleCode, currentModuleForCode)
-      if (updatedModule) {
-        updateModule(currentModuleForCode.id, updatedModule)
-        markUnsaved()
-        setOriginalModuleCode(moduleCode)
-        setHasCodeChanges(false)
-        // 可以添加成功提示
-        console.log('模块代码已更新')
+      // 将编辑后的HTML直接作为自定义模块
+      const customModule = {
+        type: PageModuleType.CUSTOM,
+        customHTML: moduleCode.trim(),
+        originalType: currentModuleForCode.type, // 保存原始类型用于参考
+        name: `自定义HTML模块 (原${currentModuleForCode.type})`
       }
+      
+      updateModule(currentModuleForCode.id, customModule)
+      markUnsaved()
+      setOriginalModuleCode(moduleCode)
+      setHasCodeChanges(false)
     } catch (error) {
       console.error('应用代码修改失败:', error)
-      // 可以添加错误提示
     }
   }
 
-  // 简单的HTML解析函数
-  const parseHTMLToModule = (html: string, originalModule: any) => {
-    // 移除前后空白
-    const cleanHtml = html.trim()
-    
-    try {
-      // 根据模块类型进行不同的解析
-      switch (originalModule.type) {
-        case 'title':
-          return parseHTMLToTitleModule(cleanHtml, originalModule)
-        case 'text':
-          return parseHTMLToTextModule(cleanHtml, originalModule)
-        case 'image':
-          return parseHTMLToImageModule(cleanHtml, originalModule)
-        default:
-          console.warn('暂不支持解析此模块类型:', originalModule.type)
-          return null
-      }
-    } catch (error) {
-      console.error('HTML解析失败:', error)
-      return null
-    }
-  }
-
-  // 解析标题模块HTML
-  const parseHTMLToTitleModule = (html: string, originalModule: any) => {
-    // 先尝试匹配乐天移动端格式 <table><tr><td><font><b>
-    const rakutenMatch = html.match(/<table[^>]*>[\s\S]*?<td[^>]*><font[^>]*><b>(.*?)<\/b><\/font><\/td>[\s\S]*?<\/table>/i)
-    if (rakutenMatch) {
-      const content = rakutenMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-      return {
-        text: content,
-        content: content,
-        level: originalModule.level || 'h2' // 保持原有级别
-      }
-    }
-    
-    // 再匹配标准格式 <h1-h6> 标签
-    const titleMatch = html.match(/<(h[1-6])[^>]*>(.*?)<\/\1>/i)
-    if (titleMatch) {
-      const level = titleMatch[1] // h1, h2, etc.
-      const content = titleMatch[2].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-      
-      return {
-        text: content,
-        content: content,
-        level: level
-      }
-    }
-    return null
-  }
-
-  // 解析文本模块HTML
-  const parseHTMLToTextModule = (html: string, originalModule: any) => {
-    // 先尝试匹配乐天移动端格式 <p><font>
-    const rakutenMatch = html.match(/<p[^>]*><font[^>]*>(.*?)<\/font><\/p>/i)
-    if (rakutenMatch) {
-      const content = rakutenMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-      return {
-        content: content
-      }
-    }
-    
-    // 再匹配标准格式 <div> 或 <p> 标签
-    const textMatch = html.match(/<(div|p)[^>]*>(.*?)<\/\1>/i)
-    if (textMatch) {
-      const content = textMatch[2].replace(/<br\s*\/?>/gi, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-      
-      return {
-        content: content
-      }
-    }
-    return null
-  }
-
-  // 解析图片模块HTML
-  const parseHTMLToImageModule = (html: string, originalModule: any) => {
-    // 匹配 <img> 标签
-    const imgMatch = html.match(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i)
-    if (imgMatch) {
-      const src = imgMatch[1]
-      const alt = imgMatch[2]
-      
-      return {
-        src: src,
-        alt: alt
-      }
-    }
-    return null
-  }
 
   return (
     <DroppableCanvas className="h-full overflow-y-auto p-4 relative">
@@ -517,15 +433,14 @@ export function Canvas() {
                 </span>
               </DialogDescription>
             </DialogHeader>
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <div className="h-full border rounded-lg overflow-hidden">
-                <Textarea
-                  value={moduleCode || ''}
-                  onChange={(e) => handleCodeChange(e.target.value)}
-                  className="h-full w-full font-mono text-xs resize-none border-0 focus-visible:ring-0"
-                  placeholder={tEditor('HTML代码将在这里显示...')}
-                />
-              </div>
+            <div className="flex-1 min-h-0 flex flex-col">
+              <Textarea
+                value={moduleCode || ''}
+                onChange={(e) => handleCodeChange(e.target.value)}
+                className="flex-1 min-h-[400px] w-full font-mono text-xs resize-none border rounded-lg p-3 focus-visible:ring-2"
+                placeholder={tEditor('HTML代码将在这里显示...')}
+                style={{ minHeight: '400px' }}
+              />
             </div>
             <div className="flex justify-between items-center pt-4 border-t">
               <div className="flex gap-2">

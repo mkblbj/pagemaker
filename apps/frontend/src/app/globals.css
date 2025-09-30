@@ -153,4 +153,11 @@
   .mobile-scroll::-webkit-scrollbar {
     display: none;
   }
+
+  /* 自定义HTML模块样式隔离 - 使用iframe完全隔离 */
+  .custom-html-iframe {
+    width: 100%;
+    border: none;
+    background: transparent;
+  }
 }

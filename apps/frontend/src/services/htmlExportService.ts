@@ -116,6 +116,8 @@ ${htmlContent}
         return this.generateKeyValueHTML(module, options)
       case 'multiColumn':
         return this.generateMultiColumnHTML(module, options)
+      case 'custom':
+        return this.generateCustomHTML(module)
       default:
         console.warn(`未知的模块类型: ${module.type}`)
         return ''
@@ -739,6 +741,14 @@ ${isImageLeft ? textCell : imageCell}
 ${isImageTop ? imageRow : textRow}
 ${isImageTop ? textRow : imageRow}
 </table>`
+  }
+
+  /**
+   * 生成自定义HTML模块
+   */
+  private static generateCustomHTML(module: PageModule): string {
+    // 直接返回用户自定义的HTML内容
+    return (module as any).customHTML || ''
   }
 
   /**

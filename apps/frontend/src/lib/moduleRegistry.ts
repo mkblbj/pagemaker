@@ -143,7 +143,25 @@ export function getAvailableModules(language?: SupportedLanguage, targetArea?: s
   const registry = createModuleRegistry(language)
   const tEditor = createTEditor(language)
 
-  return Object.values(registry)
+  // 添加自定义HTML模块
+  const customModule: ModuleMetadata = {
+    type: PageModuleType.CUSTOM,
+    name: tEditor('自定义HTML模块'),
+    description: tEditor('添加自定义HTML代码'),
+    icon: 'Code',
+    category: 'advanced',
+    color: 'text-pink-600',
+    defaultConfig: {
+      customHTML: '',
+      name: tEditor('自定义HTML模块')
+    },
+    isEnabled: true,
+    sortOrder: 10
+  }
+
+  const allModules = [...Object.values(registry), customModule]
+
+  return allModules
     .filter(module => module.isEnabled)
     .map(module => {
       // 乐天规则：手机页面不允许使用标题标签
@@ -183,7 +201,18 @@ export function getModuleMetadata(type: PageModuleType, language?: SupportedLang
 /**
  * 创建新的模块实例
  */
-export function createModuleInstance(type: PageModuleType, language?: SupportedLanguage): PageModule {
+export function createModuleInstance(type: PageModuleType | 'custom', language?: SupportedLanguage): PageModule {
+  // 处理自定义模块
+  if (type === 'custom') {
+    const tEditor = createTEditor(language)
+    return {
+      id: `module-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: PageModuleType.CUSTOM,
+      customHTML: '',
+      name: tEditor('自定义HTML模块')
+    } as any
+  }
+
   const metadata = getModuleMetadata(type, language)
   if (!metadata) {
     throw new Error(`Unknown module type: ${type}`)

@@ -8,6 +8,7 @@ export enum PageModuleType {
   SEPARATOR = 'separator',
   KEY_VALUE = 'keyValue',
   MULTI_COLUMN = 'multiColumn',
+  CUSTOM = 'custom',
 }
 
 // 分隔模块配置接口

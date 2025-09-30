@@ -25,6 +25,7 @@ class PageModuleType(str, Enum):
     SEPARATOR = "separator"
     KEY_VALUE = "keyValue"
     MULTI_COLUMN = "multiColumn"
+    CUSTOM = "custom"
 
 
 # 用户相关模型

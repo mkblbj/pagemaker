@@ -93,6 +93,7 @@ class PageTemplateSerializer(serializers.ModelSerializer):
                 "separator",
                 "keyValue",
                 "multiColumn",
+                "custom",
             ]
             if module["type"] not in valid_types:
                 raise serializers.ValidationError(
