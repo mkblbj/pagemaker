@@ -191,22 +191,89 @@ export function ModuleRenderer({
       case 'custom':
         const customHTML = (module as any).customHTML || ''
         
-        // 如果没有内容，显示占位符
+        // 如果没有内容，显示占位符 - 同样包含按钮栏
         if (!customHTML.trim()) {
           return (
-            <div 
-              className={`p-4 border rounded-lg ${
-                isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <div className="mb-2 flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-medium">
+            <div className="border rounded-lg overflow-hidden">
+              {/* 模块标题栏 - 包含按钮 */}
+              <div className={`flex justify-between items-center px-3 py-2 border-b bg-gray-50 ${
+                isSelected ? 'bg-blue-50' : ''
+              }`}>
+                <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
                   🎨 {tEditor('自定义HTML模块')} 
                   {(module as any).originalType && ` (原${(module as any).originalType})`}
                 </span>
+                {/* 操作按钮 */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onMoveUp?.()
+                    }}
+                    disabled={isFirst}
+                    className="h-6 w-6 p-0"
+                    title={tEditor('上移模块')}
+                  >
+                    <MoveUp className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onMoveDown?.()
+                    }}
+                    disabled={isLast}
+                    className="h-6 w-6 p-0"
+                    title={tEditor('下移模块')}
+                  >
+                    <MoveDown className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onCopy?.()
+                    }}
+                    className="h-6 w-6 p-0"
+                    title={tEditor('复制模块')}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onViewCode?.()
+                    }}
+                    className="h-6 w-6 p-0"
+                    title={tEditor('查看代码')}
+                  >
+                    <Code className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onDelete?.()
+                    }}
+                    className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                    title={tEditor('删除模块')}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="text-gray-400 text-sm italic">
-                {tEditor('点击代码按钮添加HTML内容')}
+              {/* 占位符内容区域 */}
+              <div className="p-4">
+                <div className="text-gray-400 text-sm italic text-center">
+                  {tEditor('点击代码按钮添加HTML内容')}
+                </div>
               </div>
             </div>
           )
