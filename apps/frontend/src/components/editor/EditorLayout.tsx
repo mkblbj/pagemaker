@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Save,
   Eye,
@@ -46,7 +47,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     setRightPanelWidth
   } = useEditorStore()
 
-  const { currentPage, hasUnsavedChanges, clearAllModules, markUnsaved } = usePageStore()
+  const { currentPage, hasUnsavedChanges, clearAllModules, markUnsaved, updatePage } = usePageStore()
   const { savePage, isSaving, previewPage } = usePageEditor()
 
   const helpDialogRef = useRef<KeyboardShortcutsHelpRef>(null)
@@ -107,6 +108,15 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
   const handleMouseUp = useCallback(() => {
     setIsResizing(null)
   }, [])
+
+  // 标题变更
+  const handleTitleChange = useCallback(
+    (value: string) => {
+      updatePage({ name: value })
+      markUnsaved()
+    },
+    [updatePage, markUnsaved]
+  )
 
   // 监听鼠标事件
   useEffect(() => {
@@ -254,9 +264,14 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                   </Button>
                 )}
 
-                {/* 页面标题 */}
-                <div>
-                  <h1 className="text-lg font-semibold">{currentPage?.name || tEditor('页面编辑器')}</h1>
+                {/* 页面标题（可编辑） */}
+                <div className="min-w-[220px]">
+                  <Input
+                    value={currentPage?.name || ''}
+                    onChange={e => handleTitleChange(e.target.value)}
+                    placeholder={tEditor('页面名称')}
+                    className="h-8 text-base"
+                  />
                 </div>
 
                 {/* 页面状态信息 */}

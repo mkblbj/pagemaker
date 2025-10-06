@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslation } from '@/contexts/I18nContext'
+import type { PageTemplate } from '@pagemaker/shared-types'
 
 function EditorPageContent() {
   const params = useParams()
@@ -44,6 +45,23 @@ function EditorPageContent() {
         setLoading(true)
         setError(null)
 
+        // 新建页面：跳过接口请求，初始化默认对象
+        if (pageId === 'new') {
+          const now = new Date().toISOString()
+          const newPage: PageTemplate = {
+            id: '',
+            name: tEditor('新页面'),
+            content: [],
+            target_area: 'pc',
+            owner_id: '',
+            created_at: now,
+            updated_at: now,
+            module_count: 0
+          }
+          setPage(newPage)
+          return
+        }
+
         const page = await pageService.getPage(pageId)
         setPage(page)
       } catch (error) {
@@ -55,7 +73,7 @@ function EditorPageContent() {
     }
 
     loadPage()
-  }, [pageId, setPage, setLoading, setError, tError])
+  }, [pageId, setPage, setLoading, setError, tError, tEditor])
 
   // 清理状态
   useEffect(() => {

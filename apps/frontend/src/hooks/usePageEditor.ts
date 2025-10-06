@@ -12,7 +12,7 @@ export function usePageEditor() {
 
   const { setSaving, setError } = useEditorStore()
 
-  // 保存页面
+  // 保存页面（自动判断创建/更新）
   const { run: savePage, loading: isSaving } = useRequest(
     async () => {
       if (!currentPage) {
@@ -22,7 +22,8 @@ export function usePageEditor() {
       setSaving(true)
 
       try {
-        const updatedPage = await pageService.updatePage(currentPage.id, {
+        const updatedPage = await pageService.savePage({
+          id: currentPage.id,
           name: currentPage.name,
           content: currentPage.content,
           target_area: currentPage.target_area

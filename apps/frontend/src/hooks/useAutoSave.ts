@@ -37,7 +37,8 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
     setSaving(true)
 
     try {
-      const updatedPage = await pageService.updatePage(currentPage.id, {
+      const updatedPage = await pageService.savePage({
+        id: currentPage.id,
         name: currentPage.name,
         content: currentPage.content,
         target_area: currentPage.target_area
