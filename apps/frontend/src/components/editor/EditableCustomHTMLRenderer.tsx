@@ -14,7 +14,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
   const { tEditor } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [iframeHeight, setIframeHeight] = useState(200)
-  const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [showImageSelector, setShowImageSelector] = useState(false)
   const editingElementRef = useRef<HTMLElement | null>(null)
 
@@ -33,19 +33,52 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
   // 处理图片选择
   const handleImageSelect = useCallback(
     (result: ImageSelectorResult) => {
-      if (!selectedImage) return
+      console.log('[图片替换] 开始处理', { selectedImageIndex, url: result.url })
+      
+      if (selectedImageIndex === null) {
+        console.warn('[图片替换] 未选中图片索引')
+        return
+      }
+
+      const iframe = iframeRef.current
+      if (!iframe) {
+        console.error('[图片替换] iframe 引用不存在')
+        return
+      }
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+      if (!iframeDoc) {
+        console.error('[图片替换] 无法访问 iframe 文档')
+        return
+      }
+
+      // 重新查找图片元素（使用索引）
+      const images = iframeDoc.querySelectorAll('img')
+      console.log('[图片替换] 找到图片总数:', images.length)
+      
+      const targetImage = images[selectedImageIndex] as HTMLImageElement
+      
+      if (!targetImage) {
+        console.error('[图片替换] 无法找到目标图片', { index: selectedImageIndex, total: images.length })
+        return
+      }
+
+      console.log('[图片替换] 替换前:', { oldSrc: targetImage.src, newSrc: result.url })
 
       // 更新图片 src 和 alt
-      selectedImage.src = result.url
-      selectedImage.alt = result.filename
+      targetImage.src = result.url
+      targetImage.alt = result.filename
+
+      console.log('[图片替换] 替换后:', { src: targetImage.src, alt: targetImage.alt })
 
       // 同步修改
       syncHTMLChanges()
+      console.log('[图片替换] HTML 已同步')
 
       setShowImageSelector(false)
-      setSelectedImage(null)
+      setSelectedImageIndex(null)
     },
-    [selectedImage, syncHTMLChanges]
+    [selectedImageIndex, syncHTMLChanges]
   )
 
   // 初始化 iframe 并注入编辑脚本
@@ -174,7 +207,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
 
       // 为所有图片添加点击事件
       const images = iframeDoc.querySelectorAll('img')
-      images.forEach(img => {
+      images.forEach((img, index) => {
         const image = img as HTMLImageElement
         image.classList.add('editable-image')
 
@@ -182,8 +215,8 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
           e.preventDefault()
           e.stopPropagation()
 
-          // 通过 window.parent 通知父窗口
-          setSelectedImage(image)
+          // 保存图片索引而不是引用
+          setSelectedImageIndex(index)
           setShowImageSelector(true)
         })
       })
