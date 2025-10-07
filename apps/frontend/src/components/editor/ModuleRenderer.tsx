@@ -9,6 +9,7 @@ import { ImageModule } from '@/components/modules/ImageModule'
 import { SeparatorModule } from '@/components/modules/SeparatorModule'
 import { KeyValueModule } from '@/components/modules/KeyValueModule'
 import { MultiColumnModule } from '@/components/modules/MultiColumnModule'
+import { EditableCustomHTMLRenderer } from './EditableCustomHTMLRenderer'
 import { useTranslation } from '@/contexts/I18nContext'
 import { Button } from '@/components/ui/button'
 import { MoveUp, MoveDown, Copy, Trash2, Code } from 'lucide-react'
@@ -281,17 +282,47 @@ export function ModuleRenderer({
         
         // 有内容时，使用iframe完全隔离样式，包含自己的按钮
         return (
-          <div className="border rounded-lg overflow-hidden">
+          <div 
+            className="border rounded-lg overflow-hidden"
+            onDoubleClick={e => {
+              if (!isEditing) {
+                e.stopPropagation()
+                onStartEdit?.()
+              }
+            }}
+          >
             {/* 模块标题栏 - 包含按钮 */}
-            <div className={`flex justify-between items-center px-3 py-2 border-b bg-gray-50 ${
-              isSelected ? 'bg-blue-50' : ''
+            <div className={`flex justify-between items-center px-3 py-2 border-b ${
+              isEditing 
+                ? 'bg-blue-100 border-blue-300' 
+                : isSelected 
+                  ? 'bg-blue-50' 
+                  : 'bg-gray-50'
             }`}>
               <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
                 🎨 {tEditor('自定义HTML模块')} 
                 {(module as any).originalType && ` (原${(module as any).originalType})`}
+                {isEditing ? (
+                  <span className="text-xs text-blue-600 font-semibold ml-2">✏️ 编辑模式</span>
+                ) : (
+                  <span className="text-xs text-gray-400 ml-2">(双击进入编辑)</span>
+                )}
               </span>
               {/* 操作按钮 */}
               <div className="flex items-center gap-1">
+                {isEditing && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onEndEdit?.()
+                    }}
+                    className="h-6 px-2 text-xs bg-blue-600 hover:bg-blue-700"
+                  >
+                    完成编辑
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -356,9 +387,15 @@ export function ModuleRenderer({
                 </Button>
               </div>
             </div>
-            {/* HTML内容区域 */}
+            {/* HTML内容区域 - 使用可编辑渲染器 */}
             <div className="relative">
-              <CustomHTMLRenderer html={customHTML} />
+              <EditableCustomHTMLRenderer
+                html={customHTML}
+                isEditing={isEditing}
+                onUpdate={html => {
+                  onUpdate?.({ customHTML: html })
+                }}
+              />
             </div>
           </div>
         )

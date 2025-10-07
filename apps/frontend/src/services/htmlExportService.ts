@@ -43,11 +43,11 @@ function getArrayProp(obj: PageModule, key: string): unknown[] {
  */
 export class HtmlExportService {
   /**
-   * 生成单个模块的HTML
+   * 生成单个模块的HTML（公共接口）
    */
   static generateModuleHTML(module: PageModule, options: HtmlExportOptions = {}): string {
     const opts = { ...DEFAULT_OPTIONS, ...options }
-    return this['generateModuleHTML'](module, opts)
+    return this.generateModuleHTMLInternal(module, opts)
   }
 
   /**
@@ -94,15 +94,15 @@ ${htmlContent}
     options: Required<HtmlExportOptions> = DEFAULT_OPTIONS
   ): string {
     return modules
-      .map(module => this.generateModuleHTML(module, options))
+      .map(module => this.generateModuleHTMLInternal(module, options))
       .filter(html => html.trim() !== '')
       .join('\n')
   }
 
   /**
-   * 生成单个模块的HTML
+   * 生成单个模块的HTML（内部实现）
    */
-  private static generateModuleHTML(module: PageModule, options: Required<HtmlExportOptions>): string {
+  private static generateModuleHTMLInternal(module: PageModule, options: Required<HtmlExportOptions>): string {
     switch (module.type) {
       case 'title':
         return options.mobileMode ? this.generateTitleHTMLMobile(module) : this.generateTitleHTML(module)
@@ -484,14 +484,14 @@ ${htmlContent}
       const tableRows = rows
         .map((row: any) => {
           const key = this.escapeHtml(String(row?.key || ''))
-          const value = this.escapeHtml(String(row?.value || ''))
+          const value = String(row?.value || '') // 不转义value，保留HTML富文本
 
           return `<tr>
 <td bgcolor="${labelBackgroundColor}" width="30%" align="left" valign="top">
 <font color="${textColor}"><b>${key}</b></font>
 </td>
 <td bgcolor="#ffffff" width="70%" align="left" valign="top">
-<font color="${textColor}">${value}</font>
+${value}
 </td>
 </tr>`
         })
@@ -516,7 +516,7 @@ ${tableRows}
       const tableRows = rows
         .map((row: any) => {
           const key = this.escapeHtml(String(row?.key || ''))
-          const value = this.escapeHtml(String(row?.value || ''))
+          const value = String(row?.value || '') // 不转义value，保留HTML富文本
 
           const labelCellStyles = this.generateInlineStyles({
             'background-color': labelBackgroundColor,
