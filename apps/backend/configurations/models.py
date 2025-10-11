@@ -23,6 +23,9 @@ class ShopConfiguration(models.Model):
         max_length=50, help_text="乐天API Service Secret"
     )
     api_license_key = models.CharField(max_length=50, help_text="乐天API License Key")
+    api_license_expiry_date = models.DateTimeField(
+        null=True, blank=True, help_text="API许可证密钥到期日期"
+    )
 
     # FTP配置 (MVP: 暂不加密)
     ftp_host = models.CharField(max_length=255, help_text="FTP服务器地址")

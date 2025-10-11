@@ -88,6 +88,35 @@ export const shopService = {
     if (!response.data.success) {
       throw new Error(response.data.message || '删除店铺配置失败')
     }
+  },
+
+  /**
+   * 刷新API许可证密钥到期日期
+   * 通过调用乐天LicenseManagementAPI自动获取并更新到期日期
+   */
+  async refreshApiExpiry(id: string): Promise<{ apiLicenseExpiryDate: string }> {
+    const response = await apiClient.post<ApiResponse<{ apiLicenseExpiryDate: string }>>(
+      `/api/v1/shop-configurations/${id}/refresh-expiry`
+    )
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || '刷新API到期日期失败')
+    }
+
+    return response.data.data
+  },
+
+  /**
+   * 获取所有店铺配置列表（用于配置管理页面）
+   */
+  async getAllShopConfigurations(): Promise<ShopConfiguration[]> {
+    const response = await apiClient.get<ApiResponse<ShopConfiguration[]>>('/api/v1/shop-configurations/')
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || '获取店铺配置列表失败')
+    }
+
+    return response.data.data
   }
 }
 

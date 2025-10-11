@@ -12,6 +12,7 @@ from .constants import (
     RAKUTEN_API_BASE_URL,
     RAKUTEN_API_TIMEOUT,
     CABINET_ENDPOINTS,
+    LICENSE_ENDPOINTS,
     TEST_MODE,
     HTTP_STATUS_CODES,
 )
@@ -367,6 +368,50 @@ class RCabinetClient:
             "GET", CABINET_ENDPOINTS["FILES_SEARCH"], params=params
         )
 
+    def get_license_expiry_date(self) -> Dict[str, Any]:
+        """
+        获取API许可证密钥到期日期
+        调用LicenseManagementAPI的license.expiryDate.get端点
+
+        Returns:
+            包含到期日期的响应数据
+            响应格式: JSON {"expiryDate": "2025-11-06T23:59:59"}
+        """
+        # LicenseManagementAPI需要在URL参数中传递licenseKey
+        params = {"licenseKey": self.license_key}
+        
+        # 注意：LicenseManagementAPI返回JSON格式，不是XML
+        url = urljoin(self.base_url, LICENSE_ENDPOINTS["EXPIRY_DATE"])
+        headers = self._get_headers()
+        
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                params=params,
+                timeout=self.timeout,
+            )
+            
+            if response.status_code == 200:
+                # 解析JSON响应
+                data = response.json()
+                return {
+                    "success": True,
+                    "data": data,
+                }
+            else:
+                # 解析错误响应
+                try:
+                    error_data = response.json()
+                    error_msg = error_data.get("errors", [{}])[0].get("message", "Unknown error")
+                except:
+                    error_msg = response.text
+                
+                raise RakutenAPIError(f"LicenseManagementAPI error: {error_msg}")
+                
+        except requests.exceptions.RequestException as e:
+            raise RakutenConnectionError(f"请求失败: {str(e)}")
+
     def health_check(self) -> Dict[str, Any]:
         """
         健康检查
@@ -647,6 +692,22 @@ class RCabinetClient:
                 "data": {
                     "result_code": 0,
                     "file_id": random.randint(100000000, 999999999),
+                },
+            }
+
+        elif endpoint == LICENSE_ENDPOINTS["EXPIRY_DATE"]:
+            # 返回1年后的日期作为mock到期日期
+            from datetime import datetime, timedelta
+            expiry_date = datetime.now() + timedelta(days=365)
+            return {
+                "interface_id": "license.expiryDate.get",
+                "system_status": "OK",
+                "message": "OK",
+                "request_id": str(uuid.uuid4()),
+                "success": True,
+                "data": {
+                    "result_code": 0,
+                    "expiryDate": expiry_date.strftime("%Y-%m-%d"),
                 },
             }
 

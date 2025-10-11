@@ -3,9 +3,17 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from django.utils.dateparse import parse_date
+from datetime import datetime
 from .models import ShopConfiguration
 from .serializers import ShopConfigurationSerializer
 from users.models import check_user_role
+from pagemaker.integrations.cabinet_client import RCabinetClient
+from pagemaker.integrations.exceptions import RakutenAPIError
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -120,4 +128,93 @@ class ShopConfigurationDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(
             {"success": True, "message": f'店铺配置"{shop_name}"删除成功'},
             status=status.HTTP_200_OK,
+        )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminRole])
+def refresh_api_expiry(request, id):
+    """
+    刷新API许可证密钥到期日期
+    通过调用乐天LicenseManagementAPI获取到期日期并更新到数据库
+    """
+    try:
+        # 获取店铺配置
+        try:
+            config = ShopConfiguration.objects.get(id=id)
+        except ShopConfiguration.DoesNotExist:
+            return Response(
+                {"success": False, "message": "店铺配置不存在"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # 初始化乐天API客户端
+        try:
+            client = RCabinetClient(
+                service_secret=config.api_service_secret,
+                license_key=config.api_license_key,
+            )
+        except Exception as e:
+            logger.error(f"初始化乐天API客户端失败: {str(e)}")
+            return Response(
+                {"success": False, "message": f"API客户端初始化失败: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # 调用乐天LicenseManagementAPI获取许可证到期日期
+        try:
+            result = client.get_license_expiry_date()
+            
+            if result.get("success") and result.get("data"):
+                expiry_date_str = result["data"].get("expiryDate")
+                
+                if expiry_date_str:
+                    # 解析日期字符串并保存到数据库
+                    # 格式可能是 "2025-12-31" 或 "2025-12-31T00:00:00Z"
+                    if "T" in expiry_date_str:
+                        expiry_date = datetime.fromisoformat(
+                            expiry_date_str.replace("Z", "+00:00")
+                        )
+                    else:
+                        expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
+                    
+                    config.api_license_expiry_date = expiry_date
+                    config.save()
+                    
+                    logger.info(
+                        f"成功刷新店铺 {config.shop_name} 的API到期日期: {expiry_date}"
+                    )
+                    
+                    return Response(
+                        {
+                            "success": True,
+                            "message": "API密钥到期日期刷新成功",
+                            "data": {
+                                "apiLicenseExpiryDate": expiry_date.isoformat()
+                            },
+                        }
+                    )
+                else:
+                    return Response(
+                        {"success": False, "message": "API返回的数据中未包含到期日期"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+            else:
+                return Response(
+                    {"success": False, "message": "API返回失败"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+                
+        except RakutenAPIError as e:
+            logger.error(f"调用乐天API失败: {str(e)}")
+            return Response(
+                {"success": False, "message": f"调用乐天API失败: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    except Exception as e:
+        logger.error(f"刷新API到期日期失败: {str(e)}", exc_info=True)
+        return Response(
+            {"success": False, "message": f"服务器内部错误: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

@@ -16,6 +16,7 @@ class ShopConfigurationSerializer(serializers.ModelSerializer):
             "target_area",
             "api_service_secret",
             "api_license_key",
+            "api_license_expiry_date",
             "ftp_host",
             "ftp_port",
             "ftp_user",

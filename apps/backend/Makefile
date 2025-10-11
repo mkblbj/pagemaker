@@ -22,7 +22,7 @@ VENV = source venv/bin/activate &&
 
 # 开发服务器
 dev:
-	$(VENV) python manage.py runserver 8000
+	$(VENV) python manage.py runserver 8456
 
 # 数据库操作
 migrate:

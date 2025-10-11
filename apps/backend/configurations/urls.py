@@ -1,5 +1,9 @@
 from django.urls import path
-from .views import ShopConfigurationListCreateView, ShopConfigurationDetailView
+from .views import (
+    ShopConfigurationListCreateView,
+    ShopConfigurationDetailView,
+    refresh_api_expiry,
+)
 
 app_name = "configurations"
 
@@ -13,5 +17,11 @@ urlpatterns = [
         "<uuid:id>/",
         ShopConfigurationDetailView.as_view(),
         name="shop-configuration-detail",
+    ),
+    # 刷新API密钥到期日期
+    path(
+        "<uuid:id>/refresh-expiry",
+        refresh_api_expiry,
+        name="shop-configuration-refresh-expiry",
     ),
 ]

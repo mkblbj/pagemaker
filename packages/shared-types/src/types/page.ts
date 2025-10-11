@@ -107,6 +107,7 @@ export interface ShopConfiguration {
   target_area: string;
   api_service_secret: string;
   api_license_key: string;
+  api_license_expiry_date?: string | null; // ISO 8601 Date String
   ftp_host: string;
   ftp_port: number;
   ftp_user: string;
