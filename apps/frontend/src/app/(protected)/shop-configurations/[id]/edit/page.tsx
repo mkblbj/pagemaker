@@ -1,62 +1,68 @@
 'use client'
 
-import { use } from 'react'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import { ShopConfigurationForm } from '@/components/shop-configuration/ShopConfigurationForm'
 import { shopService } from '@/services/shopService'
-import useSWR from 'swr'
-import { AlertCircle } from 'lucide-react'
-import type { UpdateShopConfigurationRequest } from '@pagemaker/shared-types'
+import type { ShopConfiguration, UpdateShopConfigurationRequest } from '@pagemaker/shared-types'
+import { useTranslation } from '@/contexts/I18nContext'
 
-export default function EditShopConfigurationPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  
-  const { data: configuration, error, isLoading } = useSWR(
-    `/shop-configurations/${id}`,
-    () => shopService.getShopConfiguration(id)
-  )
+export default function EditShopConfigurationPage() {
+  const params = useParams()
+  const { tShopConfig } = useTranslation()
+  const [config, setConfig] = useState<ShopConfiguration | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (data: UpdateShopConfigurationRequest) => {
-    await shopService.updateShopConfiguration(id, data)
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const data = await shopService.getShopConfiguration(params.id as string)
+        setConfig(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : tShopConfig('loadError'))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchConfig()
+  }, [params.id, tShopConfig])
+
+  const handleUpdate = async (data: UpdateShopConfigurationRequest) => {
+    await shopService.updateShopConfiguration(params.id as string, data)
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto py-8 px-4">
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">加载中...</p>
+          <p className="mt-4 text-muted-foreground">{tShopConfig('loading')}</p>
         </div>
       </div>
     )
   }
 
-  if (error || !configuration) {
+  if (error || !config) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
-        <div className="flex items-center justify-center py-12 text-destructive">
-          <AlertCircle className="mr-2 h-5 w-5" />
-          <p>加载店铺配置失败: {error?.message || '未找到配置'}</p>
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center py-12">
+          <p className="text-destructive">{error || tShopConfig('loadError')}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto py-8 px-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">编辑店铺配置</h1>
+        <h1 className="text-3xl font-bold">{tShopConfig('editConfig')}</h1>
         <p className="text-muted-foreground mt-2">
-          修改店铺"{configuration.shop_name}"的配置信息
+          {tShopConfig('description')}
         </p>
       </div>
-
-      <ShopConfigurationForm
-        mode="edit"
-        initialData={configuration}
-        onSubmit={handleSubmit}
-      />
+      <ShopConfigurationForm mode="edit" initialData={config} onSubmit={handleUpdate} />
     </div>
   )
 }
-
-

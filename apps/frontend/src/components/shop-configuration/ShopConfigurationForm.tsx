@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast'
 import { Eye, EyeOff, Save, X } from 'lucide-react'
 import type { ShopConfiguration, CreateShopConfigurationRequest, UpdateShopConfigurationRequest } from '@pagemaker/shared-types'
+import { useTranslation } from '@/contexts/I18nContext'
 
 interface ShopConfigurationFormProps {
   mode: 'create' | 'edit'
@@ -20,6 +21,7 @@ interface ShopConfigurationFormProps {
 export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfigurationFormProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { tShopConfig, tCommon } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPasswords, setShowPasswords] = useState({
     apiServiceSecret: false,
@@ -59,16 +61,16 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
       await onSubmit(data)
       
       toast({
-        title: mode === 'create' ? '创建成功' : '更新成功',
-        description: `店铺配置已${mode === 'create' ? '创建' : '更新'}`,
+        title: tShopConfig(mode === 'create' ? 'createSuccess' : 'updateSuccess'),
+        description: tShopConfig(mode === 'create' ? 'createSuccessDesc' : 'updateSuccessDesc'),
       })
       
       router.push('/shop-configurations')
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: mode === 'create' ? '创建失败' : '更新失败',
-        description: error instanceof Error ? error.message : '操作失败，请重试',
+        title: tShopConfig(mode === 'create' ? 'createFailed' : 'updateFailed'),
+        description: error instanceof Error ? error.message : tShopConfig('operationFailed'),
       })
     } finally {
       setIsSubmitting(false)
@@ -79,18 +81,18 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>基本信息</CardTitle>
-          <CardDescription>配置店铺的基本标识信息</CardDescription>
+          <CardTitle>{tShopConfig('basicInfo')}</CardTitle>
+          <CardDescription>{tShopConfig('basicInfoDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="shop_name">
-              店铺名称 <span className="text-destructive">*</span>
+              {tShopConfig('shopName')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="shop_name"
-              {...register('shop_name', { required: '请输入店铺名称' })}
-              placeholder="例如: 旗舰店"
+              {...register('shop_name', { required: tShopConfig('shopNameRequired') })}
+              placeholder={tShopConfig('shopNamePlaceholder')}
             />
             {errors.shop_name && (
               <p className="text-sm text-destructive">{errors.shop_name.message}</p>
@@ -99,18 +101,18 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
           <div className="space-y-2">
             <Label htmlFor="target_area">
-              目标区域 <span className="text-destructive">*</span>
+              {tShopConfig('targetArea')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="target_area"
-              {...register('target_area', { required: '请输入目标区域' })}
-              placeholder="例如: pc, mobile, 0901, 3911"
+              {...register('target_area', { required: tShopConfig('targetAreaRequired') })}
+              placeholder={tShopConfig('targetAreaPlaceholder')}
             />
             {errors.target_area && (
               <p className="text-sm text-destructive">{errors.target_area.message}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              此字段用于关联页面模板，确保唯一性
+              {tShopConfig('targetAreaDesc')}
             </p>
           </div>
         </CardContent>
@@ -118,20 +120,20 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
       <Card>
         <CardHeader>
-          <CardTitle>乐天API配置</CardTitle>
-          <CardDescription>配置乐天R-Cabinet API凭据</CardDescription>
+          <CardTitle>{tShopConfig('apiConfig')}</CardTitle>
+          <CardDescription>{tShopConfig('apiConfigDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="api_service_secret">
-              API Service Secret <span className="text-destructive">*</span>
+              {tShopConfig('apiServiceSecret')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <Input
                 id="api_service_secret"
                 type={showPasswords.apiServiceSecret ? 'text' : 'password'}
-                {...register('api_service_secret', { required: '请输入API Service Secret' })}
-                placeholder="SP******"
+                {...register('api_service_secret', { required: tShopConfig('apiServiceSecretRequired') })}
+                placeholder={tShopConfig('apiServiceSecretPlaceholder')}
               />
               <button
                 type="button"
@@ -152,14 +154,14 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
           <div className="space-y-2">
             <Label htmlFor="api_license_key">
-              API License Key <span className="text-destructive">*</span>
+              {tShopConfig('apiLicenseKey')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <Input
                 id="api_license_key"
                 type={showPasswords.apiLicenseKey ? 'text' : 'password'}
-                {...register('api_license_key', { required: '请输入API License Key' })}
-                placeholder="SL******"
+                {...register('api_license_key', { required: tShopConfig('apiLicenseKeyRequired') })}
+                placeholder={tShopConfig('apiLicenseKeyPlaceholder')}
               />
               <button
                 type="button"
@@ -182,19 +184,19 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
       <Card>
         <CardHeader>
-          <CardTitle>FTP配置</CardTitle>
-          <CardDescription>配置乐天FTP服务器连接信息</CardDescription>
+          <CardTitle>{tShopConfig('ftpConfig')}</CardTitle>
+          <CardDescription>{tShopConfig('ftpConfigDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="ftp_host">
-                FTP主机 <span className="text-destructive">*</span>
+                {tShopConfig('ftpHost')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="ftp_host"
-                {...register('ftp_host', { required: '请输入FTP主机地址' })}
-                placeholder="upload.rakuten.ne.jp"
+                {...register('ftp_host', { required: tShopConfig('ftpHostRequired') })}
+                placeholder={tShopConfig('ftpHostPlaceholder')}
               />
               {errors.ftp_host && (
                 <p className="text-sm text-destructive">{errors.ftp_host.message}</p>
@@ -203,18 +205,18 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
             <div className="space-y-2">
               <Label htmlFor="ftp_port">
-                FTP端口 <span className="text-destructive">*</span>
+                {tShopConfig('ftpPort')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="ftp_port"
                 type="number"
                 {...register('ftp_port', {
-                  required: '请输入FTP端口',
-                  min: { value: 1, message: '端口号必须在1-65535之间' },
-                  max: { value: 65535, message: '端口号必须在1-65535之间' },
+                  required: tShopConfig('ftpPortRequired'),
+                  min: { value: 1, message: tShopConfig('ftpPortRange') },
+                  max: { value: 65535, message: tShopConfig('ftpPortRange') },
                   valueAsNumber: true,
                 })}
-                placeholder="21"
+                placeholder={tShopConfig('ftpPortPlaceholder')}
               />
               {errors.ftp_port && (
                 <p className="text-sm text-destructive">{errors.ftp_port.message}</p>
@@ -224,12 +226,12 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
           <div className="space-y-2">
             <Label htmlFor="ftp_user">
-              FTP用户名 <span className="text-destructive">*</span>
+              {tShopConfig('ftpUser')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="ftp_user"
-              {...register('ftp_user', { required: '请输入FTP用户名' })}
-              placeholder="_shop_*****"
+              {...register('ftp_user', { required: tShopConfig('ftpUserRequired') })}
+              placeholder={tShopConfig('ftpUserPlaceholder')}
             />
             {errors.ftp_user && (
               <p className="text-sm text-destructive">{errors.ftp_user.message}</p>
@@ -238,14 +240,14 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
 
           <div className="space-y-2">
             <Label htmlFor="ftp_password">
-              FTP密码 <span className="text-destructive">*</span>
+              {tShopConfig('ftpPassword')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <Input
                 id="ftp_password"
                 type={showPasswords.ftpPassword ? 'text' : 'password'}
-                {...register('ftp_password', { required: '请输入FTP密码' })}
-                placeholder="••••••••"
+                {...register('ftp_password', { required: tShopConfig('ftpPasswordRequired') })}
+                placeholder={tShopConfig('ftpPasswordPlaceholder')}
               />
               <button
                 type="button"
@@ -274,18 +276,18 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
           disabled={isSubmitting}
         >
           <X className="mr-2 h-4 w-4" />
-          取消
+          {tCommon('cancel')}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <>
               <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              保存中...
+              {tCommon('saving')}
             </>
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              {mode === 'create' ? '创建' : '更新'}
+              {mode === 'create' ? tCommon('create') : tCommon('update')}
             </>
           )}
         </Button>
@@ -293,5 +295,4 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
     </form>
   )
 }
-
 

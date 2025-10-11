@@ -151,6 +151,11 @@ export function useTranslation() {
 
   const tPages = useCallback((key: string, params?: Record<string, string | number>) => t(`pages.${key}`, params), [t])
 
+  const tShopConfig = useCallback(
+    (key: string, params?: Record<string, string | number>) => t(`shopConfig.${key}`, params),
+    [t]
+  )
+
   return {
     t,
     currentLanguage,
@@ -160,6 +165,7 @@ export function useTranslation() {
     tEditor,
     tAuth,
     tPreview,
-    tPages
+    tPages,
+    tShopConfig
   }
 }

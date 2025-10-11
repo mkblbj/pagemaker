@@ -24,13 +24,29 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { format } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
+import { zhCN, enUS, ja } from 'date-fns/locale'
+import { useTranslation } from '@/contexts/I18nContext'
+import type { ShopConfiguration } from '@pagemaker/shared-types'
 
 export default function ShopConfigurationsPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { tShopConfig, tCommon, currentLanguage } = useTranslation()
   const [refreshingId, setRefreshingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // 根据当前语言选择 date-fns locale
+  const getDateLocale = () => {
+    switch (currentLanguage) {
+      case 'zh-CN':
+        return zhCN
+      case 'ja-JP':
+        return ja
+      case 'en-US':
+      default:
+        return enUS
+    }
+  }
 
   // 使用SWR获取店铺配置列表
   const { data: configurations, error, mutate } = useSWR(
@@ -47,8 +63,8 @@ export default function ShopConfigurationsPage() {
       const result = await shopService.refreshApiExpiry(id)
       
       toast({
-        title: '刷新成功',
-        description: `API到期日期已更新: ${format(new Date(result.apiLicenseExpiryDate), 'PPP', { locale: zhCN })}`,
+        title: tShopConfig('refreshSuccess'),
+        description: `${tShopConfig('apiExpiryDate')}: ${format(new Date(result.apiLicenseExpiryDate), 'PPP', { locale: getDateLocale() })}`,
       })
       
       // 重新获取列表
@@ -56,8 +72,8 @@ export default function ShopConfigurationsPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: '刷新失败',
-        description: error instanceof Error ? error.message : '刷新API到期日期失败',
+        title: tShopConfig('refreshFailed'),
+        description: error instanceof Error ? error.message : tShopConfig('refreshFailed'),
       })
     } finally {
       setRefreshingId(null)
@@ -66,7 +82,7 @@ export default function ShopConfigurationsPage() {
 
   // 删除配置
   const handleDelete = async (id: string, shopName: string) => {
-    if (!confirm(`确定要删除店铺配置"${shopName}"吗？`)) {
+    if (!confirm(tShopConfig('deleteConfirm').replace('{name}', shopName))) {
       return
     }
 
@@ -75,8 +91,8 @@ export default function ShopConfigurationsPage() {
       await shopService.deleteShopConfiguration(id)
       
       toast({
-        title: '删除成功',
-        description: `店铺配置"${shopName}"已删除`,
+        title: tShopConfig('deleteSuccess'),
+        description: `${tShopConfig('deleteSuccess')}: "${shopName}"`,
       })
       
       // 重新获取列表
@@ -84,8 +100,8 @@ export default function ShopConfigurationsPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: '删除失败',
-        description: error instanceof Error ? error.message : '删除店铺配置失败',
+        title: tShopConfig('deleteFailed'),
+        description: error instanceof Error ? error.message : tShopConfig('deleteFailed'),
       })
     } finally {
       setDeletingId(null)
@@ -94,24 +110,24 @@ export default function ShopConfigurationsPage() {
 
   // 格式化日期显示
   const formatExpiryDate = (dateStr?: string | null) => {
-    if (!dateStr) return '未设置'
+    if (!dateStr) return tShopConfig('notSet')
     
     try {
       const date = new Date(dateStr)
       const now = new Date()
       const daysUntilExpiry = Math.floor((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       
-      const formattedDate = format(date, 'yyyy-MM-dd', { locale: zhCN })
+      const formattedDate = format(date, 'yyyy-MM-dd', { locale: getDateLocale() })
       
       if (daysUntilExpiry < 0) {
-        return `${formattedDate} (已过期)`
+        return `${formattedDate} (${tShopConfig('expired')})`
       } else if (daysUntilExpiry < 30) {
-        return `${formattedDate} (${daysUntilExpiry}天后过期)`
+        return `${formattedDate} (${tShopConfig('daysUntilExpiry').replace('{days}', daysUntilExpiry.toString())})`
       }
       
       return formattedDate
     } catch {
-      return '日期格式错误'
+      return tShopConfig('dateFormatError')
     }
   }
 
@@ -136,21 +152,21 @@ export default function ShopConfigurationsPage() {
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">店铺配置管理</h1>
+          <h1 className="text-3xl font-bold">{tShopConfig('title')}</h1>
           <p className="text-muted-foreground mt-2">
-            管理乐天API和FTP凭据配置
+            {tShopConfig('description')}
           </p>
         </div>
         <Button onClick={() => router.push('/shop-configurations/new')}>
           <Plus className="mr-2 h-4 w-4" />
-          新增配置
+          {tShopConfig('newConfig')}
         </Button>
       </div>
 
       {isLoading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">加载中...</p>
+          <p className="mt-4 text-muted-foreground">{tShopConfig('loading')}</p>
         </div>
       )}
 
@@ -159,7 +175,7 @@ export default function ShopConfigurationsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center text-destructive">
               <AlertCircle className="mr-2 h-5 w-5" />
-              <p>加载店铺配置失败: {error.message}</p>
+              <p>{tShopConfig('loadError')}: {error.message}</p>
             </div>
           </CardContent>
         </Card>
@@ -169,13 +185,13 @@ export default function ShopConfigurationsPage() {
         <Card>
           <CardContent className="pt-6 text-center py-12">
             <Server className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">暂无店铺配置</h3>
+            <h3 className="text-lg font-semibold mb-2">{tShopConfig('noConfigs')}</h3>
             <p className="text-muted-foreground mb-4">
-              点击"新增配置"按钮创建第一个店铺配置
+              {tShopConfig('noConfigsDesc')}
             </p>
             <Button onClick={() => router.push('/shop-configurations/new')}>
               <Plus className="mr-2 h-4 w-4" />
-              新增配置
+              {tShopConfig('newConfig')}
             </Button>
           </CardContent>
         </Card>
@@ -183,7 +199,7 @@ export default function ShopConfigurationsPage() {
 
       {configurations && configurations.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {configurations.map((config) => {
+          {configurations.map((config: ShopConfiguration) => {
             const expiryStatus = getExpiryStatus(config.api_license_expiry_date)
             
             return (
@@ -197,11 +213,11 @@ export default function ShopConfigurationsPage() {
                       </CardDescription>
                     </div>
                     {expiryStatus === 'expired' && (
-                      <Badge variant="destructive">已过期</Badge>
+                      <Badge variant="destructive">{tShopConfig('expired')}</Badge>
                     )}
                     {expiryStatus === 'warning' && (
                       <Badge variant="outline" className="border-yellow-500 text-yellow-600">
-                        即将过期
+                        {tShopConfig('expiringSoon')}
                       </Badge>
                     )}
                   </div>
@@ -210,7 +226,7 @@ export default function ShopConfigurationsPage() {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center text-muted-foreground">
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>API到期: {formatExpiryDate(config.api_license_expiry_date)}</span>
+                      <span>{tShopConfig('apiExpiry')}: {formatExpiryDate(config.api_license_expiry_date)}</span>
                     </div>
                     
                     <div className="flex items-center text-muted-foreground">
@@ -226,7 +242,7 @@ export default function ShopConfigurationsPage() {
                         className="flex-1"
                       >
                         <Edit className="mr-1 h-3 w-3" />
-                        编辑
+                        {tCommon('edit')}
                       </Button>
                       
                       <Button
@@ -234,7 +250,7 @@ export default function ShopConfigurationsPage() {
                         size="sm"
                         onClick={() => handleRefreshExpiry(config.id)}
                         disabled={refreshingId === config.id}
-                        title="刷新API到期日期"
+                        title={tShopConfig('refreshSuccess')}
                       >
                         {refreshingId === config.id ? (
                           <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -249,7 +265,7 @@ export default function ShopConfigurationsPage() {
                         onClick={() => handleDelete(config.id, config.shop_name)}
                         disabled={deletingId === config.id}
                         className="text-destructive hover:text-destructive"
-                        title="删除"
+                        title={tCommon('delete')}
                       >
                         {deletingId === config.id ? (
                           <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -268,5 +284,4 @@ export default function ShopConfigurationsPage() {
     </div>
   )
 }
-
 
