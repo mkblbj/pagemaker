@@ -65,7 +65,8 @@
     "返回首页": "Back to Home",
     "预览": "Preview",
     "编辑": "Edit",
-    "删除": "Delete"
+    "删除": "Delete",
+    "店铺配置": "Shop Configuration"
   },
   "errors": {
     "NETWORK_ERROR": "Network connection failed. Please check your network connection and try again",
