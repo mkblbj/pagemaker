@@ -89,7 +89,8 @@ class PageTemplateRepository:
 
     @staticmethod
     def create_page(
-        name: str, content: List[dict], target_area: str, owner: User
+        name: str, content: List[dict], owner: User,
+        shop=None, device_type='pc'
     ) -> PageTemplate:
         """
         创建新页面
@@ -97,8 +98,9 @@ class PageTemplateRepository:
         Args:
             name: 页面名称
             content: 页面内容（PageModule数组）
-            target_area: 目标区域
             owner: 页面所有者
+            shop: 店铺配置实例（可选）
+            device_type: 设备类型，默认为'pc'
 
         Returns:
             创建的PageTemplate实例
@@ -109,8 +111,9 @@ class PageTemplateRepository:
         page = PageTemplate(
             name=name.strip(),
             content=content,
-            target_area=target_area.strip(),
             owner=owner,
+            shop=shop,
+            device_type=device_type,
         )
 
         # 执行模型验证
@@ -144,7 +147,7 @@ class PageTemplateRepository:
         # 更新字段
         for field, value in update_fields.items():
             if hasattr(page, field):
-                if field in ["name", "target_area"] and isinstance(value, str):
+                if field == "name" and isinstance(value, str):
                     setattr(page, field, value.strip())
                 else:
                     setattr(page, field, value)
@@ -173,32 +176,6 @@ class PageTemplateRepository:
 
         page.delete()
         return True
-
-    @staticmethod
-    def get_pages_by_target_area(
-        target_area: str, user: User = None
-    ) -> QuerySet[PageTemplate]:
-        """
-        根据目标区域获取页面列表
-
-        Args:
-            target_area: 目标区域
-            user: 可选，用于权限控制
-
-        Returns:
-            PageTemplate查询集
-        """
-        queryset = PageTemplate.objects.filter(target_area=target_area).select_related(
-            "owner"
-        )
-
-        if user:
-            user_role = PageTemplateRepository._get_user_role(user)
-            if user_role != "admin":
-                # 非admin用户只能看到自己的页面
-                queryset = queryset.filter(owner=user)
-
-        return queryset
 
     @staticmethod
     def search_pages(query: str, user: User) -> QuerySet[PageTemplate]:
@@ -263,7 +240,8 @@ class PageTemplateRepository:
         new_page = PageTemplate(
             name=new_name.strip(),
             content=original_page.content.copy() if original_page.content else [],
-            target_area=original_page.target_area,
+            shop=original_page.shop,
+            device_type=original_page.device_type,
             owner=user,  # 新页面的所有者是当前用户
         )
 

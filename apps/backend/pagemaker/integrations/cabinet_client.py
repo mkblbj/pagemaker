@@ -92,6 +92,30 @@ class RCabinetClient:
 
         self.logger.info(f"R-Cabinet客户端初始化完成 (模式: {self.test_mode})")
 
+    @classmethod
+    def from_shop_config(cls, shop_config, **kwargs):
+        """
+        从店铺配置创建客户端实例（工厂方法）
+
+        Args:
+            shop_config: ShopConfiguration 实例
+            **kwargs: 其他可选参数（base_url, timeout, test_mode等）
+
+        Returns:
+            RCabinetClient 实例
+
+        Example:
+            from configurations.models import ShopConfiguration
+            shop = ShopConfiguration.objects.get(id=shop_id)
+            client = RCabinetClient.from_shop_config(shop)
+            client.upload_image(...)
+        """
+        return cls(
+            service_secret=shop_config.api_service_secret,
+            license_key=shop_config.api_license_key,
+            **kwargs
+        )
+
     def _get_headers(self) -> Dict[str, str]:
         """获取请求头"""
         headers = {

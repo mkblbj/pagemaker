@@ -19,10 +19,11 @@ Pagemaker CMS 是一个专为乐天店铺设计的可视化页面编辑器，帮
 ### 🎯 核心功能
 
 - **可视化编辑器**: 直观的拖拽式页面构建界面
+- **多店铺支持**: 支持管理多个乐天店铺，每个店铺独立配置API和FTP凭证
 - **丰富的内容模块**: 标题、文本、图片、表格等基础和高级模块
-- **R-Cabinet集成**: 无缝的图片管理和上传功能
+- **R-Cabinet集成**: 无缝的图片管理和上传功能，自动使用对应店铺的配置
 - **HTML导出**: 一键生成可直接用于乐天店铺的HTML代码
-- **模板管理**: 页面模板的创建、保存和重用
+- **模板管理**: 页面模板的创建、保存和重用，按店铺分组管理
 
 ### 🏗️ 技术架构
 
@@ -142,7 +143,20 @@ Pagemaker CMS 是一个专为乐天店铺设计的可视化页面编辑器，帮
    # 后端: pnpm --filter backend dev
    ```
 
-8. **验证安装**
+8. **配置店铺信息**
+   ```bash
+   # 启动应用后，通过管理后台添加店铺配置
+   # 访问: http://localhost:3000/shop-configurations
+   # 
+   # 为每个乐天店铺配置：
+   # - 店铺名称和 target_area
+   # - R-Cabinet API 凭证 (serviceSecret, licenseKey)
+   # - SFTP 连接信息 (host, port, username, password)
+   #
+   # 注意：店铺凭证存储在数据库中，不再使用环境变量
+   ```
+
+9. **验证安装**
    - 前端应用: http://localhost:3000
    - 后端API: http://localhost:8000/api/v1
    - Django Admin: http://localhost:8000/admin

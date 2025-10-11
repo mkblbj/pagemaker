@@ -49,6 +49,7 @@ def upload_media_file(request):
         uploaded_file = request.FILES["file"]
         folder_id = request.data.get("folder_id")
         alt_text = request.data.get("alt_text", "")
+        page_id = request.data.get("page_id")  # 获取页面ID（可选）
 
         # 文件验证
         is_valid, error_message = validate_uploaded_file(uploaded_file)
@@ -91,7 +92,45 @@ def upload_media_file(request):
                 )
 
             # 初始化R-Cabinet客户端
-            cabinet_client = RCabinetClient()
+            # 优先使用 page_id 获取店铺配置，如果没有则使用第一个可用店铺
+            from configurations.models import ShopConfiguration
+            
+            shop_config = None
+            
+            if page_id:
+                # 从页面获取店铺配置
+                from pages.models import PageTemplate
+                try:
+                    page = PageTemplate.objects.select_related('shop').get(id=page_id)
+                    if page.shop:
+                        shop_config = page.shop
+                        logger.info(f"上传文件：使用页面 {page_id} 关联的店铺 {page.shop.shop_name} ({page.shop.target_area}) 的配置")
+                    else:
+                        logger.warning(f"上传文件：页面 {page_id} 没有关联店铺，将使用默认店铺")
+                except PageTemplate.DoesNotExist:
+                    logger.warning(f"上传文件：页面 {page_id} 不存在，将使用默认店铺")
+            
+            # 如果没有从页面获取到店铺配置，使用第一个可用店铺
+            if not shop_config:
+                shop_config = ShopConfiguration.objects.first()
+                if not shop_config:
+                    media_file.upload_status = "failed"
+                    media_file.error_message = "系统中没有配置任何店铺"
+                    media_file.save()
+                    
+                    return Response(
+                        {
+                            "error": {
+                                "code": "NO_SHOP_CONFIGURED",
+                                "message": "系统中没有配置任何店铺，请先添加店铺配置",
+                                "media_file_id": media_file.id,
+                            }
+                        },
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    )
+                logger.info(f"上传文件：使用默认店铺 {shop_config.shop_name} ({shop_config.target_area}) 的配置")
+            
+            cabinet_client = RCabinetClient.from_shop_config(shop_config)
 
             # 读取文件数据
             uploaded_file.seek(0)
@@ -340,6 +379,9 @@ def get_cabinet_folders(request):
         parent_path_query = request.GET.get("parentPath")
         want_all = request.GET.get("all") in {"1", "true", "True"}
         force_refresh = request.GET.get("force") in {"1", "true", "True"}
+        page_id = request.GET.get("pageId")  # 页面ID（用于获取店铺配置）
+        
+        logger.info(f"获取文件夹列表请求：page_id={page_id}, parent_path={parent_path_query}")
 
         # 限制页面大小
         page_size = min(page_size, 100)
@@ -360,6 +402,42 @@ def get_cabinet_folders(request):
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
+        
+        # 初始化R-Cabinet客户端
+        # 优先使用 page_id 获取店铺配置，如果没有则使用第一个可用店铺
+        from configurations.models import ShopConfiguration
+        
+        shop_config = None
+        
+        if page_id:
+            # 从页面获取店铺配置
+            from pages.models import PageTemplate
+            try:
+                page_obj = PageTemplate.objects.select_related('shop').get(id=page_id)
+                if page_obj.shop:
+                    shop_config = page_obj.shop
+                    logger.info(f"获取文件夹列表：使用页面 {page_id} 关联的店铺 {page_obj.shop.shop_name} ({page_obj.shop.target_area}) 的配置")
+                else:
+                    logger.warning(f"获取文件夹列表：页面 {page_id} 没有关联店铺，将使用默认店铺")
+            except PageTemplate.DoesNotExist:
+                logger.warning(f"获取文件夹列表：页面 {page_id} 不存在，将使用默认店铺")
+        
+        # 如果没有从页面获取到店铺配置，使用第一个可用店铺
+        if not shop_config:
+            shop_config = ShopConfiguration.objects.first()
+            if not shop_config:
+                return Response(
+                    {
+                        "error": {
+                            "code": "NO_SHOP_CONFIGURED",
+                            "message": "系统中没有配置任何店铺，请先添加店铺配置",
+                        }
+                    },
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            logger.info(f"获取文件夹列表：使用默认店铺 {shop_config.shop_name} ({shop_config.target_area}) 的配置")
+        
+        cabinet_client = RCabinetClient.from_shop_config(shop_config)
 
         def _rate_limit_sleep():
             last_ts = cache.get("rakuten_last_call_ts")
@@ -400,12 +478,15 @@ def get_cabinet_folders(request):
             return folders
 
         # 如果请求子节点或请求全量，使用缓存优先
+        # 缓存键需要包含店铺ID，确保不同店铺的数据隔离
+        cache_key_folders = f"cabinet_folders_all_{shop_config.id}"
+        cache_key_ts = f"cabinet_folders_all_ts_{shop_config.id}"
+        
         if parent_path_query is not None or want_all:
-            cached = None if force_refresh else cache.get("cabinet_folders_all")
-            cached_ts = None if force_refresh else cache.get("cabinet_folders_all_ts")
+            cached = None if force_refresh else cache.get(cache_key_folders)
+            cached_ts = None if force_refresh else cache.get(cache_key_ts)
             if cached is None:
                 # 全量拉取并缓存（循环分页 + 限速）
-                cabinet_client = RCabinetClient()
                 all_raw = []
                 current_page = 1
                 page_limit = 100
@@ -439,9 +520,9 @@ def get_cabinet_folders(request):
                 normalized = _normalize_folders(
                     all_raw, with_has_children_from=normalized
                 )
-                # 缓存 5 分钟
-                cache.set("cabinet_folders_all", normalized, timeout=600)
-                cache.set("cabinet_folders_all_ts", time.time(), timeout=600)
+                # 缓存 5 分钟，使用店铺特定的缓存键
+                cache.set(cache_key_folders, normalized, timeout=600)
+                cache.set(cache_key_ts, time.time(), timeout=600)
                 cached = normalized
                 cached_ts = time.time()
             else:
@@ -451,13 +532,13 @@ def get_cabinet_folders(request):
 
                         def _refresh_async():
                             try:
-                                cc = RCabinetClient()
+                                # 使用已有的 cabinet_client 实例
                                 all_raw = []
                                 cp = 1
                                 limit = 100
                                 while True:
                                     _rate_limit_sleep()
-                                    res = cc.get_folders(offset=cp, limit=limit)
+                                    res = cabinet_client.get_folders(offset=cp, limit=limit)
                                     if not res.get("success", True):
                                         break
                                     page_folders = res.get("data", {}).get(
@@ -474,10 +555,9 @@ def get_cabinet_folders(request):
                                 norm = _normalize_folders(
                                     all_raw, with_has_children_from=norm
                                 )
-                                cache.set("cabinet_folders_all", norm, timeout=600)
-                                cache.set(
-                                    "cabinet_folders_all_ts", time.time(), timeout=600
-                                )
+                                # 使用店铺特定的缓存键
+                                cache.set(cache_key_folders, norm, timeout=600)
+                                cache.set(cache_key_ts, time.time(), timeout=600)
                             except Exception:
                                 pass
 
@@ -534,7 +614,6 @@ def get_cabinet_folders(request):
                 )
 
         # 否则按原逻辑请求单页
-        cabinet_client = RCabinetClient()
         _rate_limit_sleep()
         result = cabinet_client.get_folders(offset=record_offset, limit=page_size)
         if result.get("success", True):
@@ -610,6 +689,7 @@ def get_cabinet_images(request):
         search = request.GET.get("search", "")
         folder_id = request.GET.get("folderId")  # 文件夹ID过滤
         sort_mode = request.GET.get("sortMode", "name-asc")  # 排序模式
+        page_id = request.GET.get("pageId")  # 页面ID（用于获取店铺配置）
 
         # 限制页面大小
         page_size = min(page_size, 100)
@@ -632,7 +712,40 @@ def get_cabinet_images(request):
             )
 
         # 初始化R-Cabinet客户端
-        cabinet_client = RCabinetClient()
+        # 优先使用 page_id 获取店铺配置，如果没有则使用第一个可用店铺
+        from configurations.models import ShopConfiguration
+        
+        shop_config = None
+        
+        if page_id:
+            # 从页面获取店铺配置
+            from pages.models import PageTemplate
+            try:
+                page_obj = PageTemplate.objects.select_related('shop').get(id=page_id)
+                if page_obj.shop:
+                    shop_config = page_obj.shop
+                    logger.info(f"获取图片列表：使用页面 {page_id} 关联的店铺 {page_obj.shop.shop_name} ({page_obj.shop.target_area}) 的配置")
+                else:
+                    logger.warning(f"获取图片列表：页面 {page_id} 没有关联店铺，将使用默认店铺")
+            except PageTemplate.DoesNotExist:
+                logger.warning(f"获取图片列表：页面 {page_id} 不存在，将使用默认店铺")
+        
+        # 如果没有从页面获取到店铺配置，使用第一个可用店铺
+        if not shop_config:
+            shop_config = ShopConfiguration.objects.first()
+            if not shop_config:
+                return Response(
+                    {
+                        "error": {
+                            "code": "NO_SHOP_CONFIGURED",
+                            "message": "系统中没有配置任何店铺，请先添加店铺配置",
+                        }
+                    },
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            logger.info(f"获取图片列表：使用默认店铺 {shop_config.shop_name} ({shop_config.target_area}) 的配置")
+        
+        cabinet_client = RCabinetClient.from_shop_config(shop_config)
 
         def _rate_limit_sleep():
             last_ts = cache.get("rakuten_last_call_ts")

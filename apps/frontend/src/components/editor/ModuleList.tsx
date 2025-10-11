@@ -11,7 +11,7 @@ import { DraggableModuleItem } from './dnd/DraggableModuleItem'
 import { useTranslation } from '@/contexts/I18nContext'
 
 export function ModuleList() {
-  const { addModule, targetArea } = usePageStore()
+  const { addModule, currentPage } = usePageStore()
   const { tEditor, tCommon, currentLanguage } = useTranslation()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -25,12 +25,14 @@ export function ModuleList() {
   )
 
   const filteredModules = useMemo(() => {
-    return getAvailableModules(currentLanguage, targetArea).filter(
+    // 使用 device_type 而不是 targetArea 来应用乐天规则限制
+    const deviceType = currentPage?.device_type || 'pc'
+    return getAvailableModules(currentLanguage, deviceType).filter(
       module =>
         module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [searchTerm, currentLanguage, targetArea])
+  }, [searchTerm, currentLanguage, currentPage?.device_type])
 
   return (
     <div className="h-full flex flex-col overflow-x-hidden" data-testid="module-list">

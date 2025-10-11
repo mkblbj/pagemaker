@@ -11,9 +11,21 @@ export const pageService = {
   /**
    * 获取页面列表
    */
-  async getPages(params?: { limit?: number; offset?: number; search?: string }): Promise<PageListResponse> {
+  async getPages(params?: { 
+    limit?: number
+    offset?: number
+    search?: string
+    shop_id?: string
+    device_type?: 'pc' | 'mobile' | 'all'
+  }): Promise<PageListResponse> {
+    // 过滤掉 device_type === 'all' 的情况
+    const filteredParams = { ...params }
+    if (filteredParams.device_type === 'all') {
+      delete filteredParams.device_type
+    }
+    
     const response = await apiClient.get<ApiResponse<PageListResponse>>('/api/v1/pages/', {
-      params
+      params: filteredParams
     })
 
     if (!response.data.success || !response.data.data) {
@@ -91,13 +103,14 @@ export const pageService = {
   /**
    * 保存页面（智能判断创建或更新）
    */
-  async savePage(page: Partial<PageTemplate> & { name: string }): Promise<PageTemplate> {
+  async savePage(page: Partial<PageTemplate> & { name: string; shop_id?: string; device_type?: 'pc' | 'mobile' }): Promise<PageTemplate> {
     if (page.id) {
       // 更新现有页面
       const updateData: UpdatePageTemplateRequest = {
         name: page.name,
         content: page.content,
-        target_area: page.target_area
+        shop_id: page.shop_id,
+        device_type: page.device_type
       }
       return this.updatePage(page.id, updateData)
     } else {
@@ -105,7 +118,9 @@ export const pageService = {
       const createData: CreatePageTemplateRequest = {
         name: page.name,
         content: page.content || [],
-        target_area: page.target_area || 'pc'
+        // 只在 shop_id 存在且不为空字符串时才传递
+        shop_id: page.shop_id && page.shop_id.trim() ? page.shop_id : undefined,
+        device_type: page.device_type || 'mobile'  // 默认移动端
       }
       return this.createPage(createData)
     }

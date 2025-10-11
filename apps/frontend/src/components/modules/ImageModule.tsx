@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import ImageSelectorDialog from '@/components/feature/ImageSelectorDialog'
+import { usePageStore } from '@/stores/usePageStore'
 
 // 图片模块配置接口
 interface ImageModuleConfig {
@@ -178,6 +179,7 @@ export function ImageModule({
         onOpenChange={setShowImageSelector}
         onSelect={handleSelect}
         initialTab="cabinet"
+        pageId={usePageStore.getState().currentPage?.id}
       />
     </div>
   )

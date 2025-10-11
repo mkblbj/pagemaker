@@ -34,20 +34,25 @@ class PageListCreateView(generics.ListCreateAPIView):
 
         if user_role == "admin":
             # 管理员可以看到所有页面
-            queryset = PageTemplate.objects.select_related("owner").all()
+            queryset = PageTemplate.objects.select_related("owner", "shop").all()
         else:
             # 编辑者只能看到自己的页面
-            queryset = PageTemplate.objects.select_related("owner").filter(owner=user)
+            queryset = PageTemplate.objects.select_related("owner", "shop").filter(owner=user)
 
         # 处理搜索参数
         search = self.request.query_params.get("search", None)
         if search:
             queryset = queryset.filter(name__icontains=search)
 
-        # 处理目标区域过滤
-        target_area = self.request.query_params.get("target_area", None)
-        if target_area:
-            queryset = queryset.filter(target_area=target_area)
+        # 处理店铺过滤（新增）
+        shop_id = self.request.query_params.get("shop_id", None)
+        if shop_id:
+            queryset = queryset.filter(shop_id=shop_id)
+
+        # 处理设备类型过滤
+        device_type = self.request.query_params.get("device_type", None)
+        if device_type and device_type in ['pc', 'mobile']:
+            queryset = queryset.filter(device_type=device_type)
 
         return queryset.order_by("-updated_at")
 
@@ -69,7 +74,9 @@ class PageListCreateView(generics.ListCreateAPIView):
                 page_data = {
                     "id": str(page.id),
                     "name": page.name,
-                    "target_area": page.target_area,
+                    "shop_id": str(page.shop.id) if page.shop else None,
+                    "shop_name": page.shop.shop_name if page.shop else None,
+                    "device_type": page.device_type,
                     "owner_id": str(page.owner.id),
                     "owner_username": page.owner.username,
                     "created_at": page.created_at.isoformat(),
@@ -131,20 +138,17 @@ class PageListCreateView(generics.ListCreateAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # 创建页面
-            page = PageTemplateRepository.create_page(
-                name=serializer.validated_data["name"],
-                content=serializer.validated_data["content"],
-                target_area=serializer.validated_data["target_area"],
-                owner=request.user,
-            )
+            # 创建页面（使用 serializer 的 create 方法）
+            page = serializer.save()
 
             # 返回创建的页面数据
             response_data = {
                 "id": str(page.id),
                 "name": page.name,
                 "content": page.content,
-                "target_area": page.target_area,
+                "shop_id": str(page.shop.id) if page.shop else None,
+                "shop_name": page.shop.shop_name if page.shop else None,
+                "device_type": page.device_type,
                 "owner_id": str(page.owner.id),
                 "created_at": page.created_at.isoformat(),
                 "updated_at": page.updated_at.isoformat(),
@@ -212,7 +216,9 @@ class PageDetailView(generics.RetrieveUpdateDestroyAPIView):
                 "id": str(page.id),
                 "name": page.name,
                 "content": page.content,
-                "target_area": page.target_area,
+                "shop_id": str(page.shop.id) if page.shop else None,
+                "shop_name": page.shop.shop_name if page.shop else None,
+                "device_type": page.device_type,
                 "owner_id": str(page.owner.id),
                 "created_at": page.created_at.isoformat(),
                 "updated_at": page.updated_at.isoformat(),
@@ -284,7 +290,9 @@ class PageDetailView(generics.RetrieveUpdateDestroyAPIView):
                 "id": str(updated_page.id),
                 "name": updated_page.name,
                 "content": updated_page.content,
-                "target_area": updated_page.target_area,
+                "shop_id": str(updated_page.shop.id) if updated_page.shop else None,
+                "shop_name": updated_page.shop.shop_name if updated_page.shop else None,
+                "device_type": updated_page.device_type,
                 "owner_id": str(updated_page.owner.id),
                 "created_at": updated_page.created_at.isoformat(),
                 "updated_at": updated_page.updated_at.isoformat(),

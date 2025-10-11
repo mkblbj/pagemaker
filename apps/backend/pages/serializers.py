@@ -10,13 +10,19 @@ class PageTemplateSerializer(serializers.ModelSerializer):
     # 只读字段
     id = serializers.UUIDField(read_only=True)
     owner_id = serializers.CharField(source="owner.id", read_only=True)
+    shop_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)  # 使用CharField以接受空字符串
+    shop_name = serializers.CharField(source="shop.shop_name", read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     module_count = serializers.IntegerField(read_only=True)
 
     # 可选字段（用于部分更新）
     name = serializers.CharField(max_length=255, required=False)
-    target_area = serializers.CharField(max_length=100, required=False)
+    device_type = serializers.ChoiceField(
+        choices=['pc', 'mobile'], 
+        required=False,
+        help_text="设备类型"
+    )
     content = serializers.ListField(required=False, allow_empty=True)
 
     class Meta:
@@ -25,7 +31,9 @@ class PageTemplateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "content",
-            "target_area",
+            "shop_id",      # 店铺ID
+            "shop_name",    # 店铺名称（只读）
+            "device_type",  # 设备类型
             "owner_id",
             "created_at",
             "updated_at",
@@ -33,7 +41,6 @@ class PageTemplateSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "name": {"required": True},
-            "target_area": {"required": True},
             "content": {"required": True},
         }
 
@@ -47,19 +54,28 @@ class PageTemplateSerializer(serializers.ModelSerializer):
 
         return value.strip()
 
-    def validate_target_area(self, value):
-        """验证目标区域"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("目标区域不能为空")
-
-        # 可以在这里添加目标区域的枚举验证
-        valid_areas = ["pc", "mobile", "both"]  # 示例值
-        if value.strip().lower() not in valid_areas:
-            raise serializers.ValidationError(
-                f"目标区域必须是以下之一: {', '.join(valid_areas)}"
-            )
-
-        return value.strip().lower()
+    def validate_shop_id(self, value):
+        """验证店铺ID"""
+        # 空字符串或 None 转换为 None
+        if not value or value.strip() == '':
+            return None
+        
+        from configurations.models import ShopConfiguration
+        import uuid
+        
+        # 验证 UUID 格式
+        try:
+            uuid.UUID(value)
+        except (ValueError, AttributeError):
+            raise serializers.ValidationError(f"店铺ID格式无效")
+        
+        # 验证店铺存在
+        try:
+            ShopConfiguration.objects.get(id=value)
+        except ShopConfiguration.DoesNotExist:
+            raise serializers.ValidationError(f"店铺ID {value} 不存在")
+        
+        return value
 
     def validate_content(self, value):
         """验证页面内容（PageModule数组）"""
@@ -120,15 +136,33 @@ class PageTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("无法获取当前用户信息")
 
         try:
+            from configurations.models import ShopConfiguration
+            
+            # 处理 shop_id 字段
+            shop_id = validated_data.pop('shop_id', None)
+            
+            # 获取 shop 实例
+            shop = None
+            if shop_id:
+                shop = ShopConfiguration.objects.get(id=shop_id)
+            else:
+                # 如果没有提供 shop_id，使用第一个可用店铺
+                shop = ShopConfiguration.objects.first()
+                if not shop:
+                    raise serializers.ValidationError({"shop_id": "系统中没有配置任何店铺，请先添加店铺配置"})
+            
             # 使用Repository创建页面
             page = PageTemplateRepository.create_page(
                 name=validated_data["name"],
                 content=validated_data.get("content", []),
-                target_area=validated_data["target_area"],
                 owner=request.user,
+                shop=shop,
+                device_type=validated_data.get("device_type", "mobile"),  # 默认移动端
             )
             return page
 
+        except ShopConfiguration.DoesNotExist:
+            raise serializers.ValidationError({"shop_id": "店铺不存在"})
         except DjangoValidationError as e:
             # 将Django验证错误转换为DRF验证错误
             if hasattr(e, "error_dict"):
@@ -143,6 +177,13 @@ class PageTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("无法获取当前用户信息")
 
         try:
+            from configurations.models import ShopConfiguration
+            
+            # 处理 shop_id 字段
+            shop_id = validated_data.pop('shop_id', None)
+            if shop_id:
+                validated_data['shop'] = ShopConfiguration.objects.get(id=shop_id)
+            
             # 使用Repository更新页面
             updated_page = PageTemplateRepository.update_page(
                 page_id=str(instance.id), user=request.user, **validated_data
@@ -153,6 +194,8 @@ class PageTemplateSerializer(serializers.ModelSerializer):
 
             return updated_page
 
+        except ShopConfiguration.DoesNotExist:
+            raise serializers.ValidationError({"shop_id": "店铺不存在"})
         except DjangoValidationError as e:
             # 将Django验证错误转换为DRF验证错误
             if hasattr(e, "error_dict"):
@@ -173,6 +216,17 @@ class PageTemplateSerializer(serializers.ModelSerializer):
         # 添加额外的统计信息
         data["module_count"] = instance.module_count
 
+        # 添加店铺相关字段
+        if instance.shop:
+            data["shop_id"] = str(instance.shop.id)
+            data["shop_name"] = instance.shop.shop_name
+        else:
+            data["shop_id"] = None
+            data["shop_name"] = None
+
+        # 添加设备类型
+        data["device_type"] = instance.device_type
+
         return data
 
 
@@ -182,16 +236,18 @@ class CreatePageTemplateSerializer(PageTemplateSerializer):
     class Meta(PageTemplateSerializer.Meta):
         extra_kwargs = {
             "name": {"required": True},
-            "target_area": {"required": True},
             "content": {"required": True},
+            "shop_id": {"required": False},  # 改为可选，如果未提供则使用默认店铺
+            "device_type": {"required": True},
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 创建时所有字段都是必需的
+        # 创建时必需字段
         self.fields["name"].required = True
-        self.fields["target_area"].required = True
         self.fields["content"].required = True
+        self.fields["shop_id"].required = False  # 改为可选
+        self.fields["device_type"].required = True
 
 
 class UpdatePageTemplateSerializer(PageTemplateSerializer):
@@ -200,7 +256,6 @@ class UpdatePageTemplateSerializer(PageTemplateSerializer):
     class Meta(PageTemplateSerializer.Meta):
         extra_kwargs = {
             "name": {"required": False},
-            "target_area": {"required": False},
             "content": {"required": False},
         }
 
@@ -208,7 +263,6 @@ class UpdatePageTemplateSerializer(PageTemplateSerializer):
         super().__init__(*args, **kwargs)
         # 更新时所有字段都是可选的
         self.fields["name"].required = False
-        self.fields["target_area"].required = False
         self.fields["content"].required = False
 
 
@@ -218,6 +272,8 @@ class PageTemplateListSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     owner_id = serializers.CharField(source="owner.id", read_only=True)
     owner_username = serializers.CharField(source="owner.username", read_only=True)
+    shop_id = serializers.CharField(source="shop.id", read_only=True)
+    shop_name = serializers.CharField(source="shop.shop_name", read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     module_count = serializers.IntegerField(read_only=True)
@@ -227,7 +283,9 @@ class PageTemplateListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "target_area",
+            "shop_id",
+            "shop_name",
+            "device_type",
             "owner_id",
             "owner_username",
             "created_at",
@@ -244,5 +302,16 @@ class PageTemplateListSerializer(serializers.ModelSerializer):
             data["created_at"] = instance.created_at.isoformat()
         if instance.updated_at:
             data["updated_at"] = instance.updated_at.isoformat()
+
+        # 确保店铺字段正确序列化
+        if instance.shop:
+            data["shop_id"] = str(instance.shop.id)
+            data["shop_name"] = instance.shop.shop_name
+        else:
+            data["shop_id"] = None
+            data["shop_name"] = None
+
+        # 确保设备类型字段
+        data["device_type"] = instance.device_type
 
         return data

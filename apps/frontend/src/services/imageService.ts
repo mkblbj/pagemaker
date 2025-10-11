@@ -56,9 +56,17 @@ export const imageService = {
   /**
    * 上传图片到R-Cabinet
    */
-  async uploadImage(file: File, onProgress?: (progress: number) => void): Promise<ImageUploadResponse> {
+  async uploadImage(
+    file: File, 
+    onProgress?: (progress: number) => void,
+    pageId?: string
+  ): Promise<ImageUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
+    // 只在 pageId 存在且不为空时添加
+    if (pageId && pageId.trim()) {
+      formData.append('page_id', pageId)
+    }
 
     const response = await apiClient.post<ApiResponse<ImageUploadResponse>>('/api/v1/media/upload/', formData, {
       headers: {
@@ -88,9 +96,18 @@ export const imageService = {
     parentPath?: string
     all?: boolean
     force?: boolean
+    pageId?: string
   }): Promise<CabinetFolderListResponse> {
+    // 过滤掉空字符串的 pageId
+    const filteredParams = params ? {
+      ...params,
+      pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined
+    } : undefined
+    
+    console.log('[imageService.getCabinetFolders] 请求参数:', filteredParams)
+    
     const response = await apiClient.get<ApiResponse<CabinetFolderListResponse>>('/api/v1/media/cabinet-folders/', {
-      params
+      params: filteredParams
     })
 
     if (!response.data.success || !response.data.data) {
@@ -109,9 +126,16 @@ export const imageService = {
     search?: string
     folderId?: string
     sortMode?: 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'size-asc' | 'size-desc'
+    pageId?: string
   }): Promise<CabinetImageListResponse> {
+    // 过滤掉空字符串的 pageId
+    const filteredParams = params ? {
+      ...params,
+      pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined
+    } : undefined
+    
     const response = await apiClient.get<ApiResponse<CabinetImageListResponse>>('/api/v1/media/cabinet-images/', {
-      params
+      params: filteredParams
     })
 
     if (!response.data.success || !response.data.data) {

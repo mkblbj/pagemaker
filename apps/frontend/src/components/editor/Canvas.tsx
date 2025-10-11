@@ -180,8 +180,7 @@ export function Canvas() {
     addModule,
     updateModule,
     markUnsaved,
-    hasUnsavedChanges,
-    targetArea
+    hasUnsavedChanges
   } = usePageStore()
   const { tEditor, currentLanguage } = useTranslation()
 
@@ -276,8 +275,8 @@ export function Canvas() {
   // 处理查看模块代码
   const handleViewModuleCode = (module: any) => {
     try {
-      // 根据目标区域决定是否使用移动端模式
-      const isMobileMode = targetArea === 'mobile'
+      // 根据设备类型决定是否使用移动端模式
+      const isMobileMode = currentPage?.device_type === 'mobile'
 
       const html = HtmlExportService.generateModuleHTML(module, {
         includeStyles: false,
@@ -286,7 +285,7 @@ export function Canvas() {
         description: '',
         language: 'zh-CN',
         fullDocument: false,
-        mobileMode: isMobileMode // 使用与目标区域一致的模式
+        mobileMode: isMobileMode // 使用与设备类型一致的模式
       })
       setModuleCode(html)
       setOriginalModuleCode(html)
@@ -419,7 +418,7 @@ export function Canvas() {
               </DialogTitle>
               <DialogDescription>
                 {tEditor('模块HTML代码')} - {getModuleMetadata(currentModuleForCode?.type, currentLanguage)?.name || currentModuleForCode?.type}
-                {targetArea === 'mobile' && (
+                {currentPage?.device_type === 'mobile' && (
                   <>
                     <br />
                     <span className="text-xs text-blue-600 font-medium">

@@ -18,19 +18,24 @@ interface RCabinetFileTreeProps {
   onFolderSelect: (folderId: string, folderName: string, folderPath?: string) => void
   selectedFolderId?: string
   className?: string
+  pageId?: string  // 页面ID，用于获取对应店铺的配置
 }
 
-export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', className }: RCabinetFileTreeProps) {
+export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', className, pageId }: RCabinetFileTreeProps) {
   const { tEditor } = useTranslation()
+  
+  // 生成带页面ID的存储键，确保不同页面使用独立缓存
+  const getStorageKey = (key: string) => pageId ? `${key}_${pageId}` : key
+  
   const [treeData, setTreeData] = useState<RCabinetTreeNode[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
-    // 从localStorage恢复展开状态
-    if (typeof window !== 'undefined') {
+    // 从localStorage恢复展开状态（按页面ID区分）
+    if (typeof window !== 'undefined' && pageId) {
       try {
-        const saved = window.localStorage.getItem('rcabinet_expanded_folders')
+        const saved = window.localStorage.getItem(getStorageKey('rcabinet_expanded_folders'))
         return saved ? new Set(JSON.parse(saved)) : new Set()
       } catch {
         return new Set()
@@ -39,8 +44,8 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
     return new Set()
   })
   const [sortMode, setSortMode] = useState<'name-asc' | 'name-desc' | 'date-desc' | 'date-asc'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = window.localStorage.getItem('rcabinet_tree_sort_mode') as any
+    if (typeof window !== 'undefined' && pageId) {
+      const saved = window.localStorage.getItem(getStorageKey('rcabinet_tree_sort_mode')) as any
       if (saved === 'name-asc' || saved === 'name-desc' || saved === 'date-desc' || saved === 'date-asc') return saved
     }
     return 'name-asc'
@@ -156,18 +161,46 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
     return filtered
   }
 
-  // 初始加载根层（懒加载）
+  // 初始加载根层（懒加载） - 当 pageId 变化时也会重新加载
   useEffect(() => {
     const loadRoot = async () => {
       try {
+        console.log('[RCabinetFileTree] 开始加载根文件夹，pageId:', pageId)
         setIsLoading(true)
         setError(null)
-        // 仅请求根层
-        const resp = await imageService.getCabinetFolders({ page: 1, pageSize: 100, parentPath: '' })
+        
+        // 清空缓存，强制重新加载
+        childrenCacheRef.current.clear()
+        pendingRef.current.clear()
+        setLoadedAll(false)
+        
+        // 从 localStorage 恢复展开状态和排序模式（按 pageId 区分）
+        let restoredExpandedFolders = new Set<string>()
+        if (pageId && typeof window !== 'undefined') {
+          try {
+            const saved = window.localStorage.getItem(getStorageKey('rcabinet_expanded_folders'))
+            restoredExpandedFolders = saved ? new Set(JSON.parse(saved)) : new Set()
+            setExpandedFolders(restoredExpandedFolders)
+            console.log('[RCabinetFileTree] 恢复的展开文件夹:', Array.from(restoredExpandedFolders))
+          } catch {
+            setExpandedFolders(new Set())
+          }
+          
+          const savedSortMode = window.localStorage.getItem(getStorageKey('rcabinet_tree_sort_mode')) as any
+          if (savedSortMode === 'name-asc' || savedSortMode === 'name-desc' || savedSortMode === 'date-desc' || savedSortMode === 'date-asc') {
+            setSortMode(savedSortMode)
+            console.log('[RCabinetFileTree] 恢复的排序模式:', savedSortMode)
+          }
+        }
+        
+        // 请求根层文件夹
+        console.log('[RCabinetFileTree] 请求根层文件夹，pageId:', pageId)
+        const resp = await imageService.getCabinetFolders({ page: 1, pageSize: 100, parentPath: '', pageId })
+        console.log('[RCabinetFileTree] 根层文件夹加载成功，数量:', resp.folders?.length || 0)
         const rootFolders = (resp.folders || []).map(folder => ({
           ...folder,
           children: [],
-          isExpanded: expandedFolders.has(folder.id),
+          isExpanded: restoredExpandedFolders.has(folder.id),
           level: 0
         }))
 
@@ -176,7 +209,6 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
         rootFolders.sort(cmp)
 
         setTreeData(rootFolders)
-        setLoadedAll(false)
         // 根层缓存
         childrenCacheRef.current.set(
           '',
@@ -191,8 +223,8 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
     }
     void loadRoot()
     // 静默预热服务端缓存（不阻塞UI）
-    void Promise.resolve(imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500 })).catch(() => void 0)
-  }, [])
+    void Promise.resolve(imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500, pageId })).catch(() => void 0)
+  }, [pageId])
 
   // 搜索时自动加载全量（一次性，从缓存读，避免多次打API）
   useEffect(() => {
@@ -205,7 +237,7 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
         let page = 1
         let all: CabinetFolder[] = []
         while (true) {
-          const resp = await imageService.getCabinetFolders({ page, pageSize, all: true })
+          const resp = await imageService.getCabinetFolders({ page, pageSize, all: true, pageId })
           all = all.concat(resp.folders || [])
           const fetched = page * pageSize
           if (resp.total !== undefined && fetched >= resp.total) break
@@ -331,7 +363,7 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
               let p = pendingRef.current.get(target.path)
               if (!p) {
                 p = imageService
-                  .getCabinetFolders({ parentPath: target.path, page: 1, pageSize: 100 })
+                  .getCabinetFolders({ parentPath: target.path, page: 1, pageSize: 100, pageId })
                   .then(resp => (resp.folders || []) as RCabinetTreeNode[])
                   .catch(err => {
                     pendingRef.current.delete(target.path)
@@ -487,12 +519,12 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
 
   const filteredTree = filterFolderTree(treeData, searchTerm)
 
-  // 保存展开状态到localStorage
+  // 保存展开状态到localStorage（按页面ID区分）
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('rcabinet_expanded_folders', JSON.stringify(Array.from(expandedFolders)))
+    if (typeof window !== 'undefined' && pageId) {
+      window.localStorage.setItem(getStorageKey('rcabinet_expanded_folders'), JSON.stringify(Array.from(expandedFolders)))
     }
-  }, [expandedFolders])
+  }, [expandedFolders, pageId])
 
   // 排序模式切换时，对现有树做就地排序
   useEffect(() => {
@@ -503,11 +535,11 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
       return cloned
     }
     setTreeData(prev => sortTree(prev))
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('rcabinet_tree_sort_mode', sortMode)
+    if (typeof window !== 'undefined' && pageId) {
+      window.localStorage.setItem(getStorageKey('rcabinet_tree_sort_mode'), sortMode)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortMode])
+  }, [sortMode, pageId])
 
   // 根据选中的文件夹和展开状态自动加载和展开深层级文件夹
   useEffect(() => {
@@ -579,7 +611,7 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
                 })
 
                 const p = imageService
-                  .getCabinetFolders({ parentPath: node.path, page: 1, pageSize: 100 })
+                  .getCabinetFolders({ parentPath: node.path, page: 1, pageSize: 100, pageId })
                   .then(resp => (resp.folders || []) as RCabinetTreeNode[])
                 pendingRef.current.set(node.path, p)
 
@@ -722,7 +754,7 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
                 try {
                   setIsLoading(true)
                   setError(null)
-                  const resp = await imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500, force: true })
+                  const resp = await imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500, force: true, pageId })
                   const tree = buildFolderTree(resp.folders || [])
                   setTreeData(tree)
                   setLoadedAll(true)

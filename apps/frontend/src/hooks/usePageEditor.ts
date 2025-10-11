@@ -26,7 +26,8 @@ export function usePageEditor() {
           id: currentPage.id,
           name: currentPage.name,
           content: currentPage.content,
-          target_area: currentPage.target_area
+          shop_id: currentPage.shop_id,
+          device_type: currentPage.device_type
         })
 
         // 确保状态同步更新

@@ -81,7 +81,9 @@ export interface PageTemplate {
   id: string;
   name: string;
   content: PageModule[];
-  target_area: string; // 后端使用snake_case
+  shop_id: string; // 关联的店铺ID
+  shop_name?: string; // 店铺名称（只读）
+  device_type: 'pc' | 'mobile'; // 设备类型
   owner_id: string; // 后端使用snake_case
   created_at: string; // ISO 8601 Date String，后端使用snake_case
   updated_at: string; // ISO 8601 Date String，后端使用snake_case
@@ -92,7 +94,9 @@ export interface PageTemplate {
 export interface PageTemplateListItem {
   id: string;
   name: string;
-  target_area: string;
+  shop_id: string; // 关联的店铺ID
+  shop_name?: string; // 店铺名称（只读）
+  device_type: 'pc' | 'mobile'; // 设备类型
   owner_id: string;
   owner_username: string; // 列表中包含用户名
   created_at: string;
@@ -120,14 +124,16 @@ export interface ShopConfiguration {
 export interface CreatePageTemplateRequest {
   name: string;
   content: PageModule[];
-  target_area: string; // 使用snake_case匹配后端
+  shop_id?: string; // 可选：关联的店铺ID，如果未提供则使用默认店铺
+  device_type: 'pc' | 'mobile'; // 必填：设备类型
 }
 
 // 页面模板更新请求类型
 export interface UpdatePageTemplateRequest {
   name?: string;
   content?: PageModule[];
-  target_area?: string; // 使用snake_case匹配后端
+  shop_id?: string; // 关联的店铺ID
+  device_type?: 'pc' | 'mobile'; // 设备类型
 }
 
 

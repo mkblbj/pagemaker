@@ -24,13 +24,15 @@ export interface ImageSelectorDialogProps {
   onOpenChange: (open: boolean) => void
   onSelect: (result: ImageSelectorResult) => void
   initialTab?: ActiveTab
+  pageId?: string  // 页面ID，用于获取对应店铺的配置
 }
 
 export default function ImageSelectorDialog({
   open,
   onOpenChange,
   onSelect,
-  initialTab = 'cabinet'
+  initialTab = 'cabinet',
+  pageId
 }: ImageSelectorDialogProps) {
   const { tEditor } = useTranslation()
 
@@ -45,6 +47,29 @@ export default function ImageSelectorDialog({
       void loadCabinetImages(selectedFolderId)
     }
   }, [open, initialTab])
+
+  // 当 pageId 变化时，重新加载对应页面的缓存状态
+  useEffect(() => {
+    if (pageId && typeof window !== 'undefined') {
+      console.log('[ImageSelectorDialog] pageId 变化，重新加载缓存状态', pageId)
+      
+      const savedFolderId = window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_id')) || '0'
+      const savedFolderName = window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_name')) || '根目录'
+      const savedFolderPath = window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_path')) || ''
+      
+      console.log('[ImageSelectorDialog] 恢复的文件夹状态:', { savedFolderId, savedFolderName, savedFolderPath })
+      
+      setSelectedFolderId(savedFolderId)
+      setSelectedFolderName(savedFolderName)
+      setSelectedFolderPath(savedFolderPath)
+      
+      // 如果对话框是打开的且在 cabinet 标签，重新加载图片
+      if (open && activeTab === 'cabinet') {
+        console.log('[ImageSelectorDialog] 对话框已打开，重新加载图片')
+        void loadCabinetImages(savedFolderId)
+      }
+    }
+  }, [pageId])
 
   // upload
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -70,7 +95,7 @@ export default function ImageSelectorDialog({
     setUploadError(null)
 
     try {
-      const uploadResult = await imageService.uploadImage(file, progress => setUploadProgress(progress))
+      const uploadResult = await imageService.uploadImage(file, progress => setUploadProgress(progress), pageId)
       setUploadStatus('success')
       // 返回结果并关闭
       onSelect({ url: uploadResult.url, filename: file.name })
@@ -85,22 +110,24 @@ export default function ImageSelectorDialog({
     }
   }
 
-  // cabinet - 从localStorage恢复上次选择的文件夹
+  // cabinet - 从localStorage恢复上次选择的文件夹（按页面ID区分缓存）
+  const getStorageKey = (key: string) => pageId ? `${key}_${pageId}` : key
+  
   const [selectedFolderId, setSelectedFolderId] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return window.localStorage.getItem('rcabinet_selected_folder_id') || '0'
+    if (typeof window !== 'undefined' && pageId) {
+      return window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_id')) || '0'
     }
     return '0'
   })
   const [selectedFolderName, setSelectedFolderName] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return window.localStorage.getItem('rcabinet_selected_folder_name') || '根目录'
+    if (typeof window !== 'undefined' && pageId) {
+      return window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_name')) || '根目录'
     }
     return '根目录'
   })
   const [selectedFolderPath, setSelectedFolderPath] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return window.localStorage.getItem('rcabinet_selected_folder_path') || ''
+    if (typeof window !== 'undefined' && pageId) {
+      return window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_path')) || ''
     }
     return ''
   })
@@ -141,11 +168,11 @@ export default function ImageSelectorDialog({
     setSelectedFolderId(folderId)
     setSelectedFolderName(folderName)
     setSelectedFolderPath(folderPath || '')
-    // 保存选择状态到localStorage
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('rcabinet_selected_folder_id', folderId)
-      window.localStorage.setItem('rcabinet_selected_folder_name', folderName)
-      window.localStorage.setItem('rcabinet_selected_folder_path', folderPath || '')
+    // 保存选择状态到localStorage（按页面ID区分）
+    if (typeof window !== 'undefined' && pageId) {
+      window.localStorage.setItem(getStorageKey('rcabinet_selected_folder_id'), folderId)
+      window.localStorage.setItem(getStorageKey('rcabinet_selected_folder_name'), folderName)
+      window.localStorage.setItem(getStorageKey('rcabinet_selected_folder_path'), folderPath || '')
     }
     void loadCabinetImages(folderId)
   }
@@ -186,7 +213,8 @@ export default function ImageSelectorDialog({
           page,
           pageSize,
           folderId: targetFolderId,
-          sortMode: imageSortMode
+          sortMode: imageSortMode,
+          pageId  // 传递 pageId 以获取对应店铺的配置
         })
         allImages = allImages.concat(resp.images || [])
         const fetched = page * pageSize
@@ -316,6 +344,7 @@ export default function ImageSelectorDialog({
                   onFolderSelect={handleFolderSelect}
                   selectedFolderId={selectedFolderId}
                   className="h-full"
+                  pageId={pageId}
                 />
               </div>
 

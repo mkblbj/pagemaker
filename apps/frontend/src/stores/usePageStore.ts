@@ -9,9 +9,6 @@ interface PageState {
   // 选中的模块ID
   selectedModuleId: string | null
 
-  // 目标区域
-  targetArea: string
-
   // 页面是否已加载
   isPageLoaded: boolean
 
@@ -26,7 +23,6 @@ interface PageState {
   deleteModule: (moduleId: string) => void
   reorderModules: (sourceIndex: number, destinationIndex: number) => void
   setSelectedModule: (moduleId: string | null) => void
-  setTargetArea: (area: string) => void
   markSaved: () => void
   markUnsaved: () => void
   clearPage: () => void
@@ -39,7 +35,6 @@ export const usePageStore = create<PageState>()(
       // Initial state
       currentPage: null,
       selectedModuleId: null,
-      targetArea: 'pc', // 默认PC端
       isPageLoaded: false,
       hasUnsavedChanges: false,
 
@@ -48,8 +43,7 @@ export const usePageStore = create<PageState>()(
         set(
           {
             currentPage: page,
-            isPageLoaded: true,
-            targetArea: page.target_area || 'pc'
+            isPageLoaded: true
           },
           false,
           'setPage'
@@ -144,16 +138,6 @@ export const usePageStore = create<PageState>()(
         ),
 
       setSelectedModule: moduleId => set({ selectedModuleId: moduleId }, false, 'setSelectedModule'),
-
-      setTargetArea: area =>
-        set(
-          state => ({
-            targetArea: area,
-            currentPage: state.currentPage ? { ...state.currentPage, target_area: area } : null
-          }),
-          false,
-          'setTargetArea'
-        ),
 
       markSaved: () => set({ hasUnsavedChanges: false }, false, 'markSaved'),
 

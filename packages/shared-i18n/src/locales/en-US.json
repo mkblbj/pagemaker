@@ -66,7 +66,19 @@
     "预览": "Preview",
     "编辑": "Edit",
     "删除": "Delete",
-    "店铺配置": "Shop Configuration"
+    "店铺配置": "Shop Configuration",
+    "店铺": "Shop",
+    "选择店铺": "Select Shop",
+    "设备类型": "Device Type",
+    "全部": "All",
+    "请选择店铺": "Please select shop",
+    "店铺名称": "Shop Name",
+    "目标区域": "Target Area",
+    "页": "Page",
+    "上一页": "Previous",
+    "下一页": "Next",
+    "当前店铺": "Current Shop",
+    "选择一个店铺开始管理页面": "Select a shop to start managing pages"
   },
   "errors": {
     "NETWORK_ERROR": "Network connection failed. Please check your network connection and try again",

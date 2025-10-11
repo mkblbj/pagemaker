@@ -20,7 +20,7 @@ import {
 import { ModuleList } from './ModuleList'
 import { Canvas } from './Canvas'
 import { PropertyPanel } from './PropertyPanel'
-import { TargetAreaSelector } from './TargetAreaSelector'
+import { ShopAndDeviceSelector } from './ShopAndDeviceSelector'
 import { usePageEditor } from '@/hooks/usePageEditor'
 import { DragProvider } from './dnd/DragContext'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
@@ -153,9 +153,9 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       // 备用预览方法 - 使用HTML导出服务直接预览
       try {
         const { generateHTML } = await import('@/services/htmlExportService')
-        const { targetArea } = usePageStore.getState()
+        const { currentPage: page } = usePageStore.getState()
 
-        const isMobileMode = targetArea === 'mobile'
+        const isMobileMode = page?.device_type === 'mobile'
         const exportOptions = {
           includeStyles: !isMobileMode,
           minify: true,
@@ -366,8 +366,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* 目标区域选择器 */}
-                <TargetAreaSelector />
+                {/* 店铺和设备类型选择器 */}
+                <ShopAndDeviceSelector />
 
                 <HtmlExportButton
                   modules={currentPage?.content || []}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { EditorLayout } from '@/components/editor/EditorLayout'
@@ -17,8 +17,12 @@ import type { PageTemplate } from '@pagemaker/shared-types'
 
 function EditorPageContent() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const pageId = params.pageId as string
   const { tEditor, tCommon, tError } = useTranslation()
+  
+  // 从 URL 参数获取 shop_id（用于新建页面）
+  const shopIdFromUrl = searchParams.get('shop_id')
 
   const { currentPage, setPage, clearPage, isPageLoaded } = usePageStore()
 
@@ -52,7 +56,8 @@ function EditorPageContent() {
             id: '',
             name: tEditor('新页面'),
             content: [],
-            target_area: 'pc',
+            shop_id: shopIdFromUrl || '', // 从 URL 获取，如果没有则为空（不设置默认店铺）
+            device_type: 'mobile', // 默认移动端
             owner_id: '',
             created_at: now,
             updated_at: now,

@@ -40,7 +40,22 @@ class PageTemplate(models.Model):
         blank=True,  # 允许空数组
     )
 
-    target_area = models.CharField(max_length=100, help_text="关联乐天目标区域")
+    # 多店铺支持字段
+    shop = models.ForeignKey(
+        'configurations.ShopConfiguration',
+        on_delete=models.PROTECT,
+        related_name='pages',
+        help_text="关联的店铺配置",
+        null=True,  # 暂时允许为空，迁移后改为必填
+        blank=True,
+    )
+
+    device_type = models.CharField(
+        max_length=20,
+        choices=[('pc', 'PC端'), ('mobile', '移动端')],
+        default='pc',
+        help_text="设备类型",
+    )
 
     owner = models.ForeignKey(
         User,
@@ -58,14 +73,17 @@ class PageTemplate(models.Model):
         ordering = ["-updated_at", "-created_at"]
         indexes = [
             models.Index(fields=["owner", "-updated_at"]),
-            models.Index(fields=["target_area"]),
             models.Index(fields=["-created_at"]),
+            models.Index(fields=["shop", "device_type"]),  # 多店铺查询优化
+            models.Index(fields=["shop", "-created_at"]),  # 按店铺排序优化
         ]
         verbose_name = "页面模板"
         verbose_name_plural = "页面模板"
 
     def __str__(self):
-        return f"{self.name} ({self.owner.username})"
+        shop_info = f" - {self.shop.shop_name}" if self.shop else ""
+        device_info = f" [{self.device_type.upper()}]" if self.device_type else ""
+        return f"{self.name}{device_info}{shop_info} ({self.owner.username})"
 
     def clean(self):
         """模型级别的数据验证"""
@@ -74,10 +92,6 @@ class PageTemplate(models.Model):
         # 验证name不为空
         if not self.name or not self.name.strip():
             raise ValidationError({"name": "页面名称不能为空"})
-
-        # 验证target_area不为空
-        if not self.target_area or not self.target_area.strip():
-            raise ValidationError({"target_area": "目标区域不能为空"})
 
         # 验证content是否为有效的PageModule数组
         if self.content is not None:
@@ -103,6 +117,13 @@ class PageTemplate(models.Model):
     def module_count(self):
         """返回页面中模块的数量"""
         return len(self.content) if self.content else 0
+
+    @property
+    def rakuten_target_area(self):
+        """获取关联店铺的乐天目标区域"""
+        if self.shop:
+            return self.shop.target_area
+        return ""
 
     def get_modules_by_type(self, module_type):
         """根据类型获取模块列表"""

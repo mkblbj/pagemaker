@@ -44,34 +44,72 @@ def health_check(request):
 @permission_classes([AllowAny])
 def rakuten_health_check(request):
     """
-    R-Cabinet集成健康检查
+    R-Cabinet集成健康检查 - 检查所有店铺的配置
 
     Request:
         GET /api/v1/health/rakuten/
 
     Response:
-        200: R-Cabinet服务正常
-        503: R-Cabinet服务不可用
+        200: 所有店铺的R-Cabinet服务正常
+        503: 部分或全部店铺的R-Cabinet服务不可用
     """
     try:
-        # 初始化R-Cabinet客户端
-        cabinet_client = RCabinetClient()
-
-        # 执行健康检查
-        health_result = cabinet_client.health_check()
-
-        if health_result.get("status") == "healthy":
+        from configurations.models import ShopConfiguration
+        
+        shops = ShopConfiguration.objects.all()
+        
+        if not shops.exists():
+            return Response(
+                {
+                    "success": False,
+                    "service": "R-Cabinet",
+                    "status": "no_shops_configured",
+                    "message": "没有配置任何店铺",
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        
+        shop_health_results = []
+        all_healthy = True
+        
+        for shop in shops:
+            try:
+                # 为每个店铺创建客户端并检查健康状态
+                cabinet_client = RCabinetClient.from_shop_config(shop)
+                health_result = cabinet_client.health_check()
+                
+                shop_result = {
+                    "shop_id": str(shop.id),
+                    "shop_name": shop.shop_name,
+                    "target_area": shop.target_area,
+                    "status": health_result.get("status"),
+                    "response_time_ms": health_result.get("response_time_ms"),
+                }
+                
+                if health_result.get("status") != "healthy":
+                    all_healthy = False
+                    shop_result["error"] = health_result.get("error")
+                
+                shop_health_results.append(shop_result)
+                
+            except Exception as e:
+                all_healthy = False
+                shop_health_results.append({
+                    "shop_id": str(shop.id),
+                    "shop_name": shop.shop_name,
+                    "target_area": shop.target_area,
+                    "status": "error",
+                    "error": str(e),
+                })
+        
+        if all_healthy:
             return Response(
                 {
                     "success": True,
                     "service": "R-Cabinet",
                     "status": "healthy",
-                    "data": {
-                        "response_time_ms": health_result.get("response_time_ms"),
-                        "api_status": health_result.get("api_status"),
-                        "last_check": health_result.get("last_check"),
-                        "request_id": health_result.get("request_id"),
-                    },
+                    "shops": shop_health_results,
+                    "total_shops": len(shop_health_results),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -80,32 +118,13 @@ def rakuten_health_check(request):
                 {
                     "success": False,
                     "service": "R-Cabinet",
-                    "status": "unhealthy",
-                    "error": {
-                        "code": "SERVICE_UNAVAILABLE",
-                        "message": health_result.get("error", "R-Cabinet服务不可用"),
-                        "error_type": health_result.get("error_type"),
-                        "last_check": health_result.get("last_check"),
-                    },
+                    "status": "partial_healthy",
+                    "shops": shop_health_results,
+                    "total_shops": len(shop_health_results),
+                    "healthy_shops": sum(1 for s in shop_health_results if s.get("status") == "healthy"),
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-
-    except RakutenAPIError as e:
-        logger.error(f"R-Cabinet健康检查API错误: {e}")
-        return Response(
-            {
-                "success": False,
-                "service": "R-Cabinet",
-                "status": "unhealthy",
-                "error": {
-                    "code": "API_ERROR",
-                    "message": f"R-Cabinet API错误: {str(e)}",
-                    "error_type": type(e).__name__,
-                },
-            },
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
 
     except Exception as e:
         logger.error(f"R-Cabinet健康检查异常: {e}")

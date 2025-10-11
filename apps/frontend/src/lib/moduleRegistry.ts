@@ -138,8 +138,10 @@ function createModuleRegistry(language?: SupportedLanguage): Record<PageModuleTy
 
 /**
  * 获取所有可用模块
+ * @param language - 语言
+ * @param deviceType - 设备类型 ('pc' | 'mobile')，用于应用楽天规则限制
  */
-export function getAvailableModules(language?: SupportedLanguage, targetArea?: string): ModuleMetadata[] {
+export function getAvailableModules(language?: SupportedLanguage, deviceType?: 'pc' | 'mobile'): ModuleMetadata[] {
   const registry = createModuleRegistry(language)
   const tEditor = createTEditor(language)
 
@@ -165,7 +167,7 @@ export function getAvailableModules(language?: SupportedLanguage, targetArea?: s
     .filter(module => module.isEnabled)
     .map(module => {
       // 乐天规则：手机页面不允许使用标题标签
-      if (module.type === PageModuleType.TITLE && targetArea === 'mobile') {
+      if (module.type === PageModuleType.TITLE && deviceType === 'mobile') {
         return {
           ...module,
           isEnabled: false,
@@ -185,9 +187,9 @@ export function getAvailableModules(language?: SupportedLanguage, targetArea?: s
 export function getModulesByCategory(
   category: 'basic' | 'advanced' | 'layout',
   language?: SupportedLanguage,
-  targetArea?: string
+  deviceType?: 'pc' | 'mobile'
 ): ModuleMetadata[] {
-  return getAvailableModules(language, targetArea).filter(module => module.category === category)
+  return getAvailableModules(language, deviceType).filter(module => module.category === category)
 }
 
 /**

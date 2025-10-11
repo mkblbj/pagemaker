@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import ImageSelectorDialog, { type ImageSelectorResult } from '@/components/feature/ImageSelectorDialog'
 import { useTranslation } from '@/contexts/I18nContext'
+import { usePageStore } from '@/stores/usePageStore'
 
 interface EditableCustomHTMLRendererProps {
   html: string
@@ -238,7 +239,12 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
 
       {/* 图片选择对话框 */}
       {isEditing && (
-        <ImageSelectorDialog open={showImageSelector} onOpenChange={setShowImageSelector} onSelect={handleImageSelect} />
+        <ImageSelectorDialog 
+          open={showImageSelector} 
+          onOpenChange={setShowImageSelector} 
+          onSelect={handleImageSelect}
+          pageId={usePageStore.getState().currentPage?.id}
+        />
       )}
     </>
   )

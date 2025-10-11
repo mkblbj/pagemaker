@@ -39,14 +39,14 @@ export function HtmlExportButton({
   disabled = false
 }: HtmlExportButtonProps) {
   const { tEditor } = useTranslation()
-  const { targetArea } = usePageStore()
+  const { currentPage } = usePageStore()
   const [isOpen, setIsOpen] = useState(false)
   const [generatedHTML, setGeneratedHTML] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isCopying, setCopying] = useState(false)
 
-  // 根据目标区域自动设置导出选项
-  const isMobileMode = targetArea === 'mobile'
+  // 根据设备类型自动设置导出选项
+  const isMobileMode = currentPage?.device_type === 'mobile'
   const [exportOptions, setExportOptions] = useState<HtmlExportOptions>({
     includeStyles: !isMobileMode, // 移动端模式下不包含样式
     minify: true, // デフォルトで圧縮を有効化
@@ -73,16 +73,16 @@ export function HtmlExportButton({
     }))
   }, [pageTitle])
 
-  // 监听目标区域变化，自动调整导出模式
+  // 监听设备类型变化，自动调整导出模式
   useEffect(() => {
-    const isMobile = targetArea === 'mobile'
+    const isMobile = currentPage?.device_type === 'mobile'
     setExportOptions(prev => ({
       ...prev,
       mobileMode: isMobile,
       includeStyles: !isMobile, // 移动端模式下禁用样式
       fullDocument: !isMobile // 移动端模式下禁用完整文档
     }))
-  }, [targetArea])
+  }, [currentPage?.device_type])
 
   // 生成HTML
   const handleGenerateHTML = async () => {

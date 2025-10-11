@@ -25,6 +25,7 @@ function ImageModuleProperties({
   onUpdate: (property: string, value: any) => void
 }) {
   const { tEditor } = useTranslation()
+  const { currentPage } = usePageStore()
   const [showImageSelector, setShowImageSelector] = useState(false)
 
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -248,14 +249,14 @@ function ImageModuleProperties({
           onUpdate('src', result.url)
           onUpdate('alt', module.alt || result.filename.replace(/\.[^/.]+$/, ''))
         }}
-        // 默认从 R-Cabinet 选择
+        pageId={currentPage?.id}  // 传递页面ID
       />
     </div>
   )
 }
 
 export function PropertyPanel() {
-  const { currentPage, selectedModuleId, updateModule, markUnsaved, targetArea } = usePageStore()
+  const { currentPage, selectedModuleId, updateModule, markUnsaved } = usePageStore()
   const { tEditor } = useTranslation()
   const [showMultiImageSelector, setShowMultiImageSelector] = useState(false)
 
@@ -764,7 +765,7 @@ export function PropertyPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {targetArea === 'mobile' ? (
+                    {currentPage?.device_type === 'mobile' ? (
                       // 移动端模式：根据乐天文档，table的left/right对齐会导致页面崩溃
                       <SelectItem value="center">{tEditor('居中')}</SelectItem>
                     ) : (
@@ -953,6 +954,7 @@ export function PropertyPanel() {
                   alt: (selectedModule as any).imageConfig?.alt || result.filename.replace(/\.[^/.]+$/, '')
                 })
               }}
+              pageId={currentPage?.id}
             />
           </div>
         )

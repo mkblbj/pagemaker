@@ -70,6 +70,36 @@ class RakutenFTPClient:
             f"SFTP客户端初始化完成 (模式: {self.test_mode}, 主机: {self.host}:{self.port})"
         )
 
+    @classmethod
+    def from_shop_config(cls, shop_config, **kwargs):
+        """
+        从店铺配置创建FTP客户端实例（工厂方法）
+
+        Args:
+            shop_config: ShopConfiguration 实例
+            **kwargs: 其他可选参数（port, timeout, test_mode等）
+
+        Returns:
+            RakutenFTPClient 实例
+
+        Example:
+            from configurations.models import ShopConfiguration
+            shop = ShopConfiguration.objects.get(id=shop_id)
+            ftp_client = RakutenFTPClient.from_shop_config(shop)
+            ftp_client.connect()
+            ftp_client.upload_file(...)
+        """
+        # 设置默认端口
+        port = kwargs.pop('port', shop_config.ftp_port or 21)
+        
+        return cls(
+            host=shop_config.ftp_host,
+            port=port,
+            username=shop_config.ftp_user,
+            password=shop_config.ftp_password,
+            **kwargs
+        )
+
     def _validate_config(self) -> None:
         """验证SFTP配置"""
         if self.test_mode == TEST_MODE["REAL"]:
