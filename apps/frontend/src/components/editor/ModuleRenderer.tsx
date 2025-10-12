@@ -200,10 +200,10 @@ export function ModuleRenderer({
               <div className={`flex justify-between items-center px-3 py-2 border-b bg-gray-50 ${
                 isSelected ? 'bg-blue-50' : ''
               }`}>
-                <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
-                  🎨 {tEditor('自定义HTML模块')} 
-                  {(module as any).originalType && ` (原${(module as any).originalType})`}
-                </span>
+              <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
+                🎨 {tEditor('自定义HTML模块')}
+                {(module as any).originalType && ` (${tEditor('原{type}', { type: (module as any).originalType })})`}
+              </span>
                 {/* 操作按钮 */}
                 <div className="flex items-center gap-1">
                   <Button
@@ -300,12 +300,12 @@ export function ModuleRenderer({
                   : 'bg-gray-50'
             }`}>
               <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
-                🎨 {tEditor('自定义HTML模块')} 
-                {(module as any).originalType && ` (原${(module as any).originalType})`}
+                🎨 {tEditor('自定义HTML模块')}
+                {(module as any).originalType && ` (${tEditor('原{type}', { type: (module as any).originalType })})`}
                 {isEditing ? (
-                  <span className="text-xs text-blue-600 font-semibold ml-2">✏️ 编辑模式</span>
+                  <span className="text-xs text-blue-600 font-semibold ml-2">✏️ {tEditor('编辑模式')}</span>
                 ) : (
-                  <span className="text-xs text-gray-400 ml-2">(双击进入编辑)</span>
+                  <span className="text-xs text-gray-400 ml-2">({tEditor('双击进入编辑')})</span>
                 )}
               </span>
               {/* 操作按钮 */}

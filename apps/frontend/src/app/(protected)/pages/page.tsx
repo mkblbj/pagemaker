@@ -13,11 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store, Copy } from 'lucide-react'
 import { pageService } from '@/services/pageService'
 import { shopService } from '@/services/shopService'
 import { PageTemplateListItem, ShopConfiguration } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
+import { toastManager, ToastContainer } from '@/components/ui/toast'
 
 export default function PagesPage() {
   const router = useRouter()
@@ -101,7 +102,7 @@ export default function PagesPage() {
         offset: (page - 1) * pageSize
       })
       setPages(result.pages)
-      setTotalCount(result.total || 0)
+      setTotalCount(result.pagination?.total || 0)
     } catch (error) {
       console.error('获取页面列表失败:', error)
       setError(error instanceof Error ? error.message : '获取页面列表失败')
@@ -160,6 +161,45 @@ export default function PagesPage() {
     window.open(`/preview/${pageId}`, '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
   }
 
+  // 处理复制页面
+  const handleCopyPage = async (page: PageTemplateListItem) => {
+    try {
+      // 获取完整的页面详情
+      const fullPage = await pageService.getPage(page.id)
+      
+      // 创建副本，名称添加 -copy 后缀
+      const copyName = `${fullPage.name}-copy`
+      const copyData = {
+        name: copyName,
+        content: fullPage.content,
+        device_type: page.device_type,
+        shop_id: selectedShopId
+      }
+      
+      await pageService.createPage(copyData)
+      
+      // 刷新页面列表
+      await fetchPages(selectedShopId, selectedDeviceType, currentPage, debouncedSearchTerm)
+      
+      // 显示成功提示
+      toastManager.show({
+        type: 'success',
+        title: tCommon('复制成功'),
+        description: tCommon('页面已成功复制为：{name}', { name: copyName }),
+        duration: 3000
+      })
+    } catch (error) {
+      console.error('复制页面失败:', error)
+      // 显示错误提示
+      toastManager.show({
+        type: 'error',
+        title: tError('复制失败'),
+        description: error instanceof Error ? error.message : tError('复制页面失败，请重试'),
+        duration: 5000
+      })
+    }
+  }
+
   // 处理删除页面
   const handleDeletePage = async (pageId: string) => {
     if (!confirm(tCommon('确定要删除这个页面吗？此操作不可撤销。'))) {
@@ -194,7 +234,9 @@ export default function PagesPage() {
   const selectedShop = shops.find(shop => shop.id === selectedShopId)
 
   return (
-    <div className="container mx-auto p-6">
+    <>
+      <ToastContainer />
+      <div className="container mx-auto p-6">
       {/* 页面头部 */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -364,13 +406,28 @@ export default function PagesPage() {
                           <Edit className="h-4 w-4 mr-1" />
                           {tCommon('编辑')}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handlePreviewPage(page.id)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handlePreviewPage(page.id)}
+                          title={tCommon('预览')}
+                        >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleCopyPage(page)}
+                          title={tCommon('复制')}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Copy className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeletePage(page.id)}
+                          title={tCommon('删除')}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -442,5 +499,6 @@ export default function PagesPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

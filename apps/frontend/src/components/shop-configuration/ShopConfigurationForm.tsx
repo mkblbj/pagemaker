@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { Eye, EyeOff, Save, X } from 'lucide-react'
 import type { ShopConfiguration, CreateShopConfigurationRequest, UpdateShopConfigurationRequest } from '@pagemaker/shared-types'
@@ -32,6 +33,8 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateShopConfigurationRequest>({
     defaultValues: initialData ? {
@@ -44,9 +47,12 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
       ftp_user: initialData.ftp_user,
       ftp_password: initialData.ftp_password,
     } : {
+      ftp_host: 'upload.rakuten.ne.jp',
       ftp_port: 21,
     },
   })
+
+  const ftpHost = watch('ftp_host')
 
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords(prev => ({
@@ -193,11 +199,25 @@ export function ShopConfigurationForm({ mode, initialData, onSubmit }: ShopConfi
               <Label htmlFor="ftp_host">
                 {tShopConfig('ftpHost')} <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="ftp_host"
-                {...register('ftp_host', { required: tShopConfig('ftpHostRequired') })}
-                placeholder={tShopConfig('ftpHostPlaceholder')}
-              />
+              <Select
+                value={ftpHost || 'upload.rakuten.ne.jp'}
+                onValueChange={(value) => setValue('ftp_host', value)}
+              >
+                <SelectTrigger id="ftp_host">
+                  <SelectValue placeholder={tShopConfig('ftpHostPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="upload.rakuten.ne.jp">upload.rakuten.ne.jp（乐天标准）</SelectItem>
+                  <SelectItem value="custom">自定义...</SelectItem>
+                </SelectContent>
+              </Select>
+              {ftpHost === 'custom' && (
+                <Input
+                  {...register('ftp_host', { required: tShopConfig('ftpHostRequired') })}
+                  placeholder="输入自定义FTP地址"
+                  className="mt-2"
+                />
+              )}
               {errors.ftp_host && (
                 <p className="text-sm text-destructive">{errors.ftp_host.message}</p>
               )}

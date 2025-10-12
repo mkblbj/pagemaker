@@ -325,7 +325,7 @@ export function Canvas() {
         type: PageModuleType.CUSTOM,
         customHTML: moduleCode.trim(),
         originalType: currentModuleForCode.type, // 保存原始类型用于参考
-        name: `自定义HTML模块 (原${currentModuleForCode.type})`
+        name: `${tEditor('自定义HTML模块')} (${tEditor('原{type}', { type: currentModuleForCode.type })})`
       }
       
       updateModule(currentModuleForCode.id, customModule)
