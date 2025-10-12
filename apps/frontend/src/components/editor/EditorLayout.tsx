@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { usePageStore } from '@/stores/usePageStore'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,8 @@ import {
   PanelRightOpen,
   RotateCcw,
   Clock,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react'
 import { ModuleList } from './ModuleList'
 import { Canvas } from './Canvas'
@@ -35,7 +37,8 @@ interface EditorLayoutProps {
 }
 
 export function EditorLayout({ pageId }: EditorLayoutProps) {
-  const { tEditor } = useTranslation()
+  const { tEditor, tCommon } = useTranslation()
+  const router = useRouter()
   const {
     isLeftPanelCollapsed,
     isRightPanelCollapsed,
@@ -324,6 +327,16 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
             {/* 第二行：操作按钮 */}
             <div className="h-14 px-4 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
+                {/* 返回按钮 */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/pages')}
+                  className="gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  {tCommon('back')}
+                </Button>
                 <Button
                   variant="default"
                   size="sm"
