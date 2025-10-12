@@ -53,6 +53,44 @@ class ShopConfigurationListCreateView(generics.ListCreateAPIView):
             {"success": True, "data": serializer.data, "count": queryset.count()}
         )
 
+    def perform_create(self, serializer):
+        """创建店铺配置并自动获取API有效期"""
+        # 保存店铺配置
+        instance = serializer.save()
+        
+        # 尝试自动获取API有效期
+        try:
+            client = RCabinetClient(
+                service_secret=instance.api_service_secret,
+                license_key=instance.api_license_key,
+            )
+            
+            result = client.get_license_expiry_date()
+            
+            if result.get("success") and result.get("data"):
+                expiry_date_str = result["data"].get("expiryDate")
+                
+                if expiry_date_str:
+                    # 解析日期字符串并保存到数据库
+                    if "T" in expiry_date_str:
+                        expiry_date = datetime.fromisoformat(
+                            expiry_date_str.replace("Z", "+00:00")
+                        )
+                    else:
+                        expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
+                    
+                    instance.api_license_expiry_date = expiry_date
+                    instance.save()
+                    
+                    logger.info(
+                        f"自动获取店铺 {instance.shop_name} 的API到期日期成功: {expiry_date}"
+                    )
+        except Exception as e:
+            # 如果自动获取失败，不影响店铺创建，只记录日志
+            logger.warning(
+                f"店铺 {instance.shop_name} 自动获取API到期日期失败: {str(e)}"
+            )
+
     def create(self, request, *args, **kwargs):
         """重写create方法以提供更好的响应格式"""
         serializer = self.get_serializer(data=request.data)
@@ -95,6 +133,54 @@ class ShopConfigurationDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response({"success": True, "data": serializer.data})
+
+    def perform_update(self, serializer):
+        """更新店铺配置并自动获取API有效期"""
+        # 检查API凭证是否有变化
+        instance = serializer.instance
+        old_service_secret = instance.api_service_secret
+        old_license_key = instance.api_license_key
+        
+        # 保存更新
+        instance = serializer.save()
+        
+        # 如果API凭证有变化，自动获取新的有效期
+        new_service_secret = instance.api_service_secret
+        new_license_key = instance.api_license_key
+        
+        if (old_service_secret != new_service_secret or 
+            old_license_key != new_license_key):
+            try:
+                client = RCabinetClient(
+                    service_secret=instance.api_service_secret,
+                    license_key=instance.api_license_key,
+                )
+                
+                result = client.get_license_expiry_date()
+                
+                if result.get("success") and result.get("data"):
+                    expiry_date_str = result["data"].get("expiryDate")
+                    
+                    if expiry_date_str:
+                        # 解析日期字符串并保存到数据库
+                        if "T" in expiry_date_str:
+                            expiry_date = datetime.fromisoformat(
+                                expiry_date_str.replace("Z", "+00:00")
+                            )
+                        else:
+                            expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
+                        
+                        instance.api_license_expiry_date = expiry_date
+                        instance.save()
+                        
+                        logger.info(
+                            f"自动更新店铺 {instance.shop_name} 的API到期日期成功: {expiry_date}"
+                        )
+            except Exception as e:
+                # 如果自动获取失败，不影响店铺更新，只记录日志
+                logger.warning(
+                    f"店铺 {instance.shop_name} 自动更新API到期日期失败: {str(e)}"
+                )
 
     def update(self, request, *args, **kwargs):
         """重写update方法以提供更好的响应格式"""

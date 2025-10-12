@@ -75,6 +75,19 @@ export const pageService = {
   },
 
   /**
+   * 更新页面名称
+   */
+  async updatePageName(id: string, name: string): Promise<PageTemplate> {
+    const response = await apiClient.patch<ApiResponse<PageTemplate>>(`/api/v1/pages/${id}/`, { name })
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || '更新页面名称失败')
+    }
+
+    return response.data.data
+  },
+
+  /**
    * 删除页面
    */
   async deletePage(id: string): Promise<void> {

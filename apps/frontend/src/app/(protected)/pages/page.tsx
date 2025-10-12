@@ -13,12 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store, Copy } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store, Copy, Check, X } from 'lucide-react'
 import { pageService } from '@/services/pageService'
 import { shopService } from '@/services/shopService'
 import { PageTemplateListItem, ShopConfiguration } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { toastManager, ToastContainer } from '@/components/ui/toast'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export default function PagesPage() {
   const router = useRouter()
@@ -36,6 +37,10 @@ export default function PagesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [error, setError] = useState<string | null>(null)
+  
+  // 页面名称编辑状态
+  const [editingPageId, setEditingPageId] = useState<string | null>(null)
+  const [editingPageName, setEditingPageName] = useState('')
   
   // 筛选状态
   const [selectedShopId, setSelectedShopId] = useState<string>(shopIdFromUrl || '')
@@ -161,14 +166,71 @@ export default function PagesPage() {
     window.open(`/preview/${pageId}`, '_blank', 'width=480,height=900,scrollbars=no,resizable=yes')
   }
 
+  // 开始编辑页面名称
+  const handleStartEditPageName = (page: PageTemplateListItem) => {
+    setEditingPageId(page.id)
+    setEditingPageName(page.name)
+  }
+
+  // 取消编辑页面名称
+  const handleCancelEditPageName = () => {
+    setEditingPageId(null)
+    setEditingPageName('')
+  }
+
+  // 保存页面名称
+  const handleSavePageName = async (pageId: string) => {
+    if (!editingPageName.trim()) {
+      toastManager.show({
+        type: 'error',
+        title: tError('修改失败'),
+        description: tCommon('页面名称不能为空'),
+        duration: 3000
+      })
+      return
+    }
+
+    try {
+      // 调用更新页面名称的 API
+      await pageService.updatePageName(pageId, editingPageName.trim())
+      
+      // 更新本地列表
+      setPages(prevPages =>
+        prevPages.map(p =>
+          p.id === pageId ? { ...p, name: editingPageName.trim() } : p
+        )
+      )
+      
+      // 清空编辑状态
+      setEditingPageId(null)
+      setEditingPageName('')
+      
+      // 显示成功提示
+      toastManager.show({
+        type: 'success',
+        title: tCommon('修改成功'),
+        description: tCommon('页面名称已更新'),
+        duration: 3000
+      })
+    } catch (error) {
+      console.error('修改页面名称失败:', error)
+      toastManager.show({
+        type: 'error',
+        title: tError('修改失败'),
+        description: error instanceof Error ? error.message : tError('修改页面名称失败，请重试'),
+        duration: 5000
+      })
+    }
+  }
+
   // 处理复制页面
   const handleCopyPage = async (page: PageTemplateListItem) => {
     try {
       // 获取完整的页面详情
       const fullPage = await pageService.getPage(page.id)
       
-      // 创建副本，名称添加 -copy 后缀
-      const copyName = `${fullPage.name}-copy`
+      // 创建副本，名称添加 copy- 前缀
+      const copyName = `copy-${fullPage.name}`
       const copyData = {
         name: copyName,
         content: fullPage.content,
@@ -359,82 +421,159 @@ export default function PagesPage() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             {pages.map(page => {
               const deviceDisplay = getDeviceTypeDisplay(page.device_type)
               return (
-                <Card key={page.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">{page.name}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
+                <Card key={page.id} className="hover:shadow-md transition-shadow group/card">
+                  <div className="flex items-center gap-4 p-4">
+                    {/* 左侧：页面名称和信息 */}
+                    <div className="flex-1 min-w-0">
+                      {/* 页面名称编辑 */}
+                      {editingPageId === page.id ? (
+                        <div className="flex items-center gap-2 mb-2">
+                          <Input
+                            value={editingPageName}
+                            onChange={e => setEditingPageName(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                handleSavePageName(page.id)
+                              } else if (e.key === 'Escape') {
+                                handleCancelEditPageName()
+                              }
+                            }}
+                            className="h-8 text-base"
+                            autoFocus
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSavePageName(page.id)}
+                            className="h-8 w-8 p-0 flex-shrink-0 text-green-600 hover:text-green-700"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleCancelEditPageName}
+                            className="h-8 w-8 p-0 flex-shrink-0 text-gray-600 hover:text-gray-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold truncate" title={page.name}>
+                            {page.name}
+                          </h3>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleStartEditPageName(page)}
+                                className="h-6 w-6 p-0 flex-shrink-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{tCommon('重命名')}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )}
+                      
+                      {/* 页面信息 */}
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                        <div className="flex items-center gap-1">
                           {deviceDisplay.icon}
                           <Badge variant="outline" className="text-xs">
                             {deviceDisplay.label}
                           </Badge>
-                          {page.shop_name && (
-                            <Badge variant="secondary" className="text-xs">
-                              {page.shop_name}
-                            </Badge>
-                          )}
                         </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {/* 页面信息 */}
-                      <div className="text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          <span>
+                        {page.shop_name && (
+                          <Badge variant="secondary" className="text-xs">
+                            {page.shop_name}
+                          </Badge>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
+                          <span className="text-xs">
                             {page.module_count || 0} {tCommon('个模块')}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span className="text-xs">
                             {tCommon('更新于')} {formatDate(page.updated_at)}
                           </span>
                         </div>
                       </div>
-
-                      {/* 操作按钮 */}
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEditPage(page.id)} className="flex-1">
-                          <Edit className="h-4 w-4 mr-1" />
-                          {tCommon('编辑')}
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handlePreviewPage(page.id)}
-                          title={tCommon('预览')}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleCopyPage(page)}
-                          title={tCommon('复制')}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeletePage(page.id)}
-                          title={tCommon('删除')}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
-                  </CardContent>
+
+                    {/* 右侧：操作按钮 */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditPage(page.id)}
+                        className="min-w-[80px]"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        {tCommon('编辑')}
+                      </Button>
+                      
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handlePreviewPage(page.id)}
+                            className="h-9 w-9 p-0"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{tCommon('预览')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleCopyPage(page)}
+                            className="h-9 w-9 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{tCommon('复制')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeletePage(page.id)}
+                            className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{tCommon('删除')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
                 </Card>
               )
             })}

@@ -81,10 +81,12 @@
     "选择一个店铺开始管理页面": "Select a shop to start managing pages",
     "复制成功": "Copy Successful",
     "页面已成功复制为：{name}": "Page successfully copied as: {name}",
-    "自定义HTML模块": "Custom HTML Module",
-    "原{type}": "Original {type}",
-    "双击进入编辑": "Double-click to edit",
-    "编辑模式": "Edit Mode"
+    "复制": "Copy",
+    "重命名": "Rename",
+    "修改成功": "Update Successful",
+    "页面名称已更新": "Page name updated",
+    "页面名称不能为空": "Page name cannot be empty",
+    "修改页面名称失败，请重试": "Failed to update page name. Please try again"
   },
   "errors": {
     "NETWORK_ERROR": "Network connection failed. Please check your network connection and try again",
@@ -106,6 +108,7 @@
     "EDITOR_MODULE_INVALID": "Module configuration is invalid. Please check the configuration and try again",
     "复制失败": "Copy Failed",
     "复制页面失败，请重试": "Failed to copy page. Please try again",
+    "修改失败": "Update Failed",
     "GENERIC_ERROR": "Operation failed. Please try again",
     "NOT_FOUND": "The requested resource does not exist",
     "出现了错误": "An error occurred",
