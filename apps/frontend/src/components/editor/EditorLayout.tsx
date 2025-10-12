@@ -259,37 +259,32 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
             {/* 第一行：页面信息和状态 */}
             <div className="h-12 px-4 flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 {/* 左侧面板切换 */}
                 {isLeftPanelCollapsed && (
-                  <Button variant="ghost" size="sm" onClick={toggleLeftPanel}>
+                  <Button variant="ghost" size="sm" onClick={toggleLeftPanel} className="flex-shrink-0">
                     <PanelLeftOpen className="h-4 w-4" />
                   </Button>
                 )}
 
-                {/* 页面标题（可编辑） */}
-                <div className="min-w-[220px]">
+                {/* 页面标题（可编辑） - 占用更多空间 */}
+                <div className="flex-1 min-w-0 max-w-3xl">
                   <Input
                     value={currentPage?.name || ''}
                     onChange={e => handleTitleChange(e.target.value)}
                     placeholder={tEditor('页面名称')}
-                    className="h-8 text-base"
+                    className="h-8 text-base w-full"
                   />
                 </div>
 
                 {/* 页面状态信息 */}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground flex-shrink-0">
+                  <div className="flex items-center gap-1 whitespace-nowrap">
                     <span>{tEditor('页面模块数量')}:</span>
                     <span className="font-medium text-foreground">{currentPage?.content?.length || 0}</span>
                   </div>
                   <div className="h-4 w-px bg-border" /> {/* 分隔线 */}
-                  <div className="flex items-center gap-1">
-                    <span>{tEditor('页面ID')}:</span>
-                    <span className="font-mono text-xs">{pageId}</span>
-                  </div>
-                  <div className="h-4 w-px bg-border" /> {/* 分隔线 */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 whitespace-nowrap">
                     <span>{tEditor('最后更新')}:</span>
                     <span className="text-xs">
                       {currentPage?.updated_at

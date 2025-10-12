@@ -747,8 +747,56 @@ ${isImageTop ? textRow : imageRow}
    * 生成自定义HTML模块
    */
   private static generateCustomHTML(module: PageModule): string {
-    // 直接返回用户自定义的HTML内容
-    return (module as any).customHTML || ''
+    // 获取用户自定义的HTML内容
+    const customHTML = (module as any).customHTML || ''
+    
+    // 清理编辑器添加的class和属性
+    return this.cleanEditorClasses(customHTML)
+  }
+
+  /**
+   * 清理编辑器添加的class和属性
+   * 使用正则表达式保持原始HTML结构不变
+   */
+  private static cleanEditorClasses(html: string): string {
+    if (!html) return ''
+    
+    let cleanedHTML = html
+    
+    // 移除 contenteditable 属性
+    cleanedHTML = cleanedHTML.replace(/\s+contenteditable="[^"]*"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+contenteditable='[^']*'/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+contenteditable=\w+/gi, '')
+    
+    // 处理 class 属性
+    // 1. 移除只包含编辑器class的class属性
+    cleanedHTML = cleanedHTML.replace(/\s+class="editable-text"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class="editable-image"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class="editing-text"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class='editable-text'/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class='editable-image'/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class='editing-text'/gi, '')
+    
+    // 2. 从包含多个class的属性中移除编辑器class
+    cleanedHTML = cleanedHTML.replace(/class="([^"]*)"/gi, (match, classes) => {
+      const classList = classes.split(/\s+/).filter((cls: string) => 
+        cls && !['editable-text', 'editable-image', 'editing-text'].includes(cls)
+      )
+      return classList.length > 0 ? `class="${classList.join(' ')}"` : ''
+    })
+    
+    cleanedHTML = cleanedHTML.replace(/class='([^']*)'/gi, (match, classes) => {
+      const classList = classes.split(/\s+/).filter((cls: string) => 
+        cls && !['editable-text', 'editable-image', 'editing-text'].includes(cls)
+      )
+      return classList.length > 0 ? `class='${classList.join(' ')}'` : ''
+    })
+    
+    // 清理可能产生的多余空格
+    cleanedHTML = cleanedHTML.replace(/\s+>/g, '>')
+    cleanedHTML = cleanedHTML.replace(/\s{2,}/g, ' ')
+    
+    return cleanedHTML
   }
 
   /**

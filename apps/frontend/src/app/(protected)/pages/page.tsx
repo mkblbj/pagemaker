@@ -158,7 +158,7 @@ export default function PagesPage() {
 
   // 处理编辑页面
   const handleEditPage = (pageId: string) => {
-    router.push(`/editor/${pageId}?from_shop=${selectedShopId}`)
+    window.open(`/editor/${pageId}?from_shop=${selectedShopId}`, '_blank')
   }
 
   // 处理预览页面
@@ -285,10 +285,14 @@ export default function PagesPage() {
 
   // 格式化日期
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
+    return new Date(dateString).toLocaleString('zh-CN', {
       year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
     })
   }
 
