@@ -19,6 +19,51 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
   const [showImageSelector, setShowImageSelector] = useState(false)
   const editingElementRef = useRef<HTMLElement | null>(null)
 
+  // 清理HTML - 移除编辑器添加的class和浏览器自动添加的标签
+  const cleanHTML = useCallback((html: string): string => {
+    if (!html) return ''
+    
+    let cleanedHTML = html
+    
+    // 移除编辑器相关的class
+    cleanedHTML = cleanedHTML.replace(/\s+class="editable-text"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class="editable-image"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class="editing-text"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class='editable-text'/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class='editable-image'/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+class='editing-text'/gi, '')
+    
+    // 从包含多个class的属性中移除编辑器class
+    cleanedHTML = cleanedHTML.replace(/class="([^"]*)"/gi, (match, classes) => {
+      const classList = classes.split(/\s+/).filter((cls: string) => 
+        cls && !['editable-text', 'editable-image', 'editing-text'].includes(cls)
+      )
+      return classList.length > 0 ? `class="${classList.join(' ')}"` : ''
+    })
+    
+    cleanedHTML = cleanedHTML.replace(/class='([^']*)'/gi, (match, classes) => {
+      const classList = classes.split(/\s+/).filter((cls: string) => 
+        cls && !['editable-text', 'editable-image', 'editing-text'].includes(cls)
+      )
+      return classList.length > 0 ? `class='${classList.join(' ')}'` : ''
+    })
+    
+    // 移除 contenteditable 属性
+    cleanedHTML = cleanedHTML.replace(/\s+contenteditable="[^"]*"/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+contenteditable='[^']*'/gi, '')
+    cleanedHTML = cleanedHTML.replace(/\s+contenteditable=\w+/gi, '')
+    
+    // 移除浏览器自动添加的 <tbody> 标签
+    cleanedHTML = cleanedHTML.replace(/<tbody>/gi, '')
+    cleanedHTML = cleanedHTML.replace(/<\/tbody>/gi, '')
+    
+    // 清理多余空格
+    cleanedHTML = cleanedHTML.replace(/\s+>/g, '>')
+    cleanedHTML = cleanedHTML.replace(/\s{2,}/g, ' ')
+    
+    return cleanedHTML
+  }, [])
+
   // 同步 HTML 修改回父组件
   const syncHTMLChanges = useCallback(() => {
     const iframe = iframeRef.current
@@ -28,8 +73,9 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     if (!iframeDoc) return
 
     const updatedHTML = iframeDoc.body.innerHTML
-    onUpdate(updatedHTML)
-  }, [onUpdate])
+    const cleanedHTML = cleanHTML(updatedHTML)
+    onUpdate(cleanedHTML)
+  }, [onUpdate, cleanHTML])
 
   // 处理图片选择
   const handleImageSelect = useCallback(
