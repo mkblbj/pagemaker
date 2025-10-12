@@ -30,7 +30,7 @@ function EditorPageContent() {
 
   // 启用自动保存
   useAutoSave({
-    interval: 30000, // 30秒自动保存
+    interval: 1800000, // 30分钟自动保存
     enabled: true,
     onSave: () => {
       console.log(tEditor('自动保存完成'))
