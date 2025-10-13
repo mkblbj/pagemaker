@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import { Download, Copy, Check, Code, Eye, Settings, AlertCircle, Info } from 'lucide-react'
 import { generateHTML, type HtmlExportOptions } from '@/services/htmlExportService'
 import { getClipboardCapabilities } from '@/lib/clipboardUtils'
+import { calculateRakutenCharCount } from '@/lib/charCountUtils'
 import type { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { usePageStore } from '@/stores/usePageStore'
@@ -332,6 +333,22 @@ export function HtmlExportButton({
     return `${charDisplay} / ${byteDisplay}`
   }
 
+  // 获取详细的字符统计信息
+  const getDetailedCharStats = () => {
+    if (!generatedHTML) {
+      return {
+        standardCount: 0,
+        rakutenCount: 0,
+        bytes: 0
+      }
+    }
+    return {
+      standardCount: generatedHTML.length,
+      rakutenCount: calculateRakutenCharCount(generatedHTML),
+      bytes: new Blob([generatedHTML]).size
+    }
+  }
+
   // 计算模块数量
   const getModuleCount = () => modules.length
 
@@ -359,32 +376,63 @@ export function HtmlExportButton({
         {/* 可滚动内容区域 */}
         <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
           {/* 页面信息 */}
-          <div className="flex items-center gap-4 py-2">
-            <Badge variant="outline" className="text-xs">
-              {getModuleCount()} {tEditor('个模块')}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {getHTMLStats()}
-            </Badge>
-            {exportOptions.fullDocument && (
-              <Badge variant="secondary" className="text-xs">
-                {tEditor('完整文档')}
+          <div className="space-y-2">
+            <div className="flex items-center gap-4 py-2 flex-wrap">
+              <Badge variant="outline" className="text-xs">
+                {getModuleCount()} {tEditor('个模块')}
               </Badge>
-            )}
-            {exportOptions.includeStyles && exportOptions.fullDocument && (
-              <Badge variant="secondary" className="text-xs">
-                {tEditor('包含样式')}
-              </Badge>
-            )}
-            {exportOptions.minify && (
-              <Badge variant="secondary" className="text-xs">
-                {tEditor('已压缩')}
-              </Badge>
-            )}
-            {isMobileMode && (
-              <Badge variant="secondary" className="text-xs">
-                {tEditor('乐天模式')}
-              </Badge>
+              {exportOptions.fullDocument && (
+                <Badge variant="secondary" className="text-xs">
+                  {tEditor('完整文档')}
+                </Badge>
+              )}
+              {exportOptions.includeStyles && exportOptions.fullDocument && (
+                <Badge variant="secondary" className="text-xs">
+                  {tEditor('包含样式')}
+                </Badge>
+              )}
+              {exportOptions.minify && (
+                <Badge variant="secondary" className="text-xs">
+                  {tEditor('已压缩')}
+                </Badge>
+              )}
+              {isMobileMode && (
+                <Badge variant="secondary" className="text-xs">
+                  {tEditor('乐天模式')}
+                </Badge>
+              )}
+            </div>
+            
+            {/* 详细字符统计 */}
+            {generatedHTML && (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground text-xs mb-1">{tEditor('标准字符数')}</div>
+                    <div className="font-mono font-semibold text-lg">
+                      {getDetailedCharStats().standardCount.toLocaleString()}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs mb-1">{tEditor('乐天规定字符数')}</div>
+                    <div className="font-mono font-semibold text-lg text-primary">
+                      {getDetailedCharStats().rakutenCount.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {tEditor('半角0.5 / 全角1')}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs mb-1">{tEditor('文件大小')}</div>
+                    <div className="font-mono font-semibold text-lg">
+                      {getDetailedCharStats().bytes < 1024 
+                        ? `${getDetailedCharStats().bytes} B`
+                        : `${(getDetailedCharStats().bytes / 1024).toFixed(2)} KB`
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 

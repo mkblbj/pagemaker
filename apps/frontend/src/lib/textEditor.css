@@ -1,0 +1,145 @@
+/**
+ * 文本编辑器样式（P3）
+ */
+
+/* 编辑状态 */
+.pm-editing {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  background: #eff6ff;
+  min-height: 20px;
+  padding: 4px;
+}
+
+.pm-editing:focus {
+  outline-color: #2563eb;
+}
+
+/* 浮动工具条 */
+.pm-text-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 1000;
+}
+
+/* 工具条按钮 */
+.pm-toolbar-btn {
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pm-toolbar-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pm-toolbar-btn:active {
+  background: #e5e7eb;
+}
+
+/* 保存按钮 */
+.pm-toolbar-save {
+  background: #10b981;
+  color: white;
+  border-color: #059669;
+}
+
+.pm-toolbar-save:hover {
+  background: #059669;
+}
+
+/* 取消按钮 */
+.pm-toolbar-cancel {
+  background: #ef4444;
+  color: white;
+  border-color: #dc2626;
+}
+
+.pm-toolbar-cancel:hover {
+  background: #dc2626;
+}
+
+/* 颜色选择器 */
+.pm-toolbar-color {
+  width: 32px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.pm-toolbar-color:hover {
+  border-color: #9ca3af;
+}
+
+/* 字号选择 */
+.pm-toolbar-size {
+  height: 28px;
+  padding: 2px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  background: white;
+}
+
+.pm-toolbar-size:hover {
+  border-color: #9ca3af;
+}
+
+.pm-toolbar-size:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 0;
+  border-color: #3b82f6;
+}
+
+/* 分隔符 */
+.pm-toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: #d1d5db;
+  margin: 0 4px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .pm-text-toolbar {
+    flex-wrap: wrap;
+    max-width: 90vw;
+  }
+
+  .pm-toolbar-btn {
+    min-width: 24px;
+    height: 24px;
+    font-size: 12px;
+    padding: 2px 6px;
+  }
+
+  .pm-toolbar-color {
+    width: 28px;
+    height: 24px;
+  }
+
+  .pm-toolbar-size {
+    height: 24px;
+    font-size: 12px;
+  }
+}
+

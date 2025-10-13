@@ -18,8 +18,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportService } from '@/services/htmlExportService'
 import { PageModuleType } from '@pagemaker/shared-types'
+import { HtmlModule } from '@/lib/htmlSplitter'
+import { SplitPreviewDialog } from './SplitPreviewDialog'
 
-import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical, Code } from 'lucide-react'
+import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical, Code, Split } from 'lucide-react'
 import { DroppableCanvas } from './dnd/DroppableCanvas'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -193,6 +195,7 @@ export function Canvas() {
   const [originalModuleCode, setOriginalModuleCode] = useState('')
   const [currentModuleForCode, setCurrentModuleForCode] = useState<any>(null)
   const [hasCodeChanges, setHasCodeChanges] = useState(false)
+  const [splitPreviewOpen, setSplitPreviewOpen] = useState(false)
 
   const modules = currentPage?.content || []
 
@@ -337,6 +340,73 @@ export function Canvas() {
     }
   }
 
+  // 处理拆分确认
+  const handleSplitConfirm = (htmlModules: HtmlModule[]) => {
+    if (!currentModuleForCode || htmlModules.length === 0) return
+
+    try {
+      // 1. 获取当前模块的索引
+      const currentIndex = modules.findIndex(m => m.id === currentModuleForCode.id)
+      if (currentIndex === -1) return
+
+      // 2. 创建新模块列表
+      const newModules = htmlModules.map((htmlModule) => ({
+        id: `module-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: PageModuleType.CUSTOM,
+        customHTML: htmlModule.html,
+        metadata: {
+          isSplitModule: true,
+          splitModuleKind: htmlModule.kind,
+          splitModuleId: htmlModule.id
+        },
+        name: `${htmlModule.kind} 模块`
+      }))
+
+      // 3. 删除当前模块
+      deleteModule(currentModuleForCode.id)
+
+      // 4. 在相同位置插入拆分后的模块
+      // 使用 setTimeout 确保状态更新完成后再进行移动操作
+      setTimeout(() => {
+        // 先添加所有模块到末尾
+        newModules.forEach((newModule) => {
+          addModule(newModule)
+        })
+
+        // 再使用 setTimeout 确保添加完成后再移动
+        setTimeout(() => {
+          // 获取当前模块总数
+          const currentModules = currentPage?.content || []
+          const totalCount = currentModules.length
+          
+          // 计算新添加模块的起始位置（从末尾往前数）
+          const startPos = totalCount - newModules.length
+          
+          // 将新添加的模块移动到正确位置
+          // 从后往前移动，保持顺序
+          for (let i = newModules.length - 1; i >= 0; i--) {
+            const fromIndex = startPos + i
+            const toIndex = currentIndex + i
+            
+            // 将模块从 fromIndex 移动到 toIndex
+            if (fromIndex > toIndex) {
+              for (let j = fromIndex; j > toIndex; j--) {
+                reorderModules(j, j - 1)
+              }
+            }
+          }
+          
+          markUnsaved()
+        }, 50)
+      }, 50)
+
+      setSplitPreviewOpen(false)
+      setCodeDialogOpen(false)
+    } catch (error) {
+      console.error('拆分模块失败:', error)
+    }
+  }
+
 
   return (
     <DroppableCanvas className="h-full overflow-y-auto p-4 relative">
@@ -459,6 +529,19 @@ export function Canvas() {
                     </Button>
                   </>
                 )}
+                {/* 拆分为模块按钮 */}
+                {(currentModuleForCode?.type === PageModuleType.CUSTOM || hasCodeChanges) && moduleCode.trim() && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setSplitPreviewOpen(true)
+                    }}
+                    className="gap-2"
+                  >
+                    <Split className="h-4 w-4" />
+                    拆分为模块
+                  </Button>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -476,6 +559,14 @@ export function Canvas() {
             </div>
           </DialogContent>
         </Dialog>
+
+      {/* 拆分预览对话框 */}
+      <SplitPreviewDialog
+        open={splitPreviewOpen}
+        html={moduleCode}
+        onConfirm={handleSplitConfirm}
+        onCancel={() => setSplitPreviewOpen(false)}
+      />
     </DroppableCanvas>
   )
 }

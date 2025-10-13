@@ -1,0 +1,198 @@
+/**
+ * 模块渲染器样式（P2）
+ */
+
+/* 编辑器根容器 */
+.pm-editor-root {
+  position: relative;
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 400px;
+}
+
+/* 模块宿主容器 */
+.pm-module-host {
+  position: relative;
+  margin-bottom: 10px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+/* 间隔模块特殊样式 */
+.pm-module-host[data-module-kind="gap"] {
+  min-height: 20px;
+  background: transparent;
+}
+
+/* 图片模块 */
+.pm-module-host[data-module-kind="image"] {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.pm-module-host[data-module-kind="image"] img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* 表格模块 */
+.pm-module-host[data-module-kind="table"] table {
+  border-collapse: collapse;
+}
+
+/* 文本模块 */
+.pm-module-host[data-module-kind="text"] {
+  padding: 10px;
+}
+
+/* Overlay 层（编辑辅助，不参与导出） */
+.pm-module-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+/* 悬停状态 */
+.pm-module-overlay.pm-hovered {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* 选中状态 */
+.pm-module-overlay.pm-selected {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* 同时悬停和选中 */
+.pm-module-overlay.pm-hovered.pm-selected {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+/* 模块类型标签 */
+.pm-module-type-label {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  padding: 2px 8px;
+  background: #3b82f6;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 0 0 4px 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.pm-module-overlay.pm-hovered .pm-module-type-label,
+.pm-module-overlay.pm-selected .pm-module-type-label {
+  opacity: 1;
+}
+
+.pm-module-overlay.pm-selected .pm-module-type-label {
+  background: #10b981;
+}
+
+/* 操作按钮容器 */
+.pm-module-actions {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: auto;
+}
+
+.pm-module-overlay.pm-hovered .pm-module-actions,
+.pm-module-overlay.pm-selected .pm-module-actions {
+  opacity: 1;
+}
+
+/* 操作按钮 */
+.pm-action-btn {
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.pm-action-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pm-source-btn {
+  color: #3b82f6;
+}
+
+.pm-source-btn:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.pm-delete-btn {
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 2px 8px;
+}
+
+.pm-delete-btn:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+/* 间隔模块的特殊 Overlay 样式 */
+.pm-module-host[data-module-kind="gap"] .pm-module-overlay {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(59, 130, 246, 0.05) 10px,
+    rgba(59, 130, 246, 0.05) 20px
+  );
+  border-style: dashed;
+}
+
+.pm-module-host[data-module-kind="gap"] .pm-module-overlay.pm-selected {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(16, 185, 129, 0.1) 10px,
+    rgba(16, 185, 129, 0.1) 20px
+  );
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .pm-editor-root {
+    padding: 10px;
+  }
+
+  .pm-module-type-label {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+
+  .pm-action-btn {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+}
+

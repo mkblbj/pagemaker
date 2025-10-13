@@ -13,13 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store, Copy, Check, X } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store, Copy, Check, X, Hash } from 'lucide-react'
 import { pageService } from '@/services/pageService'
 import { shopService } from '@/services/shopService'
 import { PageTemplateListItem, ShopConfiguration } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { toastManager, ToastContainer } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { generateHTML } from '@/services/htmlExportService'
+import { calculateRakutenCharCount } from '@/lib/charCountUtils'
 
 export default function PagesPage() {
   const router = useRouter()
@@ -41,6 +43,10 @@ export default function PagesPage() {
   // 页面名称编辑状态
   const [editingPageId, setEditingPageId] = useState<string | null>(null)
   const [editingPageName, setEditingPageName] = useState('')
+  
+  // 字符数统计缓存
+  const [charStatsCache, setCharStatsCache] = useState<Record<string, { standard: number; rakuten: number }>>({})
+  const [loadingCharStats, setLoadingCharStats] = useState<Record<string, boolean>>({})
   
   // 筛选状态
   const [selectedShopId, setSelectedShopId] = useState<string>(shopIdFromUrl || '')
@@ -296,6 +302,42 @@ export default function PagesPage() {
     })
   }
 
+  // 加载页面字符数统计
+  const loadCharStats = async (pageId: string) => {
+    // 如果已经在加载或已经有缓存，则跳过
+    if (loadingCharStats[pageId] || charStatsCache[pageId]) {
+      return
+    }
+
+    try {
+      setLoadingCharStats(prev => ({ ...prev, [pageId]: true }))
+      
+      // 获取完整页面内容
+      const fullPage = await pageService.getPage(pageId)
+      
+      // 生成HTML
+      const html = generateHTML(fullPage.content, {
+        includeStyles: fullPage.device_type === 'pc',
+        minify: true,
+        fullDocument: false,
+        mobileMode: fullPage.device_type === 'mobile'
+      })
+      
+      // 计算字符数
+      const standardCount = html.length
+      const rakutenCount = calculateRakutenCharCount(html)
+      
+      setCharStatsCache(prev => ({
+        ...prev,
+        [pageId]: { standard: standardCount, rakuten: rakutenCount }
+      }))
+    } catch (error) {
+      console.error('加载字符统计失败:', error)
+    } finally {
+      setLoadingCharStats(prev => ({ ...prev, [pageId]: false }))
+    }
+  }
+
   // 获取当前选中的店铺
   const selectedShop = shops.find(shop => shop.id === selectedShopId)
 
@@ -508,6 +550,52 @@ export default function PagesPage() {
                             {page.module_count || 0} {tCommon('个模块')}
                           </span>
                         </div>
+                        
+                        {/* 字符数统计 - 悬停时加载 */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div 
+                              className="flex items-center gap-1 cursor-help"
+                              onMouseEnter={() => loadCharStats(page.id)}
+                            >
+                              <Hash className="h-3 w-3" />
+                              {loadingCharStats[page.id] ? (
+                                <span className="text-xs">
+                                  {tCommon('计算中...')}
+                                </span>
+                              ) : charStatsCache[page.id] ? (
+                                <span className="text-xs font-medium">
+                                  {charStatsCache[page.id].rakuten.toLocaleString()}
+                                </span>
+                              ) : (
+                                <span className="text-xs">
+                                  {tCommon('字符数')}
+                                </span>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {loadingCharStats[page.id] ? (
+                              <p>{tCommon('正在计算字符数...')}</p>
+                            ) : charStatsCache[page.id] ? (
+                              <div className="space-y-1">
+                                <p className="font-medium">{tCommon('字符数统计')}</p>
+                                <p className="text-xs">
+                                  {tCommon('标准字符数')}: {charStatsCache[page.id].standard.toLocaleString()}
+                                </p>
+                                <p className="text-xs font-semibold">
+                                  {tCommon('乐天规定字符数')}: {charStatsCache[page.id].rakuten.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {tCommon('半角0.5 / 全角1')}
+                                </p>
+                              </div>
+                            ) : (
+                              <p>{tCommon('悬停查看字符数统计')}</p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                        
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           <span className="text-xs">

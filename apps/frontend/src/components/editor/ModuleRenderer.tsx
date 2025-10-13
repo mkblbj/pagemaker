@@ -10,6 +10,7 @@ import { SeparatorModule } from '@/components/modules/SeparatorModule'
 import { KeyValueModule } from '@/components/modules/KeyValueModule'
 import { MultiColumnModule } from '@/components/modules/MultiColumnModule'
 import { EditableCustomHTMLRenderer } from './EditableCustomHTMLRenderer'
+import { HtmlSplitEditor } from './HtmlSplitEditor'
 import { useTranslation } from '@/contexts/I18nContext'
 import { Button } from '@/components/ui/button'
 import { MoveUp, MoveDown, Copy, Trash2, Code } from 'lucide-react'
@@ -191,6 +192,7 @@ export function ModuleRenderer({
 
       case 'custom':
         const customHTML = (module as any).customHTML || ''
+        const isSplitModule = (module as any).metadata?.isSplitModule === true
         
         // 如果没有内容，显示占位符 - 同样包含按钮栏
         if (!customHTML.trim()) {
@@ -300,8 +302,24 @@ export function ModuleRenderer({
                   : 'bg-gray-50'
             }`}>
               <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
-                🎨 {tEditor('自定义HTML模块')}
-                {(module as any).originalType && ` (${tEditor('原{type}', { type: (module as any).originalType })})`}
+                {isSplitModule ? (
+                  <>
+                    {(module as any).metadata?.splitModuleKind === 'gap' && '📏'}
+                    {(module as any).metadata?.splitModuleKind === 'image' && '🖼️'}
+                    {(module as any).metadata?.splitModuleKind === 'table' && '📊'}
+                    {(module as any).metadata?.splitModuleKind === 'text' && '📝'}
+                    {' '}
+                    {(module as any).metadata?.splitModuleKind === 'gap' && tEditor('间隔模块')}
+                    {(module as any).metadata?.splitModuleKind === 'image' && tEditor('图片模块')}
+                    {(module as any).metadata?.splitModuleKind === 'table' && tEditor('表格模块')}
+                    {(module as any).metadata?.splitModuleKind === 'text' && tEditor('文本模块')}
+                  </>
+                ) : (
+                  <>
+                    🎨 {tEditor('自定义HTML模块')}
+                    {(module as any).originalType && ` (${tEditor('原{type}', { type: (module as any).originalType })})`}
+                  </>
+                )}
                 {isEditing ? (
                   <span className="text-xs text-blue-600 font-semibold ml-2">✏️ {tEditor('编辑模式')}</span>
                 ) : (

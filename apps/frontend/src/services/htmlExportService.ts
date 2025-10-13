@@ -751,6 +751,8 @@ ${isImageTop ? textRow : imageRow}
     const customHTML = (module as any).customHTML || ''
     
     // 清理编辑器添加的class和属性
+    // 注意：customHTML 已经在拆分时经过 sanitizeHtml 处理，全角空格已被保护
+    // 这里只需要清理编辑器类名，不需要再次净化
     return this.cleanEditorClasses(customHTML)
   }
 
