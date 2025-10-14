@@ -13,7 +13,7 @@ import { EditableCustomHTMLRenderer } from './EditableCustomHTMLRenderer'
 import { HtmlSplitEditor } from './HtmlSplitEditor'
 import { useTranslation } from '@/contexts/I18nContext'
 import { Button } from '@/components/ui/button'
-import { MoveUp, MoveDown, Copy, Trash2, Code } from 'lucide-react'
+import { MoveUp, MoveDown, Copy, Trash2, Code, Split } from 'lucide-react'
 
 // 自定义HTML渲染器组件
 function CustomHTMLRenderer({ html }: { html: string }) {
@@ -30,22 +30,10 @@ function CustomHTMLRenderer({ html }: { html: string }) {
     // 保护全角空格 - 使用 HTML 实体 &#12288;
     const protectedHtml = html.replace(/\u3000/g, '&#12288;')
 
-    // 写入HTML内容
+    // 写入HTML内容（紧凑格式，避免额外空白）
     iframeDoc.open()
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          body { margin: 0; padding: 0; font-family: inherit; }
-        </style>
-      </head>
-      <body>
-        ${protectedHtml}
-      </body>
-      </html>
-    `)
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;font-family:inherit;}</style></head><body>${protectedHtml}</body></html>`
+    iframeDoc.write(htmlContent)
     iframeDoc.close()
 
     // 自动调整iframe高度
@@ -97,6 +85,7 @@ interface ModuleRendererProps {
   onCopy?: () => void
   onViewCode?: () => void
   onDelete?: () => void
+  onSplit?: () => void
   isFirst?: boolean
   isLast?: boolean
 }
@@ -113,6 +102,7 @@ export function ModuleRenderer({
   onCopy,
   onViewCode,
   onDelete,
+  onSplit,
   isFirst,
   isLast
 }: ModuleRendererProps) {
@@ -261,6 +251,20 @@ export function ModuleRenderer({
                   >
                     <Code className="h-3 w-3" />
                   </Button>
+                  {!isSplitModule && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={e => {
+                        e.stopPropagation()
+                        onSplit?.()
+                      }}
+                      className="h-6 w-6 p-0"
+                      title={tEditor('拆分模块')}
+                    >
+                      <Split className="h-3 w-3" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -394,6 +398,20 @@ export function ModuleRenderer({
                 >
                   <Code className="h-3 w-3" />
                 </Button>
+                {!isSplitModule && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      onSplit?.()
+                    }}
+                    className="h-6 w-6 p-0"
+                    title={tEditor('拆分模块')}
+                  >
+                    <Split className="h-3 w-3" />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"

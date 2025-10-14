@@ -17,7 +17,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportService } from '@/services/htmlExportService'
-import { PageModuleType } from '@pagemaker/shared-types'
+import { PageModuleType, PageModule } from '@pagemaker/shared-types'
 import { HtmlModule } from '@/lib/htmlSplitter'
 import { SplitPreviewDialog } from './SplitPreviewDialog'
 
@@ -41,6 +41,7 @@ function SortableModuleContainer({
   onStartEdit,
   onEndEdit,
   onViewCode,
+  onSplit,
   isFirst,
   isLast,
   isDeleting = false,
@@ -95,6 +96,7 @@ function SortableModuleContainer({
           onMoveDown={onMoveDown}
           onCopy={onCopy}
           onViewCode={onViewCode}
+          onSplit={onSplit}
           onDelete={onDelete}
           isFirst={isFirst}
           isLast={isLast}
@@ -340,6 +342,14 @@ export function Canvas() {
     }
   }
 
+  // 处理拆分模块（从模块标题栏触发）
+  const handleSplitModule = (module: PageModule) => {
+    setCurrentModuleForCode(module)
+    const html = (module as any).customHTML || ''
+    setModuleCode(html)
+    setSplitPreviewOpen(true)
+  }
+
   // 处理拆分确认
   const handleSplitConfirm = (htmlModules: HtmlModule[]) => {
     if (!currentModuleForCode || htmlModules.length === 0) return
@@ -401,7 +411,8 @@ export function Canvas() {
       }, 50)
 
       setSplitPreviewOpen(false)
-      setCodeDialogOpen(false)
+      setCurrentModuleForCode(null)
+      setModuleCode('')
     } catch (error) {
       console.error('拆分模块失败:', error)
     }
@@ -444,6 +455,7 @@ export function Canvas() {
               onStartEdit={() => handleStartEdit(module.id)}
               onEndEdit={handleEndEdit}
               onViewCode={() => handleViewModuleCode(module)}
+              onSplit={() => handleSplitModule(module)}
               isFirst={index === 0}
               isLast={index === modules.length - 1}
               isDeleting={deletingModuleId === module.id}
@@ -528,19 +540,6 @@ export function Canvas() {
                       {tEditor('应用修改')}
                     </Button>
                   </>
-                )}
-                {/* 拆分为模块按钮 */}
-                {(currentModuleForCode?.type === PageModuleType.CUSTOM || hasCodeChanges) && moduleCode.trim() && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSplitPreviewOpen(true)
-                    }}
-                    className="gap-2"
-                  >
-                    <Split className="h-4 w-4" />
-                    拆分为模块
-                  </Button>
                 )}
               </div>
               <div className="flex gap-2">

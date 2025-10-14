@@ -17,7 +17,8 @@ import {
   RotateCcw,
   Clock,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  FileCode
 } from 'lucide-react'
 import { ModuleList } from './ModuleList'
 import { Canvas } from './Canvas'
@@ -31,6 +32,15 @@ import { ResetConfirmDialog } from './ResetConfirmDialog'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportButton } from '@/components/feature/HtmlExportButton'
 import { ToastContainer } from '@/components/ui/toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { PageModuleType } from '@pagemaker/shared-types'
 
 interface EditorLayoutProps {
   pageId: string
@@ -50,13 +60,17 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     setRightPanelWidth
   } = useEditorStore()
 
-  const { currentPage, hasUnsavedChanges, clearAllModules, markUnsaved, updatePage } = usePageStore()
+  const { currentPage, hasUnsavedChanges, clearAllModules, markUnsaved, updatePage, addModule } = usePageStore()
   const { savePage, isSaving, previewPage } = usePageEditor()
 
   const helpDialogRef = useRef<KeyboardShortcutsHelpRef>(null)
 
   // 重置确认对话框状态
   const [resetDialogOpen, setResetDialogOpen] = useState(false)
+  
+  // 导入 HTML 对话框状态
+  const [importHtmlDialogOpen, setImportHtmlDialogOpen] = useState(false)
+  const [importHtmlCode, setImportHtmlCode] = useState('')
 
   // 面板调整相关状态
   const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null)
@@ -78,6 +92,28 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
     clearAllModules()
     markUnsaved()
   }, [clearAllModules, markUnsaved])
+
+  // 处理导入 HTML
+  const handleImportHtml = useCallback(() => {
+    if (!importHtmlCode.trim()) return
+
+    try {
+      // 创建自定义 HTML 模块
+      const newModule = {
+        id: `module-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: PageModuleType.CUSTOM,
+        customHTML: importHtmlCode.trim(),
+        name: `${tEditor('自定义HTML模块')}`
+      }
+      
+      addModule(newModule)
+      markUnsaved()
+      setImportHtmlDialogOpen(false)
+      setImportHtmlCode('')
+    } catch (error) {
+      console.error('导入HTML失败:', error)
+    }
+  }, [importHtmlCode, addModule, markUnsaved, tEditor])
 
   // 面板调整处理函数
   const handleMouseDown = useCallback(
@@ -371,6 +407,17 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
                   <RotateCcw className="h-4 w-4 mr-2" />
                   {tEditor('重置')}
                 </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setImportHtmlDialogOpen(true)}
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                >
+                  <FileCode className="h-4 w-4 mr-2" />
+                  {tEditor('导入HTML')}
+                </Button>
+
               </div>
 
               <div className="flex items-center gap-2">
@@ -442,6 +489,47 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
 
       {/* 重置确认对话框 */}
       <ResetConfirmDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} onConfirm={handleConfirmReset} />
+
+      {/* 导入 HTML 对话框 */}
+      <Dialog open={importHtmlDialogOpen} onOpenChange={setImportHtmlDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="flex items-center gap-2">
+              <FileCode className="h-5 w-5" />
+              {tEditor('导入HTML')}
+            </DialogTitle>
+            <DialogDescription>
+              {tEditor('请粘贴您的HTML代码，导入后将创建一个自定义HTML模块')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 flex flex-col">
+            <Textarea
+              value={importHtmlCode}
+              onChange={(e) => setImportHtmlCode(e.target.value)}
+              className="flex-1 min-h-[400px] w-full font-mono text-xs resize-none border rounded-lg p-3 focus-visible:ring-2"
+              placeholder={tEditor('请粘贴HTML代码...')}
+              style={{ minHeight: '400px' }}
+            />
+          </div>
+          <div className="flex justify-end items-center gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setImportHtmlDialogOpen(false)
+                setImportHtmlCode('')
+              }}
+            >
+              {tEditor('取消')}
+            </Button>
+            <Button
+              onClick={handleImportHtml}
+              disabled={!importHtmlCode.trim()}
+            >
+              {tEditor('确认导入')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DragProvider>
   )
 }

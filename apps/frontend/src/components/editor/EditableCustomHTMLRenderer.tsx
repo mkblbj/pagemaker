@@ -18,6 +18,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [showImageSelector, setShowImageSelector] = useState(false)
   const editingElementRef = useRef<HTMLElement | null>(null)
+  const originalHtmlRef = useRef<string>(html)
 
   // 清理HTML - 移除编辑器添加的class和浏览器自动添加的标签
   const cleanHTML = useCallback((html: string): string => {
@@ -57,9 +58,8 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     cleanedHTML = cleanedHTML.replace(/<tbody>/gi, '')
     cleanedHTML = cleanedHTML.replace(/<\/tbody>/gi, '')
     
-    // 清理多余空格
-    cleanedHTML = cleanedHTML.replace(/\s+>/g, '>')
-    cleanedHTML = cleanedHTML.replace(/\s{2,}/g, ' ')
+    // 注意：不再进行空格规范化，以避免改变原始 HTML 结构
+    // 之前的 /\s+>/g 和 /\s{2,}/g 替换会导致即使没有编辑也会触发变化
     
     return cleanedHTML
   }, [])
@@ -74,7 +74,16 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
 
     const updatedHTML = iframeDoc.body.innerHTML
     const cleanedHTML = cleanHTML(updatedHTML)
-    onUpdate(cleanedHTML)
+    
+    // 比较清理后的 HTML 和原始 HTML，只有真正发生变化时才调用 onUpdate
+    // 同时也清理原始 HTML 以确保公平比较
+    const cleanedOriginalHTML = cleanHTML(originalHtmlRef.current)
+    
+    if (cleanedHTML !== cleanedOriginalHTML) {
+      onUpdate(cleanedHTML)
+      // 更新原始 HTML 引用
+      originalHtmlRef.current = cleanedHTML
+    }
   }, [onUpdate, cleanHTML])
 
   // 处理图片选择
@@ -130,6 +139,9 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
 
   // 初始化 iframe 并注入编辑脚本
   useEffect(() => {
+    // 当 html prop 变化时，更新原始 HTML 引用
+    originalHtmlRef.current = html
+    
     const iframe = iframeRef.current
     if (!iframe) return
 
@@ -142,67 +154,10 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const FULLWIDTH_SPACE_ENTITY = '&#12288;'
     const protectedHtml = html.replace(/\u3000/g, FULLWIDTH_SPACE_ENTITY)
 
-    // 写入HTML内容
+    // 写入HTML内容（紧凑格式，避免额外空白）
     iframeDoc.open()
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: inherit; 
-          }
-          
-          /* 编辑模式样式 */
-          ${isEditing ? `
-          .editable-text:hover {
-            outline: 1px dashed #3b82f6;
-            outline-offset: 2px;
-            cursor: text;
-            position: relative;
-          }
-          
-          .editable-text:hover::after {
-            content: '双击编辑';
-            position: absolute;
-            top: -24px;
-            left: 0;
-            background: #3b82f6;
-            color: white;
-            padding: 2px 6px;
-            font-size: 11px;
-            border-radius: 3px;
-            white-space: nowrap;
-            z-index: 1000;
-          }
-          
-          .editing-text {
-            outline: 2px solid #3b82f6 !important;
-            outline-offset: 2px;
-            background: #eff6ff !important;
-          }
-          
-          .editable-image {
-            cursor: pointer !important;
-            transition: opacity 0.2s, outline 0.2s;
-          }
-          
-          .editable-image:hover {
-            opacity: 0.85;
-            outline: 2px solid #3b82f6;
-            outline-offset: 2px;
-          }
-          ` : ''}
-        </style>
-      </head>
-      <body>
-        ${protectedHtml}
-      </body>
-      </html>
-    `)
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;font-family:inherit;}${isEditing ? `.editable-text:hover{outline:1px dashed #3b82f6;outline-offset:2px;cursor:text;position:relative;}.editable-text:hover::after{content:'双击编辑';position:absolute;top:-24px;left:0;background:#3b82f6;color:white;padding:2px 6px;font-size:11px;border-radius:3px;white-space:nowrap;z-index:1000;}.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}` : ''}</style></head><body>${protectedHtml}</body></html>`
+    iframeDoc.write(htmlContent)
     iframeDoc.close()
 
     // 自动调整iframe高度
