@@ -1096,13 +1096,24 @@ ${validParts.join('\n')}
   }
 
   /**
-   * 简单的HTML压缩
+   * 简单的HTML压缩（保留全角空格 U+3000）
    */
   private static minifyHTML(html: string): string {
-    return html
-      .replace(/\s+/g, ' ')
-      .replace(/>\s+</g, '><')
-      .replace(/^\s+|\s+$/g, '')
+    // 保护全角空格，避免在压缩过程中被替换为半角空格
+    const FULLWIDTH_SPACE = '\u3000'
+    const FULLWIDTH_SPACE_PLACEHOLDER = '___FULLWIDTH_SPACE___'
+
+    let working = html.replace(/\u3000/g, FULLWIDTH_SPACE_PLACEHOLDER)
+
+    // 仅压缩 ASCII 空白字符，避免影响 Unicode 空白（如全角空格）
+    // ASCII 空白: space, tab, CR, LF, FF
+    working = working
+      .replace(/[ \t\r\n\f]+/g, ' ')
+      .replace(/>\s+</g, '><') // 标签间去空白（这里的 \s 不会匹配占位符）
+      .replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '')
+
+    // 恢复全角空格
+    return working.replace(new RegExp(FULLWIDTH_SPACE_PLACEHOLDER, 'g'), FULLWIDTH_SPACE)
   }
 }
 

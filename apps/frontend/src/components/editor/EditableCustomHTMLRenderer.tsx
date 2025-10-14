@@ -136,6 +136,12 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
     if (!iframeDoc) return
 
+    // 保护全角空格 - 使用 &#12288; (HTML实体) 代替 \u3000
+    // 这样即使经过浏览器 DOM 解析，也能保留全角空格
+    const FULLWIDTH_SPACE = '\u3000'
+    const FULLWIDTH_SPACE_ENTITY = '&#12288;'
+    const protectedHtml = html.replace(/\u3000/g, FULLWIDTH_SPACE_ENTITY)
+
     // 写入HTML内容
     iframeDoc.open()
     iframeDoc.write(`
@@ -193,7 +199,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
         </style>
       </head>
       <body>
-        ${html}
+        ${protectedHtml}
       </body>
       </html>
     `)

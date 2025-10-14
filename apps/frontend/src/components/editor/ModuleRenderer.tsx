@@ -27,6 +27,9 @@ function CustomHTMLRenderer({ html }: { html: string }) {
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
     if (!iframeDoc) return
 
+    // 保护全角空格 - 使用 HTML 实体 &#12288;
+    const protectedHtml = html.replace(/\u3000/g, '&#12288;')
+
     // 写入HTML内容
     iframeDoc.open()
     iframeDoc.write(`
@@ -39,7 +42,7 @@ function CustomHTMLRenderer({ html }: { html: string }) {
         </style>
       </head>
       <body>
-        ${html}
+        ${protectedHtml}
       </body>
       </html>
     `)
