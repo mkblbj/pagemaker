@@ -293,20 +293,10 @@ export function ModuleRenderer({
         return (
           <div 
             className="border rounded-lg overflow-hidden"
-            onDoubleClick={e => {
-              if (!isEditing) {
-                e.stopPropagation()
-                onStartEdit?.()
-              }
-            }}
           >
             {/* 模块标题栏 - 包含按钮 */}
             <div className={`flex justify-between items-center px-3 py-2 border-b ${
-              isEditing 
-                ? 'bg-blue-100 border-blue-300' 
-                : isSelected 
-                  ? 'bg-blue-50' 
-                  : 'bg-gray-50'
+              isSelected ? 'bg-blue-50' : 'bg-gray-50'
             }`}>
               <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
                 {isSplitModule ? (
@@ -327,27 +317,10 @@ export function ModuleRenderer({
                     {(module as any).originalType && ` (${tEditor('原{type}', { type: (module as any).originalType })})`}
                   </>
                 )}
-                {isEditing ? (
-                  <span className="text-xs text-blue-600 font-semibold ml-2">✏️ {tEditor('编辑模式')}</span>
-                ) : (
-                  <span className="text-xs text-gray-400 ml-2">({tEditor('双击进入编辑')})</span>
-                )}
+                <span className="text-xs text-gray-400 ml-2">({tEditor('单击内容编辑')})</span>
               </span>
               {/* 操作按钮 */}
               <div className="flex items-center gap-1">
-                {isEditing && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={e => {
-                      e.stopPropagation()
-                      onEndEdit?.()
-                    }}
-                    className="h-6 px-2 text-xs bg-blue-600 hover:bg-blue-700"
-                  >
-                    完成编辑
-                  </Button>
-                )}
                 <Button
                   variant="ghost"
                   size="sm"

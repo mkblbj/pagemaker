@@ -14,7 +14,7 @@ interface EditableCustomHTMLRendererProps {
 export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }: EditableCustomHTMLRendererProps) {
   const { tEditor } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const [iframeHeight, setIframeHeight] = useState(200)
+  const [iframeHeight, setIframeHeight] = useState(0)
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [showImageSelector, setShowImageSelector] = useState(false)
   const editingElementRef = useRef<HTMLElement | null>(null)
@@ -156,15 +156,22 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
 
     // 写入HTML内容（紧凑格式，避免额外空白）
     iframeDoc.open()
-    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;font-family:inherit;}${isEditing ? `.editable-text:hover{outline:1px dashed #3b82f6;outline-offset:2px;cursor:text;position:relative;}.editable-text:hover::after{content:'双击编辑';position:absolute;top:-24px;left:0;background:#3b82f6;color:white;padding:2px 6px;font-size:11px;border-radius:3px;white-space:nowrap;z-index:1000;}.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}` : ''}</style></head><body>${protectedHtml}</body></html>`
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;font-family:inherit;cursor:text;}body:hover{outline:1px dashed #3b82f6;outline-offset:2px;}body.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}</style></head><body>${protectedHtml}</body></html>`
     iframeDoc.write(htmlContent)
     iframeDoc.close()
 
-    // 自动调整iframe高度
+    // 自动调整iframe高度（按实际内容大小，不设最小值）
     const resizeIframe = () => {
       const body = iframeDoc.body
       const html = iframeDoc.documentElement
-      const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight)
+      const height = Math.max(
+        body.scrollHeight, 
+        body.offsetHeight, 
+        html.clientHeight, 
+        html.scrollHeight, 
+        html.offsetHeight,
+        1 // 最小1px，避免完全消失
+      )
       setIframeHeight(height)
     }
 
@@ -175,60 +182,58 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const observer = new ResizeObserver(resizeIframe)
     observer.observe(iframeDoc.body)
 
-    // 如果是编辑模式，注入编辑功能
-    if (isEditing) {
-      // 为所有文本节点的父元素添加可编辑类和事件
-      const textElements = iframeDoc.querySelectorAll('td, p, div, span, font, b, strong, i, em, u, h1, h2, h3, h4, h5, h6')
-      textElements.forEach(el => {
-        const element = el as HTMLElement
-        element.classList.add('editable-text')
+    // 注入编辑功能（整个 body 可编辑）
+    const bodyElement = iframeDoc.body
+    
+    // 单击模块进入编辑模式
+    bodyElement.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement
+      
+      // 跳过图片点击（图片有自己的选择器）
+      if (target.tagName === 'IMG') return
+      
+      // 如果已经在编辑中，不重复处理
+      if (bodyElement.contentEditable === 'true') return
+      
+      // 阻止事件冒泡，避免触发外部点击
+      e.stopPropagation()
 
-        // 双击进入编辑模式
-        element.addEventListener('dblclick', (e: Event) => {
-          e.stopPropagation()
-          const target = e.target as HTMLElement
+      // 整个 body 设置为可编辑
+      bodyElement.contentEditable = 'true'
+      bodyElement.focus()
+      bodyElement.classList.add('editing-text')
+      editingElementRef.current = bodyElement
 
-          // 跳过图片
-          if (target.tagName === 'IMG') return
+      // 失焦保存
+      const handleBlur = () => {
+        bodyElement.contentEditable = 'false'
+        bodyElement.classList.remove('editing-text')
+        editingElementRef.current = null
 
-          // 设置为可编辑
-          target.contentEditable = 'true'
-          target.focus()
-          target.classList.add('editing-text')
-          editingElementRef.current = target
+        // 同步修改
+        syncHTMLChanges()
 
-          // 失焦保存
-          const handleBlur = () => {
-            target.contentEditable = 'false'
-            target.classList.remove('editing-text')
-            editingElementRef.current = null
+        bodyElement.removeEventListener('blur', handleBlur)
+      }
 
-            // 同步修改
-            syncHTMLChanges()
+      bodyElement.addEventListener('blur', handleBlur)
+    })
 
-            target.removeEventListener('blur', handleBlur)
-          }
+    // 为所有图片添加点击事件
+    const images = iframeDoc.querySelectorAll('img')
+    images.forEach((img, index) => {
+      const image = img as HTMLImageElement
+      image.classList.add('editable-image')
 
-          target.addEventListener('blur', handleBlur)
-        })
+      image.addEventListener('click', (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        // 保存图片索引而不是引用
+        setSelectedImageIndex(index)
+        setShowImageSelector(true)
       })
-
-      // 为所有图片添加点击事件
-      const images = iframeDoc.querySelectorAll('img')
-      images.forEach((img, index) => {
-        const image = img as HTMLImageElement
-        image.classList.add('editable-image')
-
-        image.addEventListener('click', (e: Event) => {
-          e.preventDefault()
-          e.stopPropagation()
-
-          // 保存图片索引而不是引用
-          setSelectedImageIndex(index)
-          setShowImageSelector(true)
-        })
-      })
-    }
+    })
 
     return () => {
       observer.disconnect()
@@ -245,14 +250,12 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       />
 
       {/* 图片选择对话框 */}
-      {isEditing && (
-        <ImageSelectorDialog 
-          open={showImageSelector} 
-          onOpenChange={setShowImageSelector} 
-          onSelect={handleImageSelect}
-          pageId={usePageStore.getState().currentPage?.id}
-        />
-      )}
+      <ImageSelectorDialog 
+        open={showImageSelector} 
+        onOpenChange={setShowImageSelector} 
+        onSelect={handleImageSelect}
+        pageId={usePageStore.getState().currentPage?.id}
+      />
     </>
   )
 }
