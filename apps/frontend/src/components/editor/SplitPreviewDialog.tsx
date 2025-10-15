@@ -14,9 +14,10 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { AlertCircle, CheckCircle2, Image, Table2, Type, Minus } from 'lucide-react'
+import { useTranslation } from '@/contexts/I18nContext'
 
 // 模块预览组件 - 使用 iframe 自动调整高度
-function ModulePreview({ html, index, kind }: { html: string; index: number; kind: string }) {
+function ModulePreview({ html, index, kind, tEditor }: { html: string; index: number; kind: string; tEditor: (key: string) => string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [iframeHeight, setIframeHeight] = useState(200)
 
@@ -84,13 +85,13 @@ function ModulePreview({ html, index, kind }: { html: string; index: number; kin
   const getModuleTypeLabel = (kind: string) => {
     switch (kind) {
       case 'gap':
-        return '间隔'
+        return tEditor('间隔')
       case 'image':
-        return '图片'
+        return tEditor('图片')
       case 'table':
-        return '表格'
+        return tEditor('表格')
       case 'text':
-        return '文本'
+        return tEditor('文本')
       default:
         return kind
     }
@@ -158,6 +159,7 @@ interface ModuleStats {
  * 显示 HTML 拆分结果的预览，让用户确认后再替换模块
  */
 export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPreviewDialogProps) {
+  const { tEditor } = useTranslation()
   const [modules, setModules] = useState<HtmlModule[]>([])
   const [stats, setStats] = useState<ModuleStats>({ total: 0, gap: 0, image: 0, table: 0, text: 0 })
   const [error, setError] = useState<string | null>(null)
@@ -218,15 +220,15 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
     <Dialog open={open} onOpenChange={onCancel}>
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>拆分预览</DialogTitle>
+          <DialogTitle>{tEditor('拆分预览')}</DialogTitle>
           <DialogDescription>
-            查看 HTML 拆分结果，确认后将替换当前模块为多个可编辑模块
+            {tEditor('查看 HTML 拆分结果，确认后将替换当前模块为多个可编辑模块')}
           </DialogDescription>
         </DialogHeader>
 
         {isLoading && (
           <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">正在拆分 HTML...</div>
+            <div className="text-muted-foreground">{tEditor('正在拆分 HTML...')}</div>
           </div>
         )}
 
@@ -234,7 +236,7 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
           <div className="flex items-center gap-2 p-4 border border-red-200 bg-red-50 rounded-lg">
             <AlertCircle className="h-5 w-5 text-red-600" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-900">拆分失败</p>
+              <p className="text-sm font-medium text-red-900">{tEditor('拆分失败')}</p>
               <p className="text-sm text-red-700">{error}</p>
             </div>
           </div>
@@ -247,7 +249,7 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
                 <p className="text-sm font-medium">
-                  拆分成功！共 <span className="text-lg font-bold text-primary">{stats.total}</span> 个模块
+                  {tEditor('拆分统计')}！{tEditor('共')} <span className="text-lg font-bold text-primary">{stats.total}</span> {tEditor('个模块')}
                 </p>
               </div>
 
@@ -255,25 +257,25 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
                 {stats.gap > 0 && (
                   <Badge variant="outline" className="gap-1">
                     <Minus className="h-3 w-3" />
-                    间隔: {stats.gap}
+                    {tEditor('间隔')}: {stats.gap}
                   </Badge>
                 )}
                 {stats.image > 0 && (
                   <Badge variant="outline" className="gap-1">
                     <Image className="h-3 w-3" />
-                    图片: {stats.image}
+                    {tEditor('图片')}: {stats.image}
                   </Badge>
                 )}
                 {stats.table > 0 && (
                   <Badge variant="outline" className="gap-1">
                     <Table2 className="h-3 w-3" />
-                    表格: {stats.table}
+                    {tEditor('表格')}: {stats.table}
                   </Badge>
                 )}
                 {stats.text > 0 && (
                   <Badge variant="outline" className="gap-1">
                     <Type className="h-3 w-3" />
-                    文本: {stats.text}
+                    {tEditor('文本')}: {stats.text}
                   </Badge>
                 )}
               </div>
@@ -281,7 +283,7 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
 
             {/* 模块预览列表 */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">模块预览（共 {modules.length} 个）：</h4>
+              <h4 className="text-sm font-medium">{tEditor('模块预览')}（{tEditor('共')} {modules.length} {tEditor('个')}）：</h4>
               <ScrollArea className="h-[400px] border rounded-lg p-3">
                 <div className="space-y-2">
                   {modules.map((m, i) => (
@@ -290,6 +292,7 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
                       html={m.html}
                       index={i}
                       kind={m.kind}
+                      tEditor={tEditor}
                     />
                   ))}
                 </div>
@@ -300,13 +303,13 @@ export function SplitPreviewDialog({ open, html, onConfirm, onCancel }: SplitPre
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            取消
+            {tEditor('取消')}
           </Button>
           <Button 
             onClick={handleConfirm} 
             disabled={isLoading || error !== null || modules.length === 0}
           >
-            确认拆分
+            {tEditor('确认拆分')}
           </Button>
         </DialogFooter>
       </DialogContent>

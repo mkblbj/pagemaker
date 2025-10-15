@@ -129,6 +129,15 @@ export default function PagesPage() {
     }
   }, [selectedShopId, selectedDeviceType, currentPage, debouncedSearchTerm, fetchPages])
 
+  // 当页面列表变化时，自动加载所有页面的字符数统计
+  useEffect(() => {
+    if (pages.length > 0) {
+      pages.forEach(page => {
+        loadCharStats(page.id)
+      })
+    }
+  }, [pages])
+
   // 处理店铺切换
   const handleShopChange = (shopId: string) => {
     setSelectedShopId(shopId)
@@ -551,13 +560,10 @@ export default function PagesPage() {
                           </span>
                         </div>
                         
-                        {/* 字符数统计 - 悬停时加载 */}
+                        {/* 字符数统计 - 实时显示 */}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div 
-                              className="flex items-center gap-1 cursor-help"
-                              onMouseEnter={() => loadCharStats(page.id)}
-                            >
+                            <div className="flex items-center gap-1 cursor-help">
                               <Hash className="h-3 w-3" />
                               {loadingCharStats[page.id] ? (
                                 <span className="text-xs">
@@ -581,17 +587,17 @@ export default function PagesPage() {
                               <div className="space-y-1">
                                 <p className="font-medium">{tCommon('字符数统计')}</p>
                                 <p className="text-xs">
-                                  {tCommon('标准字符数')}: {charStatsCache[page.id].standard.toLocaleString()}
+                                  {tEditor('标准字符数')}: {charStatsCache[page.id].standard.toLocaleString()}
                                 </p>
                                 <p className="text-xs font-semibold">
-                                  {tCommon('乐天规定字符数')}: {charStatsCache[page.id].rakuten.toLocaleString()}
+                                  {tEditor('乐天规定字符数')}: {charStatsCache[page.id].rakuten.toLocaleString()}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {tCommon('半角0.5 / 全角1')}
+                                  {tEditor('半角0.5 / 全角1')}
                                 </p>
                               </div>
                             ) : (
-                              <p>{tCommon('悬停查看字符数统计')}</p>
+                              <p>{tCommon('字符数统计')}</p>
                             )}
                           </TooltipContent>
                         </Tooltip>

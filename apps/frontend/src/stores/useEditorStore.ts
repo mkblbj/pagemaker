@@ -57,7 +57,7 @@ export const useEditorStore = create<EditorState>()(
       leftPanelWidth: 280,
       rightPanelWidth: 320,
       isLeftPanelCollapsed: false,
-      isRightPanelCollapsed: false,
+      isRightPanelCollapsed: true, // 默认隐藏属性面板
       isDragging: false,
       draggedModuleType: null,
       isExporting: false,
