@@ -82,8 +82,15 @@ export function splitHtmlToModules(pageHtml: string, options?: SplitOptions): Ht
         continue
       }
 
-      // 2.3 顶层 <img>
+      // 2.3 顶层 <img> 或 <a><img></a>（带链接的图片）
       if (tagName === 'img') {
+        modules.push(createModule([node], 'image'))
+        i++
+        continue
+      }
+      
+      // 2.3.1 顶层 <a> 且仅包含 <img>（带链接的图片）
+      if (tagName === 'a' && isLinkWithOnlyImage(el)) {
         modules.push(createModule([node], 'image'))
         i++
         continue
@@ -208,6 +215,37 @@ function collectTextModule(
   }
 
   return { nodes: collected, nextIndex: i }
+}
+
+/**
+ * 判断 <a> 是否仅包含 <img>（及空白）
+ * 用于识别带链接的图片：<a href="..."><img src="..."></a>
+ */
+function isLinkWithOnlyImage(el: Element): boolean {
+  const children = Array.from(el.childNodes)
+  let hasImage = false
+  
+  for (const child of children) {
+    // 跳过空白文本节点
+    if (child.nodeType === Node.TEXT_NODE) {
+      if (child.textContent?.trim()) {
+        return false // 有非空白文本，不是纯图片链接
+      }
+      continue
+    }
+    
+    // 检查是否为 img 元素
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const childEl = child as Element
+      if (childEl.tagName.toLowerCase() === 'img') {
+        hasImage = true
+      } else {
+        return false // 有其他元素，不是纯图片链接
+      }
+    }
+  }
+  
+  return hasImage
 }
 
 /**

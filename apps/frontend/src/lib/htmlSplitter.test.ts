@@ -54,6 +54,18 @@ describe('htmlSplitter', () => {
       expect(modules[0].html).toContain('src="test.jpg"')
     })
 
+    it('应将顶层 <a><img></a>（带链接的图片）识别为图片模块', () => {
+      const html = '<a href="https://www.rakuten.co.jp/uo3911/"><img src="https://image.rakuten.co.jp/uo3911/cabinet/08212472/3911smartphonepic0.jpg" width="100%"></a>'
+      const modules = splitHtmlToModules(html)
+
+      expect(modules.length).toBe(1)
+      expect(modules[0].kind).toBe('image')
+      expect(modules[0].html).toContain('<a')
+      expect(modules[0].html).toContain('href="https://www.rakuten.co.jp/uo3911/"')
+      expect(modules[0].html).toContain('<img')
+      expect(modules[0].html).toContain('src="https://image.rakuten.co.jp/uo3911/cabinet/08212472/3911smartphonepic0.jpg"')
+    })
+
     it('应将顶层 <table> 识别为表格模块', () => {
       const html = '<table><tr><td>测试</td></tr></table>'
       const modules = splitHtmlToModules(html)

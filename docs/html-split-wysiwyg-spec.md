@@ -616,6 +616,11 @@ function applyLink(range: Range, href: string, target: string = '_top') {
   - 点击图片打开图片选择器
   - **严格遵守规范**：仅更新 `src`，不修改 `width/height/alt`
   - 图片替换后自动同步 HTML
+  - **带链接图片支持**：
+    - 拆分引擎识别 `<a><img></a>` 结构为图片模块（新增 `isLinkWithOnlyImage()` 函数）
+    - 点击带链接的图片时，提供"编辑链接"或"更换图片"选项
+    - 编辑链接：弹出输入框，可修改 `href` 或留空移除链接
+    - 更换图片：打开图片选择器，仅更新 `src`
 
 - **P5（源码编辑抽屉）**：✅ 完成
   - **UI 改进**：从对话框（Dialog）改为右侧抽屉（Sheet）

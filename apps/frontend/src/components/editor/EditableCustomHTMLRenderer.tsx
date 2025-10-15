@@ -696,9 +696,40 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
         e.preventDefault()
         e.stopPropagation()
 
-        // 保存图片索引而不是引用
-        setSelectedImageIndex(index)
-        setShowImageSelector(true)
+        // 检查图片是否在 <a> 标签内
+        const parentLink = image.closest('a')
+        
+        if (parentLink) {
+          // 带链接的图片：提供选项
+          const action = confirm('这是一个带链接的图片。\n\n点击"确定"编辑链接\n点击"取消"更换图片')
+          
+          if (action) {
+            // 编辑链接
+            const currentHref = parentLink.getAttribute('href') || ''
+            const newHref = prompt('请输入链接地址（留空则移除链接）：', currentHref)
+            
+            if (newHref !== null) {
+              if (newHref.trim()) {
+                // 更新链接
+                parentLink.setAttribute('href', newHref.trim())
+                parentLink.setAttribute('target', '_top')
+              } else {
+                // 移除链接，保留图片
+                const imgClone = image.cloneNode(true)
+                parentLink.parentNode?.replaceChild(imgClone, parentLink)
+              }
+              syncHTMLChanges()
+            }
+          } else {
+            // 更换图片
+            setSelectedImageIndex(index)
+            setShowImageSelector(true)
+          }
+        } else {
+          // 普通图片：直接更换
+          setSelectedImageIndex(index)
+          setShowImageSelector(true)
+        }
       })
     })
 
