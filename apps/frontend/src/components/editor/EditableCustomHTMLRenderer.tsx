@@ -31,20 +31,17 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     linkHref: ''
   })
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const savedSelectionRef = useRef<{
-    startContainer: Node
-    startOffset: number
-    endContainer: Node
-    endOffset: number
-  } | null>(null) // 保存选区信息
+  const savedSelectionRef = useRef<Range | null>(null)
+  // 最近一次使用的颜色（用于快速一键应用）
+  const lastUsedColorRef = useRef<string | null>(null)
+  const interactingWithToolbarRef = useRef(false)
   
-  // 常用颜色列表（根据用户提供的色板）
+  // 常用颜色列表
   const commonColors = [
-    '#000000', // 黑色
-    '#5FB878', '#2F9688', '#1E9FFF', '#A233C6', '#5A6268', '#FFB800', // 第一行
-    '#009688', '#5FB878', '#1E9FFF', '#A233C6', '#2F4056', '#F7B824', // 第二行
-    '#FF5722', '#FF5722', '#EEEEEE', '#90A4AE', '#C8C8C8', '#FFFFFF', // 第三行
-    '#8D6E63', '#A1887F', '#BDBDBD', '#78909C', '#9E9E9E', '#000000'  // 第四行
+    '#000000', '#16A085', '#2F9688', '#2980B9', '#A233C6', '#5A6268',
+    '#FFB800', '#009688', '#5FB878', '#1E9FFF', '#A233C6', '#2F4056',
+    '#E74C3C', '#D35400', '#C0392B', '#EEEEEE', '#90A4AE', '#C8C8C8',
+    '#FFFFFF', '#8D6E63', '#A1887F', '#BDBDBD', '#78909C', '#9E9E9E'
   ]
 
   // 清理HTML - 移除编辑器添加的class和浏览器自动添加的标签
@@ -113,6 +110,54 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     setToolbarPosition({ x, y })
   }, [])
 
+  // 在失焦前保存选区（供外部工具条交互时恢复）
+  const preserveSelection = useCallback(() => {
+    const iframe = iframeRef.current
+    const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document
+    if (!iframeDoc) return
+    const selection = iframeDoc.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0)
+      const rangeText = range.toString()
+      if (!range.collapsed && rangeText.length > 0) {
+        // 只有当选区有效且有文本时才保存
+        savedSelectionRef.current = range.cloneRange()
+        console.log('[preserveSelection] 选区已保存:', rangeText, '| 保存时栈:', new Error().stack?.split('\n')[2])
+      } else {
+        // 选区已折叠或为空，不覆盖之前保存的选区（但要确保之前的选区也是有效的）
+        const savedText = savedSelectionRef.current?.toString() || ''
+        if (savedText.length === 0) {
+          // 之前保存的选区也是空的，说明出了问题
+          console.log('[preserveSelection] ⚠️ 选区无效且之前保存的选区也是空的！')
+        } else {
+          console.log('[preserveSelection] 选区无效（折叠或为空），保持之前的选区:', savedText)
+        }
+      }
+    } else {
+      console.log('[preserveSelection] 没有选区')
+    }
+  }, [])
+
+  // 恢复选区并确保 iframe 获得焦点
+  const restoreSelection = useCallback(() => {
+    const iframe = iframeRef.current
+    const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document
+    if (!iframe || !iframeDoc) return false
+    if (!savedSelectionRef.current) return false
+    // 先聚焦 iframe 再恢复选区
+    try {
+      iframe.contentWindow?.focus()
+      iframeDoc.body.focus()
+      const selection = iframeDoc.getSelection()
+      if (!selection) return false
+      selection.removeAllRanges()
+      selection.addRange(savedSelectionRef.current)
+      return true
+    } catch {
+      return false
+    }
+  }, [])
+
   // 格式状态识别：检测选区是否在 b/font/a 标签内
   const detectFormatState = useCallback(() => {
     const iframe = iframeRef.current
@@ -155,19 +200,40 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
     if (!iframeDoc) return
 
-    // 直接获取 innerHTML，不修改 DOM
-    let updatedHTML = iframeDoc.body.innerHTML
-    
-    // 保护全角空格：将 innerHTML 中的全角空格（如果浏览器保留了）标记
-    // 注意：innerHTML 可能已经将全角空格转换了，但我们仍然尝试保护
+    // 保护全角空格 - 在获取 innerHTML 之前替换文本节点中的全角空格
     const FULLWIDTH_SPACE = '\u3000'
-    updatedHTML = updatedHTML.replace(/\u3000/g, '&#12288;') // 转为 HTML 实体
+    const FULLWIDTH_SPACE_PLACEHOLDER = '___FULLWIDTH_SPACE___'
+    
+    const textNodes: Text[] = []
+    const walker = iframeDoc.createTreeWalker(iframeDoc.body, NodeFilter.SHOW_TEXT)
+    let node: Node | null
+    while ((node = walker.nextNode())) {
+      textNodes.push(node as Text)
+    }
+    
+    textNodes.forEach(textNode => {
+      if (textNode.textContent && textNode.textContent.includes(FULLWIDTH_SPACE)) {
+        textNode.textContent = textNode.textContent.replace(/\u3000/g, FULLWIDTH_SPACE_PLACEHOLDER)
+      }
+    })
+
+    const updatedHTML = iframeDoc.body.innerHTML
+    
+    // 恢复全角空格
+    let htmlWithFullwidthSpaces = updatedHTML.replace(new RegExp(FULLWIDTH_SPACE_PLACEHOLDER, 'g'), FULLWIDTH_SPACE)
     
     // 净化 HTML（移除非白名单标签/属性）
-    let htmlWithFullwidthSpaces = sanitizeHtml(updatedHTML)
+    htmlWithFullwidthSpaces = sanitizeHtml(htmlWithFullwidthSpaces)
     
     // 清理编辑器添加的 class 和浏览器自动添加的标签
     const cleanedHTML = cleanHTML(htmlWithFullwidthSpaces)
+    
+    // 恢复文本节点中的全角空格（因为 textContent 修改会影响 DOM）
+    textNodes.forEach(textNode => {
+      if (textNode.textContent && textNode.textContent.includes(FULLWIDTH_SPACE_PLACEHOLDER)) {
+        textNode.textContent = textNode.textContent.replace(new RegExp(FULLWIDTH_SPACE_PLACEHOLDER, 'g'), FULLWIDTH_SPACE)
+      }
+    })
     
     // 比较清理后的 HTML 和原始 HTML，只有真正发生变化时才调用 onUpdate
     // 同时也清理原始 HTML 以确保公平比较
@@ -221,85 +287,182 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     }
   }, [syncHTMLChanges, detectFormatState])
 
-  // 格式化命令：颜色（打开颜色选择器）
+  // 格式化命令：颜色（切换颜色选择器显示）
   const toggleColorPicker = useCallback(() => {
-    setShowColorPicker(prev => !prev)
-  }, [])
+    console.log('[toggleColorPicker] 切换颜色面板')
+    const willOpen = !showColorPicker
+    console.log('[toggleColorPicker] willOpen:', willOpen)
+
+    if (!willOpen) {
+      // 关闭面板时清理
+      console.log('[toggleColorPicker] 关闭面板')
+      interactingWithToolbarRef.current = false
+      savedSelectionRef.current = null
+    }
+    // 注意：打开面板时的 interactingWithToolbarRef 和 preserveSelection 已经在 onMouseDown 中处理了
+
+    setShowColorPicker(willOpen)
+  }, [showColorPicker])
 
   // 应用选中的颜色
   const applyColor = useCallback((color: string) => {
-    console.log('[应用颜色] 开始，颜色:', color)
+    console.log('[applyColor] 开始应用颜色:', color)
     const iframe = iframeRef.current
-    if (!iframe) {
-      console.log('[应用颜色] iframe 不存在')
-      return
-    }
+    if (!iframe) return
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-    if (!iframeDoc) {
-      console.log('[应用颜色] iframeDoc 不存在')
+    if (!iframeDoc) return
+
+    // 关键：先让 iframe 的 body 重新获得焦点
+    const bodyElement = iframeDoc.body
+    if (bodyElement) {
+      bodyElement.focus()
+      console.log('[applyColor] iframe body 已获得焦点')
+    }
+
+    let selection = iframeDoc.getSelection()
+    let range: Range | null = null
+
+    console.log('[applyColor] 当前选区状态:', {
+      hasSelection: !!selection,
+      rangeCount: selection?.rangeCount,
+      collapsed: selection?.rangeCount ? selection.getRangeAt(0).collapsed : 'N/A',
+      hasSavedSelection: !!savedSelectionRef.current,
+      savedText: savedSelectionRef.current?.toString()
+    })
+
+    // 正常使用当前选区
+    if (selection && selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+      range = selection.getRangeAt(0)
+      console.log('[applyColor] 使用当前选区:', range.toString())
+    } else if (savedSelectionRef.current) {
+      // 若选区丢失（比如点击了色板导致失焦），尝试恢复已保存的选区
+      console.log('[applyColor] 尝试恢复保存的选区:', savedSelectionRef.current.toString())
+      if (!selection) selection = iframeDoc.getSelection()
+      if (selection) {
+        try {
+          selection.removeAllRanges()
+          selection.addRange(savedSelectionRef.current)
+          range = selection.getRangeAt(0)
+          console.log('[applyColor] 选区恢复成功:', range.toString())
+        } catch (e) {
+          // 回退：直接使用保存的 range（极端情况下 selection API 失败）
+          console.log('[applyColor] 选区恢复失败，使用保存的 range:', e)
+          range = savedSelectionRef.current
+        }
+      } else {
+        range = savedSelectionRef.current
+      }
+    }
+
+    if (!range) {
+      console.log('[applyColor] 没有可用的选区，退出')
       return
     }
 
-    // 直接使用当前选区
-    const selection = iframeDoc.getSelection()
-    if (!selection || selection.rangeCount === 0) {
-      console.log('[应用颜色] 没有选区')
-      return
-    }
-
-    const range = selection.getRangeAt(0)
     const selectedText = range.toString()
-    console.log('[应用颜色] 选中的文字:', selectedText)
-    
     if (!selectedText) {
-      console.log('[应用颜色] 选中文字为空')
+      console.log('[applyColor] 选区文本为空，退出')
       return
     }
+    
+    console.log('[applyColor] 准备应用颜色到文本:', selectedText)
 
     try {
       // 检查是否已经在 <font color> 内
-      let node: Node | Element = range.commonAncestorContainer
+      let node = range.commonAncestorContainer
       if (node.nodeType === Node.TEXT_NODE) {
-        node = (node as Text).parentElement!
+        node = node.parentElement!
       }
-      const parentFont = (node as HTMLElement).closest('font[color]') as HTMLFontElement | null
+      const parentFont = (node as HTMLElement).closest('font[color]')
 
-      let newElement: HTMLElement | null = null
-      
       if (parentFont && parentFont.textContent === selectedText) {
         // 更新颜色
-        console.log('[应用颜色] 更新现有 font 标签颜色')
         parentFont.setAttribute('color', color.toUpperCase())
-        newElement = parentFont as HTMLElement
       } else {
         // 添加颜色：wrap <font color>
-        console.log('[应用颜色] 创建新的 font 标签')
         const font = iframeDoc.createElement('font')
         font.setAttribute('color', color.toUpperCase())
         range.surroundContents(font)
-        newElement = font
       }
 
-      console.log('[应用颜色] 新元素:', newElement?.outerHTML)
-
-      // 重新选中新元素，保持工具条显示
-      if (newElement) {
-        const newRange = iframeDoc.createRange()
-        newRange.selectNodeContents(newElement)
-        selection.removeAllRanges()
-        selection.addRange(newRange)
-      }
-
-      console.log('[应用颜色] 调用 syncHTMLChanges')
       syncHTMLChanges()
       detectFormatState()
       setShowColorPicker(false)
-      console.log('[应用颜色] 完成')
+      setShowToolbar(false)
+      interactingWithToolbarRef.current = false
+      // 记录最后使用的颜色
+      lastUsedColorRef.current = color
+      // 成功后清理保存的选区
+      savedSelectionRef.current = null
     } catch (error) {
-      console.error('应用颜色失败:', error)
       alert('请选择同一段落内的文字')
+    }
+  }, [syncHTMLChanges, detectFormatState])
+
+  // 清除颜色（仅移除 font[color]，保留 size）
+  const clearColor = useCallback(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+    if (!iframeDoc) return
+
+    // 关键：先让 iframe 的 body 重新获得焦点
+    const bodyElement = iframeDoc.body
+    if (bodyElement) {
+      bodyElement.focus()
+    }
+
+    let selection = iframeDoc.getSelection()
+    let range: Range | null = null
+
+    if (selection && selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+      range = selection.getRangeAt(0)
+    } else if (savedSelectionRef.current) {
+      if (!selection) selection = iframeDoc.getSelection()
+      if (selection) {
+        try {
+          selection.removeAllRanges()
+          selection.addRange(savedSelectionRef.current)
+          range = selection.getRangeAt(0)
+        } catch {
+          range = savedSelectionRef.current
+        }
+      } else {
+        range = savedSelectionRef.current
+      }
+    }
+
+    if (!range) return
+
+    try {
+      let node = range.commonAncestorContainer
+      if (node.nodeType === Node.TEXT_NODE) {
+        node = node.parentElement!
+      }
+      const parentFont = (node as HTMLElement).closest('font[color]')
+
+      if (parentFont) {
+        const hasSize = parentFont.hasAttribute('size')
+        if (hasSize) {
+          // 保留 size，仅移除 color
+          parentFont.removeAttribute('color')
+        } else {
+          // 没有 size，直接 unwrap
+          const textNode = iframeDoc.createTextNode(parentFont.textContent || '')
+          parentFont.parentNode?.replaceChild(textNode, parentFont)
+        }
+      }
+
+      syncHTMLChanges()
+      detectFormatState()
       setShowColorPicker(false)
+      setShowToolbar(false)
+      interactingWithToolbarRef.current = false
+      savedSelectionRef.current = null
+    } catch (error) {
+      alert('请选择同一段落内的文字')
     }
   }, [syncHTMLChanges, detectFormatState])
 
@@ -406,47 +569,25 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
   // 处理图片选择
   const handleImageSelect = useCallback(
     (result: ImageSelectorResult) => {
-      console.log('[图片替换] 开始处理', { selectedImageIndex, url: result.url })
-      
-      if (selectedImageIndex === null) {
-        console.warn('[图片替换] 未选中图片索引')
-        return
-      }
+      if (selectedImageIndex === null) return
 
       const iframe = iframeRef.current
-      if (!iframe) {
-        console.error('[图片替换] iframe 引用不存在')
-        return
-      }
+      if (!iframe) return
 
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-      if (!iframeDoc) {
-        console.error('[图片替换] 无法访问 iframe 文档')
-        return
-      }
+      if (!iframeDoc) return
 
       // 重新查找图片元素（使用索引）
       const images = iframeDoc.querySelectorAll('img')
-      console.log('[图片替换] 找到图片总数:', images.length)
-      
       const targetImage = images[selectedImageIndex] as HTMLImageElement
       
-      if (!targetImage) {
-        console.error('[图片替换] 无法找到目标图片', { index: selectedImageIndex, total: images.length })
-        return
-      }
+      if (!targetImage) return
 
-      console.log('[图片替换] 替换前:', { oldSrc: targetImage.src, newSrc: result.url })
-
-      // 更新图片 src 和 alt
+      // 仅更新图片 src，不修改 width/height/alt（符合 P4 规范）
       targetImage.src = result.url
-      targetImage.alt = result.filename
-
-      console.log('[图片替换] 替换后:', { src: targetImage.src, alt: targetImage.alt })
 
       // 同步修改
       syncHTMLChanges()
-      console.log('[图片替换] HTML 已同步')
 
       setShowImageSelector(false)
       setSelectedImageIndex(null)
@@ -523,6 +664,15 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
 
       // 失焦保存
       const handleBlur = () => {
+        // 若正在与外部工具条交互，则不要退出编辑，立即恢复焦点
+        if (interactingWithToolbarRef.current) {
+          setTimeout(() => {
+            bodyElement.contentEditable = 'true'
+            bodyElement.focus()
+          }, 0)
+          return
+        }
+
         bodyElement.contentEditable = 'false'
         bodyElement.classList.remove('editing-text')
         editingElementRef.current = null
@@ -556,17 +706,28 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const handleSelectionChange = () => {
       const selection = iframeDoc.getSelection()
       if (!selection || selection.rangeCount === 0) {
+        console.log('[selectionchange] 没有选区')
+        if (interactingWithToolbarRef.current) return
         setShowToolbar(false)
+        setShowColorPicker(false)
         return
       }
 
       const selectedText = selection.toString().trim()
+      console.log('[selectionchange] 选区文本:', selectedText, '长度:', selectedText.length, '是否可编辑:', bodyElement.contentEditable)
       if (selectedText.length > 0 && bodyElement.contentEditable === 'true') {
+        // 每次选区变化时关闭颜色面板，避免自动再次弹出（但与工具条交互时保留）
+        if (!interactingWithToolbarRef.current) {
+          setShowColorPicker(false)
+        }
         setShowToolbar(true)
         updateToolbarPosition()
         detectFormatState()
       } else {
+        console.log('[selectionchange] 选区无效或不可编辑，隐藏工具栏')
+        if (interactingWithToolbarRef.current) return
         setShowToolbar(false)
+        setShowColorPicker(false)
       }
     }
 
@@ -596,7 +757,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
             top: `${toolbarPosition.y}px`,
             pointerEvents: 'auto'
           }}
-          onMouseDown={(e) => e.preventDefault()} // 防止失焦
+          onMouseDown={(e) => { e.preventDefault(); interactingWithToolbarRef.current = true; preserveSelection(); }} // 防止失焦并标记交互
         >
           {/* 加粗按钮 */}
           <button
@@ -619,7 +780,20 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
                   ? 'bg-blue-100 hover:bg-blue-200' 
                   : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
               }`}
-              onClick={toggleColorPicker}
+              onMouseDown={(e) => { 
+                e.preventDefault()
+                e.stopPropagation()
+                // 立即锁定交互标记，防止任何事件关闭工具栏
+                interactingWithToolbarRef.current = true
+                // 立即保存当前选区
+                preserveSelection()
+              }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                // 切换颜色面板显示
+                toggleColorPicker()
+              }}
               title={`颜色 ${formatState.color ? `(${formatState.color})` : ''}`}
               style={formatState.color ? { color: formatState.color } : {}}
             >
@@ -630,24 +804,54 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
             {showColorPicker && (
               <div 
                 className="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-2xl border border-gray-200 p-3"
-                style={{ width: '200px' }}
-                onMouseDown={(e) => e.preventDefault()}
+                style={{ width: '220px' }}
+                onMouseDown={(e) => { 
+                  e.preventDefault()
+                  // 阻止失焦，保持 iframe 焦点
+                }}
               >
-                <div className="grid grid-cols-6 gap-1.5">
-                  {commonColors.map((color, index) => (
-                    <button
-                      key={index}
-                      className="w-7 h-7 rounded border-2 transition-all hover:scale-110"
-                      style={{ 
-                        backgroundColor: color,
-                        borderColor: formatState.color === color ? '#3b82f6' : '#e5e7eb'
-                      }}
-                      onMouseDown={(e) => e.preventDefault()} // 防止失焦
-                      onClick={() => applyColor(color)}
-                      title={color}
-                    />
-                  ))}
+                {/* 常用颜色 */}
+                <div className="mb-3">
+                  <div className="text-xs text-gray-600 mb-2">常用颜色</div>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {commonColors.map((color, index) => (
+                      <button
+                        key={index}
+                        className="w-7 h-7 rounded border-2 transition-all hover:scale-110"
+                        style={{ 
+                          backgroundColor: color,
+                          borderColor: formatState.color === color ? '#3b82f6' : '#e5e7eb'
+                        }}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyColor(color)}
+                        title={color}
+                      />
+                    ))}
+                  </div>
                 </div>
+
+                {/* 原生色盘 */}
+                <div className="mb-2">
+                  <div className="text-xs text-gray-600 mb-2">自定义颜色</div>
+                  <input
+                    type="color"
+                    className="w-full h-8 rounded border border-gray-300 cursor-pointer"
+                    defaultValue={formatState.color || '#000000'}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onChange={(e) => applyColor(e.target.value)}
+                  />
+                </div>
+
+                {/* 清除颜色 */}
+                {formatState.color && (
+                  <button
+                    className="w-full px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => clearColor()}
+                  >
+                    清除颜色
+                  </button>
+                )}
               </div>
             )}
           </div>

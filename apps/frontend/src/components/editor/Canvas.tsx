@@ -14,12 +14,20 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle
+} from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportService } from '@/services/htmlExportService'
 import { PageModuleType, PageModule } from '@pagemaker/shared-types'
 import { HtmlModule } from '@/lib/htmlSplitter'
 import { SplitPreviewDialog } from './SplitPreviewDialog'
+import { sanitizeHtml } from '@/lib/htmlSanitizer'
 
 import { MoveUp, MoveDown, Copy, Trash2, Plus, FileX, GripVertical, Code, Split } from 'lucide-react'
 import { DroppableCanvas } from './dnd/DroppableCanvas'
@@ -229,15 +237,25 @@ export function Canvas() {
     }
   }
 
-  // 处理模块复制
+  // 处理模块复制 - 复制到当前模块的下面
   const handleModuleCopy = (moduleId: string) => {
-    const sourceModule = modules.find(m => m.id === moduleId)
-    if (sourceModule) {
+    const sourceIndex = modules.findIndex(m => m.id === moduleId)
+    const sourceModule = modules[sourceIndex]
+    if (sourceModule && currentPage) {
       const newModule = {
         ...sourceModule,
         id: `module-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       }
-      addModule(newModule)
+      
+      // 在当前模块的下一个位置插入
+      const newContent = [...modules]
+      newContent.splice(sourceIndex + 1, 0, newModule)
+      
+      // 更新页面内容
+      usePageStore.getState().updatePage({ 
+        content: newContent,
+        module_count: newContent.length
+      })
       markUnsaved()
     }
   }
@@ -325,17 +343,30 @@ export function Canvas() {
     if (!currentModuleForCode || !hasCodeChanges) return
 
     try {
-      // 将编辑后的HTML直接作为自定义模块
+      // P5 规范：保存时净化并回填
+      const isMobileMode = currentPage?.device_type === 'mobile'
+      const sanitizedCode = isMobileMode 
+        ? sanitizeHtml(moduleCode.trim())  // 移动端模式：严格净化
+        : moduleCode.trim()                // 非移动端：保持原样
+      
+      // 将编辑后的HTML作为自定义模块
       const customModule = {
         type: PageModuleType.CUSTOM,
-        customHTML: moduleCode.trim(),
+        customHTML: sanitizedCode,
         originalType: currentModuleForCode.type, // 保存原始类型用于参考
         name: `${tEditor('自定义HTML模块')} (${tEditor('原{type}', { type: currentModuleForCode.type })})`
       }
       
       updateModule(currentModuleForCode.id, customModule)
       markUnsaved()
-      setOriginalModuleCode(moduleCode)
+      
+      // 如果进行了净化，更新显示的代码为净化后的版本
+      if (isMobileMode && sanitizedCode !== moduleCode.trim()) {
+        setModuleCode(sanitizedCode)
+        setOriginalModuleCode(sanitizedCode)
+      } else {
+        setOriginalModuleCode(moduleCode)
+      }
       setHasCodeChanges(false)
     } catch (error) {
       console.error('应用代码修改失败:', error)
@@ -485,57 +516,60 @@ export function Canvas() {
         moduleType={getModuleMetadata(moduleToDelete?.type, currentLanguage)?.name || moduleToDelete?.type}
       />
 
-        {/* 模块代码编辑对话框 */}
-        <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
-          <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-2">
+        {/* 模块源码编辑抽屉 (P5) */}
+        <Sheet open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
+          <SheetContent side="right" className="w-full sm:w-[600px] md:w-[800px] flex flex-col p-0">
+            <SheetHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
+              <SheetTitle className="flex items-center gap-2">
                 <Code className="h-5 w-5" />
-                {tEditor('模块代码')}
+                {tEditor('模块源码')}
                 {hasCodeChanges && (
                   <span className="text-orange-500 text-sm font-normal">
                     ({tEditor('代码已修改')})
                   </span>
                 )}
-              </DialogTitle>
-              <DialogDescription>
+              </SheetTitle>
+              <SheetDescription>
                 {tEditor('模块HTML代码')} - {getModuleMetadata(currentModuleForCode?.type, currentLanguage)?.name || currentModuleForCode?.type}
                 {currentPage?.device_type === 'mobile' && (
                   <>
                     <br />
                     <span className="text-xs text-blue-600 font-medium">
-                      🏷️ 移动端模式 - 乐天HTML约束格式
+                      🏷️ 移动端模式 - 保存时自动净化（Rakuten 合规）
                     </span>
                   </>
                 )}
                 <br />
                 <span className="text-xs text-muted-foreground">
-                  {tEditor('可以直接编辑HTML代码，修改后点击应用修改更新模块')}
+                  {tEditor('编辑HTML源码，保存时自动净化并回填')}
                 </span>
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex-1 min-h-0 flex flex-col">
+              </SheetDescription>
+            </SheetHeader>
+            
+            <div className="flex-1 px-6 py-4 overflow-y-auto">
               <Textarea
                 value={moduleCode || ''}
                 onChange={(e) => handleCodeChange(e.target.value)}
-                className="flex-1 min-h-[400px] w-full font-mono text-xs resize-none border rounded-lg p-3 focus-visible:ring-2"
+                className="w-full h-full min-h-[500px] font-mono text-xs resize-none border rounded-lg p-3 focus-visible:ring-2"
                 placeholder={tEditor('HTML代码将在这里显示...')}
-                style={{ minHeight: '400px' }}
               />
             </div>
-            <div className="flex justify-between items-center pt-4 border-t">
+            
+            <div className="px-6 py-4 border-t bg-gray-50 flex justify-between items-center flex-shrink-0">
               <div className="flex gap-2">
                 {hasCodeChanges && (
                   <>
                     <Button
                       variant="outline"
                       onClick={resetCode}
+                      size="sm"
                     >
                       {tEditor('重置代码')}
                     </Button>
                     <Button
                       onClick={applyCodeChanges}
                       disabled={!hasCodeChanges}
+                      size="sm"
                     >
                       {tEditor('应用修改')}
                     </Button>
@@ -548,16 +582,17 @@ export function Canvas() {
                   onClick={() => {
                     navigator.clipboard.writeText(moduleCode)
                   }}
+                  size="sm"
                 >
                   {tEditor('复制代码')}
                 </Button>
-                <Button onClick={() => setCodeDialogOpen(false)}>
+                <Button onClick={() => setCodeDialogOpen(false)} size="sm">
                   {tEditor('关闭')}
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
 
       {/* 拆分预览对话框 */}
       <SplitPreviewDialog
