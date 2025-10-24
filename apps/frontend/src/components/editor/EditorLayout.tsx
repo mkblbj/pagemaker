@@ -449,8 +449,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="flex-1 overflow-hidden bg-gray-50">
             <div className="h-full overflow-y-auto">
               <div className="p-4 md:p-6">
-                {/* 移动端画布宽度调整为一半 */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-full w-full md:max-w-[50%] md:mx-auto">
+                {/* 画布宽度设置为固定最大宽度 */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-full w-full max-w-[440px] mx-auto">
                   <Canvas />
                 </div>
               </div>

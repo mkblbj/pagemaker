@@ -149,8 +149,8 @@ export default function ImageSelectorDialog({
   })
   const containerRef = useRef<HTMLDivElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
-  const itemHeight = 176 // 每行高度估算
-  const itemsPerRow = 5
+  const itemHeight = 140 // 每行高度估算
+  const itemsPerRow = 8
   const bufferRows = 4
 
   const startRow = useMemo(() => Math.max(Math.floor(scrollTop / itemHeight) - bufferRows, 0), [scrollTop])
@@ -259,7 +259,7 @@ export default function ImageSelectorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'max-w-none',
+          'max-w-none p-0 gap-0 flex flex-col',
           activeTab === 'cabinet'
             ? 'w-[90vw] h-[75vh] sm:max-w-[90vw] md:max-w-[90vw] lg:max-w-[90vw] xl:max-w-[90vw]'
             : 'w-[600px] h-auto sm:max-w-[600px] md:max-w-[600px] lg:max-w-[600px] xl:max-w-[600px]'
@@ -270,16 +270,15 @@ export default function ImageSelectorDialog({
             : { maxWidth: '600px', width: '600px' }
         }
       >
-        <DialogHeader>
-          <DialogTitle>{tEditor('选择图片')}</DialogTitle>
-          <DialogDescription>{tEditor('从本地上传新图片或从R-Cabinet中选择已有图片')}</DialogDescription>
+        <DialogHeader className="pb-2 pt-6 px-6">
+          <DialogTitle className="text-base">{tEditor('选择图片')}</DialogTitle>
         </DialogHeader>
 
-        <div className="w-full">
+        <div className="w-full flex-1 flex flex-col overflow-hidden px-6 pb-6">
           <div className="grid w-full grid-cols-2 border-b">
             <button
               className={cn(
-                'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                'px-3 py-1.5 text-sm font-medium border-b-2 transition-colors',
                 activeTab === 'upload'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -290,7 +289,7 @@ export default function ImageSelectorDialog({
             </button>
             <button
               className={cn(
-                'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                'px-3 py-1.5 text-sm font-medium border-b-2 transition-colors',
                 activeTab === 'cabinet'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -305,7 +304,7 @@ export default function ImageSelectorDialog({
           </div>
 
           {activeTab === 'upload' && (
-            <div className="space-y-4 mt-4">
+            <div className="space-y-4 mt-2">
               {uploadStatus === 'error' && uploadError && (
                 <Alert className="border-red-200 bg-red-50">
                   <XCircle className="h-4 w-4 text-red-600" />
@@ -349,7 +348,7 @@ export default function ImageSelectorDialog({
           )}
 
           {activeTab === 'cabinet' && (
-            <div className="flex h-[500px] mt-4 border rounded-lg overflow-hidden">
+            <div className="flex flex-1 mt-2 border rounded-lg overflow-hidden">
               <div className="w-80 border-r">
                 <RCabinetFileTree
                   onFolderSelect={handleFolderSelect}
@@ -360,11 +359,11 @@ export default function ImageSelectorDialog({
               </div>
 
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="flex-shrink-0 bg-white border-b px-4 py-3">
+                <div className="flex-shrink-0 bg-white border-b px-3 py-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       {/* 路径面包屑 */}
-                      <div className="flex items-center gap-1 text-sm text-gray-600 flex-1 min-w-0">
+                      <div className="flex items-center gap-1 text-xs text-gray-600 flex-1 min-w-0">
                         {buildPathBreadcrumb().map((breadcrumb, index, array) => (
                           <div key={breadcrumb.id} className="flex items-center gap-1 flex-shrink-0">
                             <span
@@ -385,15 +384,15 @@ export default function ImageSelectorDialog({
                         ))}
                       </div>
                       {cabinetImages.length > 0 && (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
+                        <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
                           {cabinetImages.length} {tEditor('个图片')}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       {loadingCabinet && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-blue-500 animate-spin" />
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <div className="h-3 w-3 rounded-full border-2 border-t-transparent border-blue-500 animate-spin" />
                           {tEditor('加载中...')}
                         </div>
                       )}
@@ -402,7 +401,7 @@ export default function ImageSelectorDialog({
                         <select
                           value={imageSortMode}
                           onChange={e => setImageSortMode(e.target.value as any)}
-                          className="appearance-none bg-white border rounded px-3 py-1 pr-8 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="appearance-none bg-white border rounded px-2 py-0.5 pr-6 text-xs text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="name-asc">{tEditor('文件名 A-Z')}</option>
                           <option value="name-desc">{tEditor('文件名 Z-A')}</option>
@@ -411,14 +410,14 @@ export default function ImageSelectorDialog({
                           <option value="size-desc">{tEditor('文件大小 大-小')}</option>
                           <option value="size-asc">{tEditor('文件大小 小-大')}</option>
                         </select>
-                        <ArrowUpDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
+                        <ArrowUpDown className="absolute right-1.5 top-1/2 transform -translate-y-1/2 h-2.5 w-2.5 text-gray-400 pointer-events-none" />
                       </div>
                       <button
-                        className="inline-flex items-center justify-center h-8 w-8 border rounded hover:bg-gray-50"
+                        className="inline-flex items-center justify-center h-6 w-6 border rounded hover:bg-gray-50"
                         title={tEditor('刷新图片')}
                         onClick={() => loadCabinetImages(selectedFolderId)}
                       >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
@@ -427,7 +426,7 @@ export default function ImageSelectorDialog({
                 <div
                   ref={containerRef}
                   onScroll={virtual ? handleScroll : undefined}
-                  className="flex-1 overflow-y-auto p-4"
+                  className="flex-1 overflow-y-auto p-2"
                 >
                   {loadingCabinet ? (
                     <div className="flex items-center justify-center h-full">
@@ -451,11 +450,11 @@ export default function ImageSelectorDialog({
                             paddingBottom: (totalRows - endRow) * itemHeight
                           }}
                         >
-                          <div className="grid grid-cols-5 gap-3">
+                          <div className="grid grid-cols-8 gap-2">
                             {cabinetImages.slice(startIndex, endIndex).map(image => (
                               <div
                                 key={image.id}
-                                className="group cursor-pointer border rounded-lg p-2 hover:border-blue-500 hover:shadow-md transition-all duration-200"
+                                className="group cursor-pointer border rounded-lg p-1.5 hover:border-blue-500 hover:shadow-md transition-all duration-200"
                                 onClick={() => {
                                   onSelect({
                                     url: image.url,
@@ -466,17 +465,17 @@ export default function ImageSelectorDialog({
                                   onOpenChange(false)
                                 }}
                               >
-                                <div className="aspect-square overflow-hidden rounded-md mb-2">
+                                <div className="aspect-square overflow-hidden rounded mb-1.5">
                                   <img
                                     src={image.url}
                                     alt={image.filename}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                   />
                                 </div>
-                                <div className="text-xs text-gray-600 truncate mb-1" title={image.filename}>
+                                <div className="text-[11px] leading-tight font-medium text-gray-700 truncate mb-0.5" title={image.filename}>
                                   {image.filename}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-[10px] text-gray-500">
                                   {image.width}×{image.height}
                                 </div>
                               </div>
@@ -484,11 +483,11 @@ export default function ImageSelectorDialog({
                           </div>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-5 gap-3">
+                        <div className="grid grid-cols-8 gap-2">
                           {cabinetImages.map(image => (
                             <div
                               key={image.id}
-                              className="group cursor-pointer border rounded-lg p-2 hover:border-blue-500 hover:shadow-md transition-all duration-200"
+                              className="group cursor-pointer border rounded-lg p-1.5 hover:border-blue-500 hover:shadow-md transition-all duration-200"
                               onClick={() => {
                                 onSelect({
                                   url: image.url,
@@ -499,17 +498,17 @@ export default function ImageSelectorDialog({
                                 onOpenChange(false)
                               }}
                             >
-                              <div className="aspect-square overflow-hidden rounded-md mb-2">
+                              <div className="aspect-square overflow-hidden rounded mb-1.5">
                                 <img
                                   src={image.url}
                                   alt={image.filename}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                 />
                               </div>
-                              <div className="text-xs text-gray-600 truncate mb-1" title={image.filename}>
+                              <div className="text-[11px] leading-tight font-medium text-gray-700 truncate mb-0.5" title={image.filename}>
                                 {image.filename}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-[10px] text-gray-500">
                                 {image.width}×{image.height}
                               </div>
                             </div>
@@ -519,9 +518,9 @@ export default function ImageSelectorDialog({
                     </div>
                   )}
                 </div>
-                <div className="flex-shrink-0 border-t px-4 py-2 flex items-center gap-3 text-xs text-gray-600">
+                <div className="flex-shrink-0 border-t px-3 py-1.5 flex items-center gap-3 text-[10px] text-gray-600">
                   <label className="inline-flex items-center gap-1 cursor-pointer select-none">
-                    <input type="checkbox" checked={virtual} onChange={e => setVirtual(e.target.checked)} />
+                    <input type="checkbox" checked={virtual} onChange={e => setVirtual(e.target.checked)} className="h-3 w-3" />
                     启用虚拟滚动
                   </label>
                   <span>共 {cabinetImages.length} 张</span>
