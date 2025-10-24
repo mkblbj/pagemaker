@@ -116,6 +116,9 @@ class PageTemplateRepository:
             device_type=device_type,
         )
 
+        # 设置当前用户用于活动日志
+        page._current_user = owner
+
         # 执行模型验证
         page.full_clean()
         page.save()
@@ -152,6 +155,9 @@ class PageTemplateRepository:
                 else:
                     setattr(page, field, value)
 
+        # 设置当前用户用于活动日志
+        page._current_user = user
+
         # 执行验证并保存
         page.full_clean()
         page.save()
@@ -173,6 +179,9 @@ class PageTemplateRepository:
         page = PageTemplateRepository.get_page_by_id(page_id, user)
         if not page:
             return False
+
+        # 设置当前用户用于活动日志
+        page._current_user = user
 
         page.delete()
         return True
@@ -244,6 +253,9 @@ class PageTemplateRepository:
             device_type=original_page.device_type,
             owner=user,  # 新页面的所有者是当前用户
         )
+
+        # 设置当前用户用于活动日志
+        new_page._current_user = user
 
         new_page.full_clean()
         new_page.save()

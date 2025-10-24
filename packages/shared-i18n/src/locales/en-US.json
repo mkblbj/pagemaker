@@ -90,7 +90,21 @@
     "修改成功": "Update Successful",
     "页面名称已更新": "Page name updated",
     "页面名称不能为空": "Page name cannot be empty",
-    "修改页面名称失败，请重试": "Failed to update page name. Please try again"
+    "修改页面名称失败，请重试": "Failed to update page name. Please try again",
+    "比上个月增加": "increase from last month",
+    "PC 端页面": "PC Pages",
+    "电脑版页面": "Desktop version pages",
+    "移动端页面": "Mobile Pages",
+    "手机版页面": "Mobile version pages",
+    "店铺数": "Shops",
+    "已配置店铺": "Configured shops",
+    "各店铺页面统计": "Pages by Shop",
+    "暂无活动记录": "No activity records",
+    "创建": "Created",
+    "更新": "Updated",
+    "删除": "Deleted",
+    "了页面": " page",
+    "加载数据失败，请稍后重试": "Failed to load data, please try again later"
   },
   "errors": {
     "NETWORK_ERROR": "Network connection failed. Please check your network connection and try again",

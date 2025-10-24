@@ -84,10 +84,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">Pagemaker CMS</h1>
             <nav className="flex items-center space-x-4">
-              {/* <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
+              <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
                 {tCommon('仪表板')}
               </Link>
-              <Link href="/editor" className="text-muted-foreground hover:text-foreground">
+              {/* <Link href="/editor" className="text-muted-foreground hover:text-foreground">
                 {tCommon('编辑器')}
               </Link> */}
               <Link href="/pages" className="text-muted-foreground hover:text-foreground">
