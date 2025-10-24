@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/contexts/I18nContext'
 import { imageService, type CabinetImage } from '@/services/imageService'
+import { preloadService } from '@/services/preloadService'
 import { RCabinetFileTree } from '@/components/ui/rcabinet-file-tree'
 import { CheckCircle, Image as ImageIcon, XCircle, RefreshCw, ChevronRight, ArrowUpDown } from 'lucide-react'
 
@@ -48,7 +49,7 @@ export default function ImageSelectorDialog({
     }
   }, [open, initialTab])
 
-  // 当 pageId 变化时，重新加载对应页面的缓存状态
+  // 当 pageId 变化时，重新加载对应页面的缓存状态，并预热缓存
   useEffect(() => {
     if (pageId && typeof window !== 'undefined') {
       console.log('[ImageSelectorDialog] pageId 变化，重新加载缓存状态', pageId)
@@ -67,6 +68,9 @@ export default function ImageSelectorDialog({
       if (open && activeTab === 'cabinet') {
         console.log('[ImageSelectorDialog] 对话框已打开，重新加载图片')
         void loadCabinetImages(savedFolderId)
+      } else {
+        // 对话框未打开时，后台预热缓存
+        preloadService.warmupCache(pageId)
       }
     }
   }, [pageId])
@@ -204,28 +208,35 @@ export default function ImageSelectorDialog({
     const targetFolderId = folderId || selectedFolderId
     setLoadingCabinet(true)
     try {
-      // 分页抓取所有图片，避免只显示第一页
-      const pageSize = 100
-      let page = 1
-      let allImages: CabinetImage[] = []
-      while (true) {
-        const resp = await imageService.getCabinetImages({
-          page,
-          pageSize,
-          folderId: targetFolderId,
-          sortMode: imageSortMode,
-          pageId  // 传递 pageId 以获取对应店铺的配置
-        })
-        allImages = allImages.concat(resp.images || [])
-        const fetched = page * pageSize
-        if (resp.total !== undefined) {
-          if (fetched >= resp.total) break
+      // 后端已经处理了分页和缓存，前端只需请求第一页即可获取所有数据
+      const resp = await imageService.getCabinetImages({
+        page: 1,
+        pageSize: 1000, // 大页面数，后端会返回所有数据
+        folderId: targetFolderId,
+        sortMode: imageSortMode,
+        pageId  // 传递 pageId 以获取对应店铺的配置
+      })
+      
+      // 如果还有更多数据，继续获取
+      const allImages = [...(resp.images || [])]
+      if (resp.total && resp.total > allImages.length) {
+        const remainingPages = Math.ceil((resp.total - allImages.length) / 1000)
+        for (let i = 2; i <= remainingPages + 1; i++) {
+          const pageResp = await imageService.getCabinetImages({
+            page: i,
+            pageSize: 1000,
+            folderId: targetFolderId,
+            sortMode: imageSortMode,
+            pageId
+          })
+          allImages.push(...(pageResp.images || []))
+          if (!pageResp.images || pageResp.images.length === 0) break
         }
-        if (!resp.images || resp.images.length === 0) break
-        page += 1
       }
+      
       setCabinetImages(allImages)
     } catch (error) {
+      console.error('[ImageSelectorDialog] 加载图片失败:', error)
       // 忽略，界面已有空态
     } finally {
       setLoadingCabinet(false)

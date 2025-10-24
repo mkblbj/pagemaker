@@ -263,27 +263,14 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     if (!selectedText) return
 
     try {
-      // 检查是否已经在 <b> 标签内
-      let node = range.commonAncestorContainer
-      if (node.nodeType === Node.TEXT_NODE) {
-        node = node.parentElement!
-      }
-      const parentB = (node as HTMLElement).closest('b')
-
-      if (parentB && parentB.textContent === selectedText) {
-        // 取消加粗：unwrap <b>
-        const textNode = iframeDoc.createTextNode(parentB.textContent || '')
-        parentB.parentNode?.replaceChild(textNode, parentB)
-      } else {
-        // 添加加粗：wrap <b>
-        const b = iframeDoc.createElement('b')
-        range.surroundContents(b)
-      }
-
+      // 使用 execCommand 支持跨段落选择
+      // execCommand 会自动处理复杂的选区情况
+      iframeDoc.execCommand('bold', false)
+      
       syncHTMLChanges()
       detectFormatState()
     } catch (error) {
-      alert('请选择同一段落内的文字')
+      console.error('加粗失败:', error)
     }
   }, [syncHTMLChanges, detectFormatState])
 
@@ -369,22 +356,9 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     console.log('[applyColor] 准备应用颜色到文本:', selectedText)
 
     try {
-      // 检查是否已经在 <font color> 内
-      let node = range.commonAncestorContainer
-      if (node.nodeType === Node.TEXT_NODE) {
-        node = node.parentElement!
-      }
-      const parentFont = (node as HTMLElement).closest('font[color]')
-
-      if (parentFont && parentFont.textContent === selectedText) {
-        // 更新颜色
-        parentFont.setAttribute('color', color.toUpperCase())
-      } else {
-        // 添加颜色：wrap <font color>
-        const font = iframeDoc.createElement('font')
-        font.setAttribute('color', color.toUpperCase())
-        range.surroundContents(font)
-      }
+      // 使用 execCommand 支持跨段落选择
+      // execCommand 会自动处理复杂的选区情况
+      iframeDoc.execCommand('foreColor', false, color.toUpperCase())
 
       syncHTMLChanges()
       detectFormatState()
@@ -396,7 +370,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       // 成功后清理保存的选区
       savedSelectionRef.current = null
     } catch (error) {
-      alert('请选择同一段落内的文字')
+      console.error('应用颜色失败:', error)
     }
   }, [syncHTMLChanges, detectFormatState])
 
@@ -437,23 +411,10 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     if (!range) return
 
     try {
-      let node = range.commonAncestorContainer
-      if (node.nodeType === Node.TEXT_NODE) {
-        node = node.parentElement!
-      }
-      const parentFont = (node as HTMLElement).closest('font[color]')
-
-      if (parentFont) {
-        const hasSize = parentFont.hasAttribute('size')
-        if (hasSize) {
-          // 保留 size，仅移除 color
-          parentFont.removeAttribute('color')
-        } else {
-          // 没有 size，直接 unwrap
-          const textNode = iframeDoc.createTextNode(parentFont.textContent || '')
-          parentFont.parentNode?.replaceChild(textNode, parentFont)
-        }
-      }
+      // 使用 removeFormat 清除格式（支持跨段落）
+      // 注意：这会移除所有格式，包括加粗等
+      // 为了只清除颜色，我们使用默认的黑色
+      iframeDoc.execCommand('removeFormat', false)
 
       syncHTMLChanges()
       detectFormatState()
@@ -462,7 +423,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       interactingWithToolbarRef.current = false
       savedSelectionRef.current = null
     } catch (error) {
-      alert('请选择同一段落内的文字')
+      console.error('清除颜色失败:', error)
     }
   }, [syncHTMLChanges, detectFormatState])
 

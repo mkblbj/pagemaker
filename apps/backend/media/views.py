@@ -520,9 +520,9 @@ def get_cabinet_folders(request):
                 normalized = _normalize_folders(
                     all_raw, with_has_children_from=normalized
                 )
-                # 缓存 5 分钟，使用店铺特定的缓存键
-                cache.set(cache_key_folders, normalized, timeout=600)
-                cache.set(cache_key_ts, time.time(), timeout=600)
+                # 缓存 30 分钟，使用店铺特定的缓存键
+                cache.set(cache_key_folders, normalized, timeout=1800)
+                cache.set(cache_key_ts, time.time(), timeout=1800)
                 cached = normalized
                 cached_ts = time.time()
             else:
@@ -556,8 +556,8 @@ def get_cabinet_folders(request):
                                     all_raw, with_has_children_from=norm
                                 )
                                 # 使用店铺特定的缓存键
-                                cache.set(cache_key_folders, norm, timeout=600)
-                                cache.set(cache_key_ts, time.time(), timeout=600)
+                                cache.set(cache_key_folders, norm, timeout=1800)
+                                cache.set(cache_key_ts, time.time(), timeout=1800)
                             except Exception:
                                 pass
 
@@ -756,9 +756,12 @@ def get_cabinet_images(request):
                     time.sleep(1.0 - delta)
             cache.set("rakuten_last_call_ts", time.monotonic(), timeout=60)
 
+        # 图片列表缓存键（基于店铺、文件夹、排序模式）
+        cache_key_images = f"cabinet_images_{shop_config.id}_{folder_id or '0'}_{sort_mode}"
+        
         # 根据参数选择API调用方式
         if search:
-            # 使用搜索API
+            # 搜索不使用缓存，直接调用API
             search_params = {
                 "file_name": search,
                 "offset": record_offset,
@@ -769,16 +772,62 @@ def get_cabinet_images(request):
             _rate_limit_sleep()
             result = cabinet_client.search_files(**search_params)
         else:
-            # 获取指定文件夹的文件列表
+            # 尝试从缓存获取
+            cached_images = cache.get(cache_key_images)
+            if cached_images is not None:
+                # 从缓存返回分页数据
+                start_idx = (page - 1) * page_size
+                end_idx = start_idx + page_size
+                page_images = cached_images[start_idx:end_idx]
+                
+                return Response(
+                    {
+                        "success": True,
+                        "data": {
+                            "images": page_images,
+                            "total": len(cached_images),
+                            "page": page,
+                            "pageSize": page_size,
+                        },
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            
+            # 获取指定文件夹的所有文件列表并缓存
             target_folder_id = int(folder_id) if folder_id else 0
-            _rate_limit_sleep()
-            result = cabinet_client.get_folder_files(
-                folder_id=target_folder_id, offset=record_offset, limit=page_size
-            )
+            all_files_data = []
+            current_page = 1
+            page_limit = 100
+            
+            # 循环获取所有图片
+            while True:
+                _rate_limit_sleep()
+                result = cabinet_client.get_folder_files(
+                    folder_id=target_folder_id, 
+                    offset=current_page, 
+                    limit=page_limit
+                )
+                
+                if not result.get("success", True):
+                    break
+                    
+                page_files = result.get("data", {}).get("files", [])
+                if not page_files:
+                    break
+                    
+                all_files_data.extend(page_files)
+                
+                # 如果返回的数量少于页面大小，说明已经是最后一页
+                if len(page_files) < page_limit:
+                    break
+                    
+                current_page += 1
+            
+            files_data = all_files_data
 
         # 解析响应数据
-        if result.get("success", True):
-            files_data = result.get("data", {}).get("files", [])
+        if search or len(files_data) > 0 or current_page > 1:
+            # files_data 已在上面定义
 
             # 转换格式（使用正确的小写字段名）
             images = []
@@ -851,17 +900,21 @@ def get_cabinet_images(request):
 
             images = _sort_images(images, sort_mode)
 
-            # 计算总数（这里使用当前页的数量作为近似值）
+            # 非搜索模式：缓存所有图片（30分钟）
+            if not search:
+                cache.set(cache_key_images, images, timeout=1800)
+            
+            # 返回分页数据
             total = len(images)
-            if len(images) == page_size:
-                # 如果返回了完整页面，可能还有更多数据
-                total = page * page_size + 1  # 设置一个大概的总数
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            page_images = images[start_idx:end_idx]
 
             return Response(
                 {
                     "success": True,
                     "data": {
-                        "images": images,
+                        "images": page_images,
                         "total": total,
                         "page": page,
                         "pageSize": page_size,
