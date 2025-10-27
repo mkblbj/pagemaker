@@ -74,9 +74,13 @@ export default function PagesPage() {
         const shopList = await shopService.getAllShopConfigurations()
         setShops(shopList)
         
-        // 如果 URL 没有店铺ID，默认选中第一个店铺
-        if (!shopIdFromUrl && shopList.length > 0) {
-          setSelectedShopId(shopList[0].id)
+        // 尝试从 sessionStorage 恢复上次选择（仅当前会话有效）
+        if (!shopIdFromUrl) {
+          const lastSelectedShopId = sessionStorage.getItem('current_shop_id')
+          if (lastSelectedShopId && shopList.some(shop => shop.id === lastSelectedShopId)) {
+            setSelectedShopId(lastSelectedShopId)
+          }
+          // 不设置默认值，让用户主动选择
         }
       } catch (error) {
         console.error('获取店铺列表失败:', error)
@@ -143,6 +147,8 @@ export default function PagesPage() {
     setSelectedShopId(shopId)
     setCurrentPage(1)
     updateUrlParams(shopId, selectedDeviceType, 1)
+    // 保存到 sessionStorage（仅当前会话有效）
+    sessionStorage.setItem('current_shop_id', shopId)
   }
 
   // 处理设备类型切换
@@ -295,6 +301,15 @@ export default function PagesPage() {
 
   // 处理创建新页面
   const handleCreatePage = () => {
+    if (!selectedShopId) {
+      toastManager.show({
+        type: 'warning',
+        title: tCommon('请先选择店铺'),
+        description: tCommon('创建页面前需要选择目标店铺'),
+        duration: 3000
+      })
+      return
+    }
     router.push(`/editor/new?shop_id=${selectedShopId}`)
   }
 
@@ -416,14 +431,26 @@ export default function PagesPage() {
         </div>
       </div>
 
-      {/* 当前店铺信息 */}
-      {selectedShop && (
+      {/* 当前店铺信息或选择提示 */}
+      {selectedShop ? (
         <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-center gap-2">
           <Store className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
             {tCommon('当前店铺')}: <span className="font-medium text-foreground">{selectedShop.shop_name}</span>
             {' '}({selectedShop.target_area})
           </span>
+        </div>
+      ) : (
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
+          <Store className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+              {tCommon('请选择店铺')}
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              {tCommon('在上方选择一个店铺以查看和管理该店铺的页面')}
+            </p>
+          </div>
         </div>
       )}
 

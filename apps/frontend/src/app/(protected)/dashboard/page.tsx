@@ -146,7 +146,7 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* 最近活动 */}
         <Card>
           <CardHeader>
@@ -186,10 +186,10 @@ export default function DashboardPage() {
         </Card>
 
         {/* 系统测试 */}
-        <div>
+        {/* <div>
           <h2 className="text-xl font-semibold mb-4">{tCommon('系统测试')}</h2>
           <TestComponent />
-        </div>
+        </div> */}
       </div>
     </div>
   )
