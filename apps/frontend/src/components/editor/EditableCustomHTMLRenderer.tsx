@@ -31,6 +31,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     linkHref: ''
   })
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showSizePicker, setShowSizePicker] = useState(false)
   const savedSelectionRef = useRef<Range | null>(null)
   // 最近一次使用的颜色（用于快速一键应用）
   const lastUsedColorRef = useRef<string | null>(null)
@@ -42,6 +43,17 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     '#FFB800', '#009688', '#5FB878', '#1E9FFF', '#A233C6', '#2F4056',
     '#E74C3C', '#D35400', '#C0392B', '#EEEEEE', '#90A4AE', '#C8C8C8',
     '#FFFFFF', '#8D6E63', '#A1887F', '#BDBDBD', '#78909C', '#9E9E9E'
+  ]
+  
+  // 字号选项列表（HTML font size 1-7，对应实际渲染大小）
+  const fontSizes = [
+    { value: '1', labelKey: 'fontSizeXSmall', preview: '10px' },
+    { value: '2', labelKey: 'fontSizeSmall', preview: '13px' },
+    { value: '3', labelKey: 'fontSizeNormal', preview: '16px' },
+    { value: '4', labelKey: 'fontSizeMedium', preview: '18px' },
+    { value: '5', labelKey: 'fontSizeLarge', preview: '24px' },
+    { value: '6', labelKey: 'fontSizeXLarge', preview: '32px' },
+    { value: '7', labelKey: 'fontSizeXXLarge', preview: '48px' }
   ]
 
   // 清理HTML - 移除编辑器添加的class和浏览器自动添加的标签
@@ -269,6 +281,12 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       
       syncHTMLChanges()
       detectFormatState()
+      
+      // 应用格式后隐藏工具栏和所有面板
+      interactingWithToolbarRef.current = false
+      setShowToolbar(false)
+      setShowColorPicker(false)
+      setShowSizePicker(false)
     } catch (error) {
       console.error('加粗失败:', error)
     }
@@ -363,6 +381,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       syncHTMLChanges()
       detectFormatState()
       setShowColorPicker(false)
+      setShowSizePicker(false)
       setShowToolbar(false)
       interactingWithToolbarRef.current = false
       // 记录最后使用的颜色
@@ -419,6 +438,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       syncHTMLChanges()
       detectFormatState()
       setShowColorPicker(false)
+      setShowSizePicker(false)
       setShowToolbar(false)
       interactingWithToolbarRef.current = false
       savedSelectionRef.current = null
@@ -427,49 +447,92 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     }
   }, [syncHTMLChanges, detectFormatState])
 
+  // 切换字号选择器
+  const toggleSizePicker = useCallback(() => {
+    const willOpen = !showSizePicker
+    
+    if (!willOpen) {
+      // 关闭面板时清理
+      interactingWithToolbarRef.current = false
+      savedSelectionRef.current = null
+    }
+    
+    setShowSizePicker(willOpen)
+  }, [showSizePicker])
+  
   // 格式化命令：字号
-  const applySize = useCallback(() => {
-    const size = prompt('请输入字号（1-7）：', formatState.size || '3')
-    if (!size || !/^[1-7]$/.test(size)) return
-
+  const applySize = useCallback((size: string) => {
     const iframe = iframeRef.current
     if (!iframe) return
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
     if (!iframeDoc) return
 
+    const bodyElement = iframeDoc.body
+    if (!bodyElement || bodyElement.contentEditable !== 'true') return
+
+    // 恢复选区前，先确保 iframe 获得焦点
+    bodyElement.focus()
+
     const selection = iframeDoc.getSelection()
-    if (!selection || selection.rangeCount === 0) return
+    if (!selection) return
+
+    // 恢复之前保存的选区
+    const savedRange = savedSelectionRef.current
+    if (savedRange) {
+      try {
+        selection.removeAllRanges()
+        selection.addRange(savedRange)
+      } catch (error) {
+        console.error('[applySize] 恢复选区失败:', error)
+        interactingWithToolbarRef.current = false
+        setShowSizePicker(false)
+        setShowToolbar(false)
+        return
+      }
+    }
+
+    // 验证恢复后的选区
+    if (selection.rangeCount === 0) {
+      console.error('[applySize] 选区恢复后没有 range')
+      interactingWithToolbarRef.current = false
+      setShowSizePicker(false)
+      setShowToolbar(false)
+      return
+    }
 
     const range = selection.getRangeAt(0)
     const selectedText = range.toString()
 
-    if (!selectedText) return
+    if (!selectedText) {
+      console.warn('[applySize] 选区为空')
+      interactingWithToolbarRef.current = false
+      setShowSizePicker(false)
+      setShowToolbar(false)
+      return
+    }
 
     try {
-      // 检查是否已经在 <font size> 内
-      let node = range.commonAncestorContainer
-      if (node.nodeType === Node.TEXT_NODE) {
-        node = node.parentElement!
-      }
-      const parentFont = (node as HTMLElement).closest('font[size]')
-
-      if (parentFont && parentFont.textContent === selectedText) {
-        // 更新字号
-        parentFont.setAttribute('size', size)
-      } else {
-        // 添加字号：wrap <font size>
-        const font = iframeDoc.createElement('font')
-        font.setAttribute('size', size)
-        range.surroundContents(font)
-      }
+      // 使用 execCommand 的 fontSize 支持跨段落选择
+      // fontSize 参数对应 HTML 的 <font size> 属性（1-7）
+      iframeDoc.execCommand('fontSize', false, size)
 
       syncHTMLChanges()
       detectFormatState()
+      
+      // 应用字号后隐藏字号面板和工具栏
+      interactingWithToolbarRef.current = false
+      setShowSizePicker(false)
+      setShowToolbar(false)
+      setShowColorPicker(false)
+      savedSelectionRef.current = null
     } catch (error) {
-      alert('请选择同一段落内的文字')
+      console.error('应用字号失败:', error)
+      interactingWithToolbarRef.current = false
+      setShowSizePicker(false)
+      setShowToolbar(false)
     }
-  }, [formatState.size, syncHTMLChanges, detectFormatState])
+  }, [syncHTMLChanges, detectFormatState])
 
   // 格式化命令：链接
   const applyLink = useCallback(() => {
@@ -503,27 +566,50 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
           if (url) {
             parentA.setAttribute('href', url)
             parentA.setAttribute('target', '_blank')
+          } else {
+            // 用户取消，隐藏工具栏和所有面板
+            interactingWithToolbarRef.current = false
+            setShowToolbar(false)
+            setShowColorPicker(false)
+            setShowSizePicker(false)
+            return
           }
         } else {
-          // 移除链接：unwrap <a>
-          const textNode = iframeDoc.createTextNode(parentA.textContent || '')
-          parentA.parentNode?.replaceChild(textNode, parentA)
+          // 移除链接：使用 execCommand
+          iframeDoc.execCommand('unlink', false)
         }
       } else {
-        // 添加链接：wrap <a>
+        // 添加链接：使用 execCommand 支持跨段落选择
         const url = prompt('请输入链接地址：', 'https://')
         if (url) {
-          const a = iframeDoc.createElement('a')
-          a.setAttribute('href', url)
-          a.setAttribute('target', '_blank')
-          range.surroundContents(a)
+          iframeDoc.execCommand('createLink', false, url)
+          
+          // 为新创建的链接添加 target="_blank" 属性
+          // execCommand 创建的链接没有 target 属性，需要手动添加
+          const links = iframeDoc.querySelectorAll('a[href="' + url + '"]:not([target])')
+          links.forEach(link => {
+            link.setAttribute('target', '_blank')
+          })
+        } else {
+          // 用户取消，隐藏工具栏和所有面板
+          interactingWithToolbarRef.current = false
+          setShowToolbar(false)
+          setShowColorPicker(false)
+          setShowSizePicker(false)
+          return
         }
       }
 
       syncHTMLChanges()
       detectFormatState()
+      
+      // 应用链接后隐藏工具栏和所有面板
+      interactingWithToolbarRef.current = false
+      setShowToolbar(false)
+      setShowColorPicker(false)
+      setShowSizePicker(false)
     } catch (error) {
-      alert('请选择同一段落内的文字')
+      console.error('应用链接失败:', error)
     }
   }, [syncHTMLChanges, detectFormatState])
 
@@ -702,15 +788,17 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
         if (interactingWithToolbarRef.current) return
         setShowToolbar(false)
         setShowColorPicker(false)
+        setShowSizePicker(false)
         return
       }
 
       const selectedText = selection.toString().trim()
       console.log('[selectionchange] 选区文本:', selectedText, '长度:', selectedText.length, '是否可编辑:', bodyElement.contentEditable)
       if (selectedText.length > 0 && bodyElement.contentEditable === 'true') {
-        // 每次选区变化时关闭颜色面板，避免自动再次弹出（但与工具条交互时保留）
+        // 每次选区变化时关闭颜色面板和字号面板，避免自动再次弹出（但与工具条交互时保留）
         if (!interactingWithToolbarRef.current) {
           setShowColorPicker(false)
+          setShowSizePicker(false)
         }
         setShowToolbar(true)
         updateToolbarPosition()
@@ -720,14 +808,41 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
         if (interactingWithToolbarRef.current) return
         setShowToolbar(false)
         setShowColorPicker(false)
+        setShowSizePicker(false)
       }
     }
 
     iframeDoc.addEventListener('selectionchange', handleSelectionChange)
 
+    // 监听点击事件，点击空白区域时隐藏工具栏
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      
+      // 如果点击的是图片，不隐藏工具栏（图片有自己的处理逻辑）
+      if (target.tagName === 'IMG') return
+      
+      // 如果当前正在与工具栏交互，不隐藏
+      if (interactingWithToolbarRef.current) return
+      
+      // 获取当前选区
+      const selection = iframeDoc.getSelection()
+      const selectedText = selection?.toString().trim() || ''
+      
+      // 如果没有选中文字，隐藏工具栏和所有面板
+      if (!selectedText) {
+        console.log('[click] 点击空白区域，隐藏工具栏')
+        setShowToolbar(false)
+        setShowColorPicker(false)
+        setShowSizePicker(false)
+      }
+    }
+    
+    iframeDoc.addEventListener('click', handleClick)
+
     return () => {
       observer.disconnect()
       iframeDoc.removeEventListener('selectionchange', handleSelectionChange)
+      iframeDoc.removeEventListener('click', handleClick)
     }
   }, [html, isEditing, syncHTMLChanges, updateToolbarPosition, detectFormatState])
 
@@ -849,17 +964,65 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
           </div>
 
           {/* 字号按钮 */}
-          <button
-            className={`px-3 py-1.5 rounded transition-all ${
-              formatState.size 
-                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
-                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-            }`}
-            onClick={applySize}
-            title={`字号 ${formatState.size ? `(${formatState.size})` : ''}`}
-          >
-            T{formatState.size && <span className="text-xs ml-0.5">{formatState.size}</span>}
-          </button>
+          <div className="relative">
+            <button
+              className={`px-3 py-1.5 rounded transition-all ${
+                formatState.size 
+                  ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
+                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+              }`}
+              onMouseDown={(e) => { 
+                e.preventDefault()
+                e.stopPropagation()
+                // 立即锁定交互标记，防止任何事件关闭工具栏
+                interactingWithToolbarRef.current = true
+                // 立即保存当前选区
+                preserveSelection()
+              }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                // 切换字号面板显示
+                toggleSizePicker()
+              }}
+              title={`字号 ${formatState.size ? `(${formatState.size})` : ''}`}
+            >
+              T{formatState.size && <span className="text-xs ml-0.5">{formatState.size}</span>}
+            </button>
+            
+            {/* 字号选择器 */}
+            {showSizePicker && (
+              <div 
+                className="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-2xl border border-gray-200 p-3"
+                style={{ minWidth: '220px' }}
+                onMouseDown={(e) => { 
+                  e.preventDefault()
+                  // 阻止失焦，保持 iframe 焦点
+                }}
+              >
+                <div className="text-xs text-gray-600 mb-2 whitespace-nowrap">{tEditor('selectFontSize')}</div>
+                <div className="space-y-1">
+                  {fontSizes.map((item) => (
+                    <button
+                      key={item.value}
+                      className={`w-full px-3 py-2 rounded text-left transition-all hover:bg-blue-50 flex items-center justify-between whitespace-nowrap ${
+                        formatState.size === item.value 
+                          ? 'bg-blue-100 text-blue-600 font-semibold' 
+                          : 'text-gray-700'
+                      }`}
+                      style={{ fontSize: item.preview }}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applySize(item.value)}
+                      title={`${tEditor('fontSize')} ${item.value} (${item.preview})`}
+                    >
+                      <span>{tEditor(item.labelKey)}</span>
+                      <span className="opacity-60">{tEditor('previewText')}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* 链接按钮 */}
           <button
