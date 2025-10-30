@@ -938,7 +938,7 @@ export default function PagesPage() {
               onClick={() => setCreateDialogOpen(false)}
               disabled={isCreating}
             >
-              {tCommon('取消')}
+              {tCommon('cancel')}
             </Button>
             <Button
               onClick={handleConfirmCreatePage}
