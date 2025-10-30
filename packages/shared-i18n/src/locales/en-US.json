@@ -93,6 +93,11 @@
     "页面名称已更新": "Page name updated",
     "页面名称不能为空": "Page name cannot be empty",
     "修改页面名称失败，请重试": "Failed to update page name. Please try again",
+    "创建新页面": "Create New Page",
+    "请选择店铺并输入页面名称，然后点击创建按钮": "Please select a shop and enter a page name, then click create button",
+    "请输入页面名称": "Please enter page name",
+    "创建中...": "Creating...",
+    "必须选择店铺才能保存页面": "Must select a shop to save the page",
     "比上个月增加": "increase from last month",
     "PC 端页面": "PC Pages",
     "电脑版页面": "Desktop version pages",
@@ -106,7 +111,8 @@
     "更新": "Updated",
     "删除": "Deleted",
     "了页面": " page",
-    "加载数据失败，请稍后重试": "Failed to load data, please try again later"
+    "加载数据失败，请稍后重试": "Failed to load data, please try again later",
+    "页面名称": "Page Name"
   },
   "errors": {
     "NETWORK_ERROR": "Network connection failed. Please check your network connection and try again",
@@ -349,7 +355,6 @@
     "单击内容编辑": "Click to edit content",
     "间隔模块": "Spacer Module",
     "表格模块": "Table Module",
-    "页面名称": "Page Name",
     "拆分预览": "Split Preview",
     "查看 HTML 拆分结果，确认后将替换当前模块为多个可编辑模块": "View HTML split results, confirm to replace current module with multiple editable modules",
     "正在拆分 HTML...": "Splitting HTML...",

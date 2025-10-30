@@ -68,6 +68,8 @@ function EditorPageContent() {
         }
 
         const page = await pageService.getPage(pageId)
+        // 如果URL中有shop_id参数，确保它与页面的shop_id一致（用于上下文保持）
+        // 但不修改实际的页面数据，只是用于界面显示
         setPage(page)
       } catch (error) {
         console.error(tError('加载页面失败:'), error)
@@ -78,7 +80,7 @@ function EditorPageContent() {
     }
 
     loadPage()
-  }, [pageId, setPage, setLoading, setError, tError, tEditor])
+  }, [pageId, shopIdFromUrl, setPage, setLoading, setError, tError, tEditor])
 
   // 清理状态
   useEffect(() => {

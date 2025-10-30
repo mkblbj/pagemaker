@@ -117,6 +117,16 @@ export const pageService = {
    * 保存页面（智能判断创建或更新）
    */
   async savePage(page: Partial<PageTemplate> & { name: string; shop_id?: string; device_type?: 'pc' | 'mobile' }): Promise<PageTemplate> {
+    // 验证必填字段
+    if (!page.name || !page.name.trim()) {
+      throw new Error('页面名称不能为空')
+    }
+
+    // 验证shop_id - 无论是创建还是更新，都必须有shop_id
+    if (!page.shop_id || !page.shop_id.trim()) {
+      throw new Error('必须选择店铺才能保存页面')
+    }
+
     if (page.id) {
       // 更新现有页面
       const updateData: UpdatePageTemplateRequest = {
@@ -131,8 +141,7 @@ export const pageService = {
       const createData: CreatePageTemplateRequest = {
         name: page.name,
         content: page.content || [],
-        // 只在 shop_id 存在且不为空字符串时才传递
-        shop_id: page.shop_id && page.shop_id.trim() ? page.shop_id : undefined,
+        shop_id: page.shop_id,
         device_type: page.device_type || 'mobile'  // 默认移动端
       }
       return this.createPage(createData)

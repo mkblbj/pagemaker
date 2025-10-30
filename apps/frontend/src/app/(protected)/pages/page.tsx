@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -13,6 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Plus, Search, Edit, Trash2, Eye, FileText, Calendar, Monitor, Smartphone, Store, Copy, Check, X, Hash } from 'lucide-react'
 import { pageService } from '@/services/pageService'
 import { shopService } from '@/services/shopService'
@@ -43,6 +52,13 @@ export default function PagesPage() {
   // 页面名称编辑状态
   const [editingPageId, setEditingPageId] = useState<string | null>(null)
   const [editingPageName, setEditingPageName] = useState('')
+  
+  // 创建页面对话框状态
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [newPageName, setNewPageName] = useState('')
+  const [newPageShopId, setNewPageShopId] = useState('')
+  const [newPageDeviceType, setNewPageDeviceType] = useState<'pc' | 'mobile'>('mobile')
+  const [isCreating, setIsCreating] = useState(false)
   
   // 字符数统计缓存
   const [charStatsCache, setCharStatsCache] = useState<Record<string, { standard: number; rakuten: number }>>({})
@@ -299,18 +315,85 @@ export default function PagesPage() {
     }
   }
 
-  // 处理创建新页面
+  // 打开创建页面对话框
   const handleCreatePage = () => {
-    if (!selectedShopId) {
+    // 如果有选中的店铺，预填店铺ID
+    if (selectedShopId) {
+      setNewPageShopId(selectedShopId)
+    } else {
+      setNewPageShopId('')
+    }
+    setNewPageName('')
+    setNewPageDeviceType('mobile')
+    setCreateDialogOpen(true)
+  }
+
+  // 确认创建页面
+  const handleConfirmCreatePage = async () => {
+    // 验证输入
+    if (!newPageName.trim()) {
       toastManager.show({
         type: 'warning',
-        title: tCommon('请先选择店铺'),
+        title: tCommon('请输入页面名称'),
+        description: tCommon('页面名称不能为空'),
+        duration: 3000
+      })
+      return
+    }
+
+    if (!newPageShopId) {
+      toastManager.show({
+        type: 'warning',
+        title: tCommon('请选择店铺'),
         description: tCommon('创建页面前需要选择目标店铺'),
         duration: 3000
       })
       return
     }
-    router.push(`/editor/new?shop_id=${selectedShopId}`)
+
+    setIsCreating(true)
+    
+    try {
+      // 创建页面
+      const newPage = await pageService.createPage({
+        name: newPageName.trim(),
+        content: [],
+        shop_id: newPageShopId,
+        device_type: newPageDeviceType
+      })
+
+      // 关闭对话框
+      setCreateDialogOpen(false)
+      
+      // 显示成功提示
+      toastManager.show({
+        type: 'success',
+        title: tCommon('创建成功'),
+        description: tCommon('页面已创建，正在打开编辑器...'),
+        duration: 2000
+      })
+
+      // 延迟一下让用户看到提示
+      setTimeout(() => {
+        // 跳转到编辑器，并带上shop_id确保上下文正确
+        window.open(`/editor/${newPage.id}?shop_id=${newPageShopId}`, '_blank')
+      }, 500)
+
+      // 如果创建的页面属于当前筛选的店铺，刷新列表
+      if (newPageShopId === selectedShopId) {
+        await fetchPages(selectedShopId, selectedDeviceType, currentPage, debouncedSearchTerm)
+      }
+    } catch (error) {
+      console.error('创建页面失败:', error)
+      toastManager.show({
+        type: 'error',
+        title: tError('创建失败'),
+        description: error instanceof Error ? error.message : tError('创建页面失败，请重试'),
+        duration: 5000
+      })
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   // 格式化日期
@@ -375,7 +458,7 @@ export default function PagesPage() {
           <h1 className="text-2xl font-bold">{tCommon('页面管理')}</h1>
           <p className="text-muted-foreground">{tCommon('管理您的页面模板，创建和编辑页面内容')}</p>
         </div>
-        <Button onClick={handleCreatePage} disabled={!selectedShopId}>
+        <Button onClick={handleCreatePage}>
           <Plus className="h-4 w-4 mr-2" />
           {tCommon('创建页面')}
         </Button>
@@ -763,6 +846,109 @@ export default function PagesPage() {
         </div>
       )}
     </div>
+
+      {/* 创建页面对话框 */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{tCommon('创建新页面')}</DialogTitle>
+            <DialogDescription>
+              {tCommon('请选择店铺并输入页面名称，然后点击创建按钮')}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* 店铺选择 */}
+            <div className="space-y-2">
+              <Label htmlFor="shop-select" className="flex items-center gap-2">
+                <Store className="h-4 w-4" />
+                {tCommon('选择店铺')}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Select value={newPageShopId} onValueChange={setNewPageShopId}>
+                <SelectTrigger id="shop-select">
+                  <SelectValue placeholder={tCommon('请选择店铺')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {shops.map(shop => (
+                    <SelectItem key={shop.id} value={shop.id}>
+                      {shop.shop_name} ({shop.target_area})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 页面名称 */}
+            <div className="space-y-2">
+              <Label htmlFor="page-name" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                {tCommon('页面名称')}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="page-name"
+                value={newPageName}
+                onChange={e => setNewPageName(e.target.value)}
+                placeholder={tCommon('请输入页面名称')}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !isCreating) {
+                    handleConfirmCreatePage()
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+
+            {/* 设备类型 */}
+            <div className="space-y-2">
+              <Label htmlFor="device-type" className="flex items-center gap-2">
+                {newPageDeviceType === 'mobile' ? (
+                  <Smartphone className="h-4 w-4" />
+                ) : (
+                  <Monitor className="h-4 w-4" />
+                )}
+                {tCommon('设备类型')}
+              </Label>
+              <Select value={newPageDeviceType} onValueChange={(value: 'pc' | 'mobile') => setNewPageDeviceType(value)}>
+                <SelectTrigger id="device-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mobile">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" />
+                      {tCommon('移动端')}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pc">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      {tCommon('PC端')}
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCreateDialogOpen(false)}
+              disabled={isCreating}
+            >
+              {tCommon('取消')}
+            </Button>
+            <Button
+              onClick={handleConfirmCreatePage}
+              disabled={isCreating}
+            >
+              {isCreating ? tCommon('创建中...') : tCommon('创建页面')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
