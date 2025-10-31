@@ -112,7 +112,17 @@
     "删除": "Deleted",
     "了页面": " page",
     "加载数据失败，请稍后重试": "Failed to load data, please try again later",
-    "页面名称": "Page Name"
+    "页面名称": "Page Name",
+    "API许可证到期提醒": "API License Expiry Reminder",
+    "以下店铺的API许可证将在7天内到期，请及时更新以避免服务中断。": "The following shops' API licenses will expire within 7 days. Please update them promptly to avoid service interruption.",
+    "今日到期": "Expires Today",
+    "{days}天后到期": "Expires in {days} days",
+    "紧急": "Urgent",
+    "警告": "Warning",
+    "刷新": "Refresh",
+    "稍后处理": "Handle Later",
+    "刷新中...": "Refreshing...",
+    "全部刷新": "Refresh All"
   },
   "errors": {
     "NETWORK_ERROR": "Network connection failed. Please check your network connection and try again",

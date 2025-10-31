@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { apiClient } from '@/lib/apiClient'
 import { useTranslation } from '@/contexts/I18nContext'
 import { LanguageCompact } from '@/components/common/LanguageSwitcher'
+import { ApiExpiryReminder } from '@/components/common/ApiExpiryReminder'
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -114,6 +115,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       <main className={`flex-1 overflow-hidden ${isEditorPage ? '' : 'container mx-auto px-4 py-8 overflow-y-auto'}`}>
         {children}
       </main>
+
+      {/* API到期提醒组件 - 全局显示 */}
+      <ApiExpiryReminder />
     </div>
   )
 }
