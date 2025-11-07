@@ -41,7 +41,8 @@ export function useAutoSave(options: AutoSaveOptions = {}) {
         id: currentPage.id,
         name: currentPage.name,
         content: currentPage.content,
-        target_area: currentPage.target_area
+        shop_id: currentPage.shop_id,
+        device_type: currentPage.device_type
       })
 
       markSaved()

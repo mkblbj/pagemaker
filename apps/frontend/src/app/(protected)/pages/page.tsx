@@ -195,7 +195,7 @@ export default function PagesPage() {
 
   // 处理编辑页面
   const handleEditPage = (pageId: string) => {
-    window.open(`/editor/${pageId}?from_shop=${selectedShopId}`, '_blank')
+    window.open(`/editor/${pageId}?shop_id=${selectedShopId}`, '_blank')
   }
 
   // 处理预览页面
