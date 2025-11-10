@@ -51,6 +51,7 @@ export function ImageModule({
   onEndEdit: _onEndEdit
 }: ImageModuleProps) {
   const { tEditor } = useTranslation()
+  const { currentPage } = usePageStore()
   const [showImageSelector, setShowImageSelector] = useState(false)
 
   // 统一图片选择回调（来自共享对话框）
@@ -179,7 +180,7 @@ export function ImageModule({
         onOpenChange={setShowImageSelector}
         onSelect={handleSelect}
         initialTab="cabinet"
-        pageId={usePageStore.getState().currentPage?.id}
+        pageId={currentPage?.id}
       />
     </div>
   )

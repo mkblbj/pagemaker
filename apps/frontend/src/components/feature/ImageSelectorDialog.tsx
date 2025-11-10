@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -37,17 +37,31 @@ export default function ImageSelectorDialog({
 }: ImageSelectorDialogProps) {
   const { tEditor } = useTranslation()
 
+  // 工具函数：生成带页面ID的存储键
+  const getStorageKey = useCallback((key: string) => pageId ? `${key}_${pageId}` : key, [pageId])
+
   // tabs
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab)
 
-  // 每次打开时重置到指定初始标签
+  // 每次打开时重置到指定初始标签，并从 localStorage 恢复最新的文件夹状态
   useEffect(() => {
-    if (open) setActiveTab(initialTab)
-    // 重新打开时，保持已选文件夹图片立即可见
-    if (open && activeTab === 'cabinet' && selectedFolderId) {
-      void loadCabinetImages(selectedFolderId)
+    if (open) {
+      setActiveTab(initialTab)
+      
+      // 每次打开对话框时，都从 localStorage 恢复最新的文件夹状态
+      if (pageId && typeof window !== 'undefined') {
+        const savedFolderId = window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_id')) || '0'
+        const savedFolderName = window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_name')) || '根目录'
+        const savedFolderPath = window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_path')) || ''
+        
+        console.log('[ImageSelectorDialog] 对话框打开，恢复文件夹状态:', { savedFolderId, savedFolderName, savedFolderPath })
+        
+        setSelectedFolderId(savedFolderId)
+        setSelectedFolderName(savedFolderName)
+        setSelectedFolderPath(savedFolderPath)
+      }
     }
-  }, [open, initialTab])
+  }, [open, initialTab, pageId, getStorageKey])
 
   // 当 pageId 变化时，重新加载对应页面的缓存状态，并预热缓存
   useEffect(() => {
@@ -115,8 +129,6 @@ export default function ImageSelectorDialog({
   }
 
   // cabinet - 从localStorage恢复上次选择的文件夹（按页面ID区分缓存）
-  const getStorageKey = (key: string) => pageId ? `${key}_${pageId}` : key
-  
   const [selectedFolderId, setSelectedFolderId] = useState<string>(() => {
     if (typeof window !== 'undefined' && pageId) {
       return window.localStorage.getItem(getStorageKey('rcabinet_selected_folder_id')) || '0'
@@ -242,6 +254,15 @@ export default function ImageSelectorDialog({
       setLoadingCabinet(false)
     }
   }
+
+  // 当对话框打开且在 cabinet 标签时，加载选中文件夹的图片
+  useEffect(() => {
+    if (open && activeTab === 'cabinet' && selectedFolderId) {
+      console.log('[ImageSelectorDialog] 加载文件夹图片:', selectedFolderId)
+      void loadCabinetImages(selectedFolderId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeTab, selectedFolderId])
 
   // 图片排序模式变化时重新加载图片
   useEffect(() => {

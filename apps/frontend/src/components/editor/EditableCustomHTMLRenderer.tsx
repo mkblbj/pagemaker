@@ -14,6 +14,7 @@ interface EditableCustomHTMLRendererProps {
 
 export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }: EditableCustomHTMLRendererProps) {
   const { tEditor } = useTranslation()
+  const { currentPage } = usePageStore()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [iframeHeight, setIframeHeight] = useState(0)
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
@@ -1044,7 +1045,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
         open={showImageSelector} 
         onOpenChange={setShowImageSelector} 
         onSelect={handleImageSelect}
-        pageId={usePageStore.getState().currentPage?.id}
+        pageId={currentPage?.id}
       />
     </>
   )
