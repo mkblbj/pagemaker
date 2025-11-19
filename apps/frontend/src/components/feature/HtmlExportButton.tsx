@@ -378,6 +378,9 @@ export function HtmlExportButton({
           {/* 页面信息 */}
           <div className="space-y-2">
             <div className="flex items-center gap-4 py-2 flex-wrap">
+              <Badge variant="secondary" className="text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                {currentPage?.name || pageTitle}
+              </Badge>
               <Badge variant="outline" className="text-xs">
                 {getModuleCount()} {tEditor('个模块')}
               </Badge>
