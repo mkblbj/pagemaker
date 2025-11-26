@@ -107,6 +107,19 @@ export const imageService = {
     
     console.log('[imageService.getCabinetFolders] 请求参数:', filteredParams)
     
+    // 如果强制刷新，先清除对应的缓存
+    if (params?.force && typeof window !== 'undefined') {
+      const cacheKey = {
+        parentPath: filteredParams?.parentPath,
+        all: filteredParams?.all,
+        pageId: filteredParams?.pageId
+      }
+      // 异步清除缓存，不阻塞请求
+      cacheService.deleteFolders(cacheKey).catch(err => {
+        console.warn('[imageService.getCabinetFolders] 清除缓存失败:', err)
+      })
+    }
+    
     // Stale-While-Revalidate: 如果不强制刷新，尝试从缓存获取
     if (!params?.force && typeof window !== 'undefined') {
       const cacheKey = {
@@ -171,6 +184,7 @@ export const imageService = {
     folderId?: string
     sortMode?: 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'size-asc' | 'size-desc'
     pageId?: string
+    force?: boolean  // 强制刷新，跳过缓存
   }): Promise<CabinetImageListResponse> {
     // 过滤掉空字符串的 pageId
     const filteredParams = params ? {
@@ -178,8 +192,21 @@ export const imageService = {
       pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined
     } : undefined
     
-    // Stale-While-Revalidate: 如果不是搜索模式，尝试从缓存获取
-    if (!params?.search && typeof window !== 'undefined') {
+    // 如果强制刷新，先清除对应的缓存
+    if (params?.force && typeof window !== 'undefined') {
+      const cacheKey = {
+        folderId: filteredParams?.folderId,
+        sortMode: filteredParams?.sortMode,
+        pageId: filteredParams?.pageId
+      }
+      // 异步清除缓存，不阻塞请求
+      cacheService.deleteImages(cacheKey).catch(err => {
+        console.warn('[imageService.getCabinetImages] 清除缓存失败:', err)
+      })
+    }
+    
+    // Stale-While-Revalidate: 如果不是搜索模式且不强制刷新，尝试从缓存获取
+    if (!params?.search && !params?.force && typeof window !== 'undefined') {
       const cacheKey = {
         folderId: filteredParams?.folderId,
         sortMode: filteredParams?.sortMode,

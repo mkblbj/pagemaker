@@ -216,7 +216,7 @@ export default function ImageSelectorDialog({
     return breadcrumbs
   }
 
-  const loadCabinetImages = async (folderId?: string) => {
+  const loadCabinetImages = async (folderId?: string, force: boolean = false) => {
     const targetFolderId = folderId || selectedFolderId
     setLoadingCabinet(true)
     try {
@@ -226,7 +226,8 @@ export default function ImageSelectorDialog({
         pageSize: 1000, // 大页面数，后端会返回所有数据
         folderId: targetFolderId,
         sortMode: imageSortMode,
-        pageId  // 传递 pageId 以获取对应店铺的配置
+        pageId,  // 传递 pageId 以获取对应店铺的配置
+        force    // 强制刷新时跳过缓存
       })
       
       // 如果还有更多数据，继续获取
@@ -240,6 +241,7 @@ export default function ImageSelectorDialog({
             folderId: targetFolderId,
             sortMode: imageSortMode,
             pageId
+            // 后续页不需要 force，因为第一页已经刷新了缓存
           })
           allImages.push(...(pageResp.images || []))
           if (!pageResp.images || pageResp.images.length === 0) break
@@ -436,7 +438,7 @@ export default function ImageSelectorDialog({
                       <button
                         className="inline-flex items-center justify-center h-6 w-6 border rounded hover:bg-gray-50"
                         title={tEditor('刷新图片')}
-                        onClick={() => loadCabinetImages(selectedFolderId)}
+                        onClick={() => loadCabinetImages(selectedFolderId, true)}
                       >
                         <RefreshCw className="h-3 w-3" />
                       </button>

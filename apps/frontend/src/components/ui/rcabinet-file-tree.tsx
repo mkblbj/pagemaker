@@ -754,6 +754,9 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
                 try {
                   setIsLoading(true)
                   setError(null)
+                  // 清除本地内存缓存
+                  childrenCacheRef.current.clear()
+                  pendingRef.current.clear()
                   const resp = await imageService.getCabinetFolders({ all: true, page: 1, pageSize: 500, force: true, pageId })
                   const tree = buildFolderTree(resp.folders || [])
                   setTreeData(tree)

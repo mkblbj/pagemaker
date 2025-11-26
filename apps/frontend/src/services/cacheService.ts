@@ -256,6 +256,45 @@ class CacheService {
     const key = this.getCacheKey('images', params)
     await this.set(IMAGES_STORE, key, data, params.pageId)
   }
+
+  /**
+   * 删除图片列表缓存
+   */
+  async deleteImages(params: Record<string, any>): Promise<void> {
+    const key = this.getCacheKey('images', params)
+    await this.delete(IMAGES_STORE, key)
+  }
+
+  /**
+   * 删除文件夹列表缓存
+   */
+  async deleteFolders(params: Record<string, any>): Promise<void> {
+    const key = this.getCacheKey('folders', params)
+    await this.delete(FOLDERS_STORE, key)
+  }
+
+  /**
+   * 清除所有缓存（用于强制刷新）
+   */
+  async clearAll(): Promise<void> {
+    try {
+      const db = await this.init()
+      
+      for (const storeName of [FOLDERS_STORE, IMAGES_STORE]) {
+        await new Promise<void>((resolve, reject) => {
+          const transaction = db.transaction(storeName, 'readwrite')
+          const store = transaction.objectStore(storeName)
+          const request = store.clear()
+
+          request.onsuccess = () => resolve()
+          request.onerror = () => reject(request.error)
+        })
+      }
+      console.log('[CacheService] 所有缓存已清除')
+    } catch (error) {
+      console.error('[CacheService] 清除所有缓存失败:', error)
+    }
+  }
 }
 
 // 导出单例
