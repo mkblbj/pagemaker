@@ -765,6 +765,9 @@ def get_cabinet_images(request):
             cache.delete(cache_key_images)
             logger.info(f"强制刷新：已清除图片缓存 {cache_key_images}")
         
+        # 初始化 files_data
+        files_data = []
+        
         # 根据参数选择API调用方式
         if search:
             # 搜索不使用缓存，直接调用API
@@ -777,6 +780,9 @@ def get_cabinet_images(request):
                 search_params["folder_id"] = int(folder_id)
             _rate_limit_sleep()
             result = cabinet_client.search_files(**search_params)
+            # 从搜索结果中提取文件数据
+            if result.get("success", True):
+                files_data = result.get("data", {}).get("files", [])
         else:
             # 尝试从缓存获取（如果不是强制刷新）
             cached_images = cache.get(cache_key_images) if not force_refresh else None
@@ -832,108 +838,102 @@ def get_cabinet_images(request):
             files_data = all_files_data
 
         # 解析响应数据
-        if search or len(files_data) > 0 or current_page > 1:
-            # files_data 已在上面定义
+        # 无论是否有数据，都进入处理逻辑（空文件夹应返回空列表，而不是错误）
+        # files_data 已在上面定义
 
-            # 转换格式（使用正确的小写字段名）
-            images = []
-            for file_info in files_data:
-                # 使用正确的字段名（API实际返回的是小写字段名）
-                file_name = file_info.get("file_name", "")  # 用户友好的图片名
-                file_path = file_info.get("file_path", "")  # 系统文件名（包含扩展名）
-                file_url = file_info.get("file_url", "")
-                file_id = file_info.get("file_id", "")
-                file_size = file_info.get("file_size", 0)
-                file_width = file_info.get("file_width", 0)
-                file_height = file_info.get("file_height", 0)
-                timestamp = file_info.get("timestamp", "")
+        # 转换格式（使用正确的小写字段名）
+        images = []
+        for file_info in files_data:
+            # 使用正确的字段名（API实际返回的是小写字段名）
+            file_name = file_info.get("file_name", "")  # 用户友好的图片名
+            file_path = file_info.get("file_path", "")  # 系统文件名（包含扩展名）
+            file_url = file_info.get("file_url", "")
+            file_id = file_info.get("file_id", "")
+            file_size = file_info.get("file_size", 0)
+            file_width = file_info.get("file_width", 0)
+            file_height = file_info.get("file_height", 0)
+            timestamp = file_info.get("timestamp", "")
 
-                # 支持所有Rakuten Cabinet支持的图片格式
-                # 使用file_path来判断文件类型，因为它总是包含正确的扩展名
-                supported_extensions = [
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                    ".gif",
-                    ".webp",
-                    ".tiff",
-                    ".tif",
-                    ".bmp",
-                ]
-                is_image = any(
-                    file_path.lower().endswith(ext) for ext in supported_extensions
+            # 支持所有Rakuten Cabinet支持的图片格式
+            # 使用file_path来判断文件类型，因为它总是包含正确的扩展名
+            supported_extensions = [
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".gif",
+                ".webp",
+                ".tiff",
+                ".tif",
+                ".bmp",
+            ]
+            is_image = any(
+                file_path.lower().endswith(ext) for ext in supported_extensions
+            )
+
+            if is_image and file_url:  # 确保有URL才添加
+                # 显示名称优先使用file_name，如果为空则使用file_path
+                display_name = file_name if file_name.strip() else file_path
+
+                images.append(
+                    {
+                        "id": str(file_id),
+                        "url": file_url,
+                        "filename": display_name,  # 使用友好的显示名称
+                        "size": float(file_size) if file_size else 0,
+                        "width": int(file_width) if file_width else 0,
+                        "height": int(file_height) if file_height else 0,
+                        "mimeType": _guess_mime_type_from_filename(
+                            file_path
+                        ),  # 使用file_path判断MIME类型
+                        "uploadedAt": timestamp,
+                    }
                 )
 
-                if is_image and file_url:  # 确保有URL才添加
-                    # 显示名称优先使用file_name，如果为空则使用file_path
-                    display_name = file_name if file_name.strip() else file_path
+        # 根据排序模式对图片进行排序
+        def _sort_images(images_list, sort_mode):
+            if sort_mode == "name-asc":
+                return sorted(images_list, key=lambda x: x["filename"].lower())
+            elif sort_mode == "name-desc":
+                return sorted(
+                    images_list, key=lambda x: x["filename"].lower(), reverse=True
+                )
+            elif sort_mode == "date-desc":  # 最新的在前
+                return sorted(
+                    images_list, key=lambda x: x["uploadedAt"] or "", reverse=True
+                )
+            elif sort_mode == "date-asc":  # 最旧的在前
+                return sorted(images_list, key=lambda x: x["uploadedAt"] or "")
+            elif sort_mode == "size-desc":  # 文件大小从大到小
+                return sorted(images_list, key=lambda x: x["size"], reverse=True)
+            elif sort_mode == "size-asc":  # 文件大小从小到大
+                return sorted(images_list, key=lambda x: x["size"])
+            else:
+                return images_list  # 默认不排序
 
-                    images.append(
-                        {
-                            "id": str(file_id),
-                            "url": file_url,
-                            "filename": display_name,  # 使用友好的显示名称
-                            "size": float(file_size) if file_size else 0,
-                            "width": int(file_width) if file_width else 0,
-                            "height": int(file_height) if file_height else 0,
-                            "mimeType": _guess_mime_type_from_filename(
-                                file_path
-                            ),  # 使用file_path判断MIME类型
-                            "uploadedAt": timestamp,
-                        }
-                    )
+        images = _sort_images(images, sort_mode)
 
-            # 根据排序模式对图片进行排序
-            def _sort_images(images_list, sort_mode):
-                if sort_mode == "name-asc":
-                    return sorted(images_list, key=lambda x: x["filename"].lower())
-                elif sort_mode == "name-desc":
-                    return sorted(
-                        images_list, key=lambda x: x["filename"].lower(), reverse=True
-                    )
-                elif sort_mode == "date-desc":  # 最新的在前
-                    return sorted(
-                        images_list, key=lambda x: x["uploadedAt"] or "", reverse=True
-                    )
-                elif sort_mode == "date-asc":  # 最旧的在前
-                    return sorted(images_list, key=lambda x: x["uploadedAt"] or "")
-                elif sort_mode == "size-desc":  # 文件大小从大到小
-                    return sorted(images_list, key=lambda x: x["size"], reverse=True)
-                elif sort_mode == "size-asc":  # 文件大小从小到大
-                    return sorted(images_list, key=lambda x: x["size"])
-                else:
-                    return images_list  # 默认不排序
+        # 非搜索模式：缓存所有图片（30分钟）
+        if not search:
+            cache.set(cache_key_images, images, timeout=1800)
+        
+        # 返回分页数据
+        total = len(images)
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        page_images = images[start_idx:end_idx]
 
-            images = _sort_images(images, sort_mode)
-
-            # 非搜索模式：缓存所有图片（30分钟）
-            if not search:
-                cache.set(cache_key_images, images, timeout=1800)
-            
-            # 返回分页数据
-            total = len(images)
-            start_idx = (page - 1) * page_size
-            end_idx = start_idx + page_size
-            page_images = images[start_idx:end_idx]
-
-            return Response(
-                {
-                    "success": True,
-                    "data": {
-                        "images": page_images,
-                        "total": total,
-                        "page": page,
-                        "pageSize": page_size,
-                    },
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "images": page_images,
+                    "total": total,
+                    "page": page,
+                    "pageSize": page_size,
                 },
-                status=status.HTTP_200_OK,
-            )
-        else:
-            error_msg = result.get("error", "获取图片列表失败")
-            return Response(
-                {"error": {"code": "CABINET_API_ERROR", "message": error_msg}},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            },
+            status=status.HTTP_200_OK,
+        )
 
     except RakutenAPIError as e:
         logger.error(f"R-Cabinet API错误: {e}")
