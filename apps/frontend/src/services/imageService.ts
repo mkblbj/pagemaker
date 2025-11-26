@@ -99,29 +99,38 @@ export const imageService = {
     force?: boolean
     pageId?: string
   }): Promise<CabinetFolderListResponse> {
-    // 过滤掉空字符串的 pageId
+    const isForceRefresh = params?.force === true
+    
+    // 过滤掉空字符串的 pageId，保留 force 参数发送给后端
     const filteredParams = params ? {
-      ...params,
-      pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined
+      page: params.page,
+      pageSize: params.pageSize,
+      parentPath: params.parentPath,
+      all: params.all,
+      pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined,
+      force: isForceRefresh ? 'true' : undefined  // 发送给后端以清除服务端缓存
     } : undefined
     
-    console.log('[imageService.getCabinetFolders] 请求参数:', filteredParams)
+    console.log('[imageService.getCabinetFolders] 请求参数:', filteredParams, '强制刷新:', isForceRefresh)
     
-    // 如果强制刷新，先清除对应的缓存
-    if (params?.force && typeof window !== 'undefined') {
+    // 如果强制刷新，先清除对应的缓存（同步等待删除完成）
+    if (isForceRefresh && typeof window !== 'undefined') {
+      console.log('[imageService.getCabinetFolders] 强制刷新，清除缓存')
       const cacheKey = {
         parentPath: filteredParams?.parentPath,
         all: filteredParams?.all,
         pageId: filteredParams?.pageId
       }
-      // 异步清除缓存，不阻塞请求
-      cacheService.deleteFolders(cacheKey).catch(err => {
+      try {
+        await cacheService.deleteFolders(cacheKey)
+        console.log('[imageService.getCabinetFolders] 缓存已清除')
+      } catch (err) {
         console.warn('[imageService.getCabinetFolders] 清除缓存失败:', err)
-      })
+      }
     }
     
     // Stale-While-Revalidate: 如果不强制刷新，尝试从缓存获取
-    if (!params?.force && typeof window !== 'undefined') {
+    if (!isForceRefresh && typeof window !== 'undefined') {
       const cacheKey = {
         parentPath: filteredParams?.parentPath,
         all: filteredParams?.all,
@@ -186,27 +195,37 @@ export const imageService = {
     pageId?: string
     force?: boolean  // 强制刷新，跳过缓存
   }): Promise<CabinetImageListResponse> {
-    // 过滤掉空字符串的 pageId
+    const isForceRefresh = params?.force === true
+    
+    // 过滤掉空字符串的 pageId，保留 force 参数发送给后端
     const filteredParams = params ? {
-      ...params,
-      pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined
+      page: params.page,
+      pageSize: params.pageSize,
+      search: params.search,
+      folderId: params.folderId,
+      sortMode: params.sortMode,
+      pageId: params.pageId && params.pageId.trim() ? params.pageId : undefined,
+      force: isForceRefresh ? 'true' : undefined  // 发送给后端以清除服务端缓存
     } : undefined
     
-    // 如果强制刷新，先清除对应的缓存
-    if (params?.force && typeof window !== 'undefined') {
+    // 如果强制刷新，先清除对应的缓存（同步等待删除完成）
+    if (isForceRefresh && typeof window !== 'undefined') {
+      console.log('[imageService.getCabinetImages] 强制刷新，清除缓存')
       const cacheKey = {
         folderId: filteredParams?.folderId,
         sortMode: filteredParams?.sortMode,
         pageId: filteredParams?.pageId
       }
-      // 异步清除缓存，不阻塞请求
-      cacheService.deleteImages(cacheKey).catch(err => {
+      try {
+        await cacheService.deleteImages(cacheKey)
+        console.log('[imageService.getCabinetImages] 缓存已清除')
+      } catch (err) {
         console.warn('[imageService.getCabinetImages] 清除缓存失败:', err)
-      })
+      }
     }
     
     // Stale-While-Revalidate: 如果不是搜索模式且不强制刷新，尝试从缓存获取
-    if (!params?.search && !params?.force && typeof window !== 'undefined') {
+    if (!params?.search && !isForceRefresh && typeof window !== 'undefined') {
       const cacheKey = {
         folderId: filteredParams?.folderId,
         sortMode: filteredParams?.sortMode,

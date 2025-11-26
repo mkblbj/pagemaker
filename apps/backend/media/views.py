@@ -690,6 +690,7 @@ def get_cabinet_images(request):
         folder_id = request.GET.get("folderId")  # 文件夹ID过滤
         sort_mode = request.GET.get("sortMode", "name-asc")  # 排序模式
         page_id = request.GET.get("pageId")  # 页面ID（用于获取店铺配置）
+        force_refresh = request.GET.get("force", "").lower() == "true"  # 强制刷新，跳过缓存
 
         # 限制页面大小
         page_size = min(page_size, 100)
@@ -759,6 +760,11 @@ def get_cabinet_images(request):
         # 图片列表缓存键（基于店铺、文件夹、排序模式）
         cache_key_images = f"cabinet_images_{shop_config.id}_{folder_id or '0'}_{sort_mode}"
         
+        # 如果强制刷新，先清除缓存
+        if force_refresh:
+            cache.delete(cache_key_images)
+            logger.info(f"强制刷新：已清除图片缓存 {cache_key_images}")
+        
         # 根据参数选择API调用方式
         if search:
             # 搜索不使用缓存，直接调用API
@@ -772,8 +778,8 @@ def get_cabinet_images(request):
             _rate_limit_sleep()
             result = cabinet_client.search_files(**search_params)
         else:
-            # 尝试从缓存获取
-            cached_images = cache.get(cache_key_images)
+            # 尝试从缓存获取（如果不是强制刷新）
+            cached_images = cache.get(cache_key_images) if not force_refresh else None
             if cached_images is not None:
                 # 从缓存返回分页数据
                 start_idx = (page - 1) * page_size
