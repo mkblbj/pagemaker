@@ -84,11 +84,19 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
 
   // 构建文件夹树形结构
   const buildFolderTree = (folders: CabinetFolder[]): RCabinetTreeNode[] => {
+    // 先对输入进行去重，避免 React key 重复错误
+    const seenIds = new Set<string>()
+    const uniqueFolders = folders.filter(folder => {
+      if (seenIds.has(folder.id)) return false
+      seenIds.add(folder.id)
+      return true
+    })
+
     const folderMap = new Map<string, RCabinetTreeNode>()
     const rootFolders: RCabinetTreeNode[] = []
 
     // 首先创建所有文件夹的映射
-    folders.forEach(folder => {
+    uniqueFolders.forEach(folder => {
       folderMap.set(folder.id, {
         ...folder,
         children: [],
@@ -98,7 +106,7 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
     })
 
     // 构建树形结构
-    folders.forEach(folder => {
+    uniqueFolders.forEach(folder => {
       const folderWithChildren = folderMap.get(folder.id)!
 
       if (folder.node === 1 || !folder.parentPath || folder.parentPath === '') {
@@ -109,10 +117,8 @@ export function RCabinetFileTree({ onFolderSelect, selectedFolderId = '0', class
         const parent = Array.from(folderMap.values()).find(f => f.path === folder.parentPath)
         if (parent) {
           parent.children = parent.children || []
-          parent.children.push({
-            ...folderWithChildren,
-            level: (parent.level || 0) + 1
-          })
+          // 直接 push 原对象引用，而不是创建副本，确保深层子文件夹能正确关联
+          parent.children.push(folderWithChildren)
         } else {
           // 如果找不到父文件夹，作为根级处理
           rootFolders.push(folderWithChildren)

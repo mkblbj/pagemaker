@@ -9,7 +9,7 @@ import { useTranslation } from '@/contexts/I18nContext'
 import { imageService, type CabinetImage } from '@/services/imageService'
 import { preloadService } from '@/services/preloadService'
 import { RCabinetFileTree } from '@/components/ui/rcabinet-file-tree'
-import { CheckCircle, Image as ImageIcon, XCircle, RefreshCw, ChevronRight, ArrowUpDown } from 'lucide-react'
+import { CheckCircle, Image as ImageIcon, XCircle, RefreshCw, ChevronRight, ArrowUpDown, Search, X } from 'lucide-react'
 
 type ActiveTab = 'upload' | 'cabinet'
 
@@ -149,6 +149,8 @@ export default function ImageSelectorDialog({
   })
   const [cabinetImages, setCabinetImages] = useState<CabinetImage[]>([])
   const [loadingCabinet, setLoadingCabinet] = useState(false)
+  const [imageSearchTerm, setImageSearchTerm] = useState('')
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [virtual, setVirtual] = useState(true)
   const [imageSortMode, setImageSortMode] = useState<
     'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'size-asc' | 'size-desc'
@@ -181,6 +183,12 @@ export default function ImageSelectorDialog({
   }
 
   const handleFolderSelect = (folderId: string, folderName: string, folderPath?: string) => {
+    // 清除搜索词
+    setImageSearchTerm('')
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
     setSelectedFolderId(folderId)
     setSelectedFolderName(folderName)
     setSelectedFolderPath(folderPath || '')
@@ -216,18 +224,20 @@ export default function ImageSelectorDialog({
     return breadcrumbs
   }
 
-  const loadCabinetImages = async (folderId?: string, force: boolean = false) => {
+  const loadCabinetImages = async (folderId?: string, force: boolean = false, searchTerm?: string) => {
     const targetFolderId = folderId || selectedFolderId
+    const isSearchMode = !!(searchTerm && searchTerm.trim())
     setLoadingCabinet(true)
     try {
       // 后端已经处理了分页和缓存，前端只需请求第一页即可获取所有数据
       const resp = await imageService.getCabinetImages({
         page: 1,
         pageSize: 1000, // 大页面数，后端会返回所有数据
-        folderId: targetFolderId,
+        folderId: isSearchMode ? undefined : targetFolderId, // 搜索模式下不限制文件夹
         sortMode: imageSortMode,
         pageId,  // 传递 pageId 以获取对应店铺的配置
-        force    // 强制刷新时跳过缓存
+        force,   // 强制刷新时跳过缓存
+        search: isSearchMode ? searchTerm.trim() : undefined // 搜索关键词
       })
       
       // 如果还有更多数据，继续获取
@@ -238,9 +248,10 @@ export default function ImageSelectorDialog({
           const pageResp = await imageService.getCabinetImages({
             page: i,
             pageSize: 1000,
-            folderId: targetFolderId,
+            folderId: isSearchMode ? undefined : targetFolderId,
             sortMode: imageSortMode,
-            pageId
+            pageId,
+            search: isSearchMode ? searchTerm.trim() : undefined
             // 后续页不需要 force，因为第一页已经刷新了缓存
           })
           allImages.push(...(pageResp.images || []))
@@ -255,6 +266,35 @@ export default function ImageSelectorDialog({
     } finally {
       setLoadingCabinet(false)
     }
+  }
+
+  // 处理图片搜索（带防抖）
+  const handleImageSearch = (term: string) => {
+    setImageSearchTerm(term)
+    
+    // 清除之前的定时器
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    // 设置新的防抖定时器
+    searchTimeoutRef.current = setTimeout(() => {
+      if (term.trim()) {
+        void loadCabinetImages(undefined, false, term)
+      } else {
+        // 清空搜索时，恢复显示当前文件夹的图片
+        void loadCabinetImages(selectedFolderId)
+      }
+    }, 300)
+  }
+
+  // 清除搜索
+  const clearImageSearch = () => {
+    setImageSearchTerm('')
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    void loadCabinetImages(selectedFolderId)
   }
 
   // 当对话框打开且在 cabinet 标签时，加载选中文件夹的图片
@@ -382,29 +422,57 @@ export default function ImageSelectorDialog({
               </div>
 
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="flex-shrink-0 bg-white border-b px-3 py-2">
+                <div className="flex-shrink-0 bg-white border-b px-3 py-2 space-y-2">
+                  {/* 搜索框 */}
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder={tEditor('搜索文件名')}
+                      value={imageSearchTerm}
+                      onChange={e => handleImageSearch(e.target.value)}
+                      className="w-full pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {imageSearchTerm && (
+                      <button
+                        onClick={clearImageSearch}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 rounded hover:bg-gray-200 transition-colors"
+                        title={tEditor('清除搜索')}
+                      >
+                        <X className="h-3.5 w-3.5 text-gray-400" />
+                      </button>
+                    )}
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      {/* 路径面包屑 */}
+                      {/* 路径面包屑或搜索结果标识 */}
                       <div className="flex items-center gap-1 text-xs text-gray-600 flex-1 min-w-0">
-                        {buildPathBreadcrumb().map((breadcrumb, index, array) => (
-                          <div key={breadcrumb.id} className="flex items-center gap-1 flex-shrink-0">
-                            <span
-                              className={cn(
-                                'truncate max-w-[120px]',
-                                index === array.length - 1
-                                  ? 'font-medium text-gray-900'
-                                  : 'text-gray-500 hover:text-gray-700 cursor-pointer'
-                              )}
-                              title={breadcrumb.name}
-                            >
-                              {breadcrumb.name}
-                            </span>
-                            {index < array.length - 1 && (
-                              <ChevronRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            )}
+                        {imageSearchTerm.trim() ? (
+                          <div className="flex items-center gap-1.5">
+                            <Search className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                            <span className="font-medium text-blue-600">{tEditor('搜索结果')}: "{imageSearchTerm}"</span>
                           </div>
-                        ))}
+                        ) : (
+                          buildPathBreadcrumb().map((breadcrumb, index, array) => (
+                            <div key={breadcrumb.id} className="flex items-center gap-1 flex-shrink-0">
+                              <span
+                                className={cn(
+                                  'truncate max-w-[120px]',
+                                  index === array.length - 1
+                                    ? 'font-medium text-gray-900'
+                                    : 'text-gray-500 hover:text-gray-700 cursor-pointer'
+                                )}
+                                title={breadcrumb.name}
+                              >
+                                {breadcrumb.name}
+                              </span>
+                              {index < array.length - 1 && (
+                                <ChevronRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                              )}
+                            </div>
+                          ))
+                        )}
                       </div>
                       {cabinetImages.length > 0 && (
                         <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
