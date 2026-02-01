@@ -55,12 +55,13 @@ class PageTemplateSerializer(serializers.ModelSerializer):
         return value.strip()
 
     def validate_shop_id(self, value):
-        """验证店铺ID"""
+        """验证店铺ID（确保用户只能选择自己的店铺）"""
         # 空字符串或 None 转换为 None
         if not value or value.strip() == '':
             return None
         
         from configurations.models import ShopConfiguration
+        from users.models import check_user_role
         import uuid
         
         # 验证 UUID 格式
@@ -69,9 +70,23 @@ class PageTemplateSerializer(serializers.ModelSerializer):
         except (ValueError, AttributeError):
             raise serializers.ValidationError(f"店铺ID格式无效")
         
-        # 验证店铺存在
+        # 获取当前用户
+        request = self.context.get("request")
+        if not request or not request.user:
+            raise serializers.ValidationError("无法获取当前用户信息")
+        
+        # 验证店铺存在且用户有权限
         try:
-            ShopConfiguration.objects.get(id=value)
+            shop = ShopConfiguration.objects.get(id=value)
+            
+            # admin 可以使用任何店铺
+            if check_user_role(request.user, "admin"):
+                return value
+            
+            # 普通用户只能使用自己的店铺
+            if shop.owner != request.user:
+                raise serializers.ValidationError(f"您没有权限使用该店铺配置")
+            
         except ShopConfiguration.DoesNotExist:
             raise serializers.ValidationError(f"店铺ID {value} 不存在")
         
@@ -137,6 +152,7 @@ class PageTemplateSerializer(serializers.ModelSerializer):
 
         try:
             from configurations.models import ShopConfiguration
+            from users.models import check_user_role
             
             # 处理 shop_id 字段
             shop_id = validated_data.pop('shop_id', None)
@@ -146,10 +162,14 @@ class PageTemplateSerializer(serializers.ModelSerializer):
             if shop_id:
                 shop = ShopConfiguration.objects.get(id=shop_id)
             else:
-                # 如果没有提供 shop_id，使用第一个可用店铺
-                shop = ShopConfiguration.objects.first()
+                # 如果没有提供 shop_id，使用用户的第一个店铺（admin则使用系统第一个）
+                if check_user_role(request.user, "admin"):
+                    shop = ShopConfiguration.objects.first()
+                else:
+                    shop = ShopConfiguration.objects.filter(owner=request.user).first()
+                
                 if not shop:
-                    raise serializers.ValidationError({"shop_id": "系统中没有配置任何店铺，请先添加店铺配置"})
+                    raise serializers.ValidationError({"shop_id": "您还没有店铺配置，请先创建店铺配置"})
             
             # 使用Repository创建页面
             page = PageTemplateRepository.create_page(

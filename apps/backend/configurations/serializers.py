@@ -7,6 +7,9 @@ class ShopConfigurationSerializer(serializers.ModelSerializer):
     ShopConfiguration序列化器
     MVP版本：基础序列化，包含所有字段
     """
+    
+    owner_id = serializers.IntegerField(source='owner.id', read_only=True)
+    owner_username = serializers.CharField(source='owner.username', read_only=True)
 
     class Meta:
         model = ShopConfiguration
@@ -14,6 +17,8 @@ class ShopConfigurationSerializer(serializers.ModelSerializer):
             "id",
             "shop_name",
             "target_area",
+            "owner_id",
+            "owner_username",
             "api_service_secret",
             "api_license_key",
             "api_license_expiry_date",
@@ -24,7 +29,7 @@ class ShopConfigurationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "owner_id", "owner_username", "created_at", "updated_at"]
 
     def validate_target_area(self, value):
         """

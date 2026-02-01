@@ -1,5 +1,8 @@
 import uuid
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class ShopConfiguration(models.Model):
@@ -16,6 +19,14 @@ class ShopConfiguration(models.Model):
         max_length=50,
         unique=True,
         help_text="关联到PageTemplate的target_area字段，必须唯一",
+    )
+    
+    # 所有者字段
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="shop_configurations",
+        help_text="店铺配置的所有者",
     )
 
     # 乐天API配置 (MVP: 暂不加密)
@@ -44,4 +55,4 @@ class ShopConfiguration(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.shop_name} ({self.target_area})"
+        return f"{self.shop_name} ({self.target_area}) - {self.owner.username}"

@@ -33,17 +33,45 @@ class IsAdminRole(BasePermission):
         return check_user_role(request.user, "admin")
 
 
+class IsOwnerOrAdmin(BasePermission):
+    """
+    自定义权限类：允许所有者或admin访问
+    """
+    
+    def has_permission(self, request, view):
+        # 用户必须已认证
+        return request.user and request.user.is_authenticated
+    
+    def has_object_permission(self, request, view, obj):
+        # admin 可以访问所有对象
+        if check_user_role(request.user, "admin"):
+            return True
+        
+        # 所有者可以访问自己的对象
+        return obj.owner == request.user
+
+
 class ShopConfigurationListCreateView(generics.ListCreateAPIView):
     """
     店铺配置列表和创建视图
-    GET: 获取所有店铺配置列表
+    GET: 获取店铺配置列表（admin看所有，普通用户只看自己的）
     POST: 创建新的店铺配置
-    权限：仅admin用户可访问
+    权限：所有已认证用户可访问
     """
 
-    queryset = ShopConfiguration.objects.all()
     serializer_class = ShopConfigurationSerializer
-    permission_classes = [IsAuthenticated, IsAdminRole]
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """根据用户权限返回查询集"""
+        user = self.request.user
+        
+        # admin 可以看到所有店铺配置
+        if check_user_role(user, "admin"):
+            return ShopConfiguration.objects.select_related("owner").all()
+        
+        # 普通用户只能看到自己的店铺配置
+        return ShopConfiguration.objects.select_related("owner").filter(owner=user)
 
     def list(self, request, *args, **kwargs):
         """重写list方法以提供更好的响应格式"""
@@ -54,9 +82,9 @@ class ShopConfigurationListCreateView(generics.ListCreateAPIView):
         )
 
     def perform_create(self, serializer):
-        """创建店铺配置并自动获取API有效期"""
-        # 保存店铺配置
-        instance = serializer.save()
+        """创建店铺配置并自动设置owner"""
+        # 自动设置当前用户为owner
+        instance = serializer.save(owner=self.request.user)
         
         # 尝试自动获取API有效期
         try:
@@ -120,13 +148,23 @@ class ShopConfigurationDetailView(generics.RetrieveUpdateDestroyAPIView):
     GET: 获取单个店铺配置
     PUT: 更新店铺配置
     DELETE: 删除店铺配置
-    权限：仅admin用户可访问
+    权限：所有者或admin可访问
     """
 
-    queryset = ShopConfiguration.objects.all()
     serializer_class = ShopConfigurationSerializer
-    permission_classes = [IsAuthenticated, IsAdminRole]
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
     lookup_field = "id"
+    
+    def get_queryset(self):
+        """根据用户权限返回查询集"""
+        user = self.request.user
+        
+        # admin 可以访问所有店铺配置
+        if check_user_role(user, "admin"):
+            return ShopConfiguration.objects.select_related("owner").all()
+        
+        # 普通用户只能访问自己的店铺配置
+        return ShopConfiguration.objects.select_related("owner").filter(owner=user)
 
     def retrieve(self, request, *args, **kwargs):
         """重写retrieve方法以提供更好的响应格式"""
@@ -218,19 +256,23 @@ class ShopConfigurationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsAdminRole])
+@permission_classes([IsAuthenticated, IsOwnerOrAdmin])
 def refresh_api_expiry(request, id):
     """
     刷新API许可证密钥到期日期
     通过调用乐天LicenseManagementAPI获取到期日期并更新到数据库
+    权限：所有者或admin可访问
     """
     try:
-        # 获取店铺配置
+        # 获取店铺配置（考虑权限）
         try:
-            config = ShopConfiguration.objects.get(id=id)
+            if check_user_role(request.user, "admin"):
+                config = ShopConfiguration.objects.get(id=id)
+            else:
+                config = ShopConfiguration.objects.get(id=id, owner=request.user)
         except ShopConfiguration.DoesNotExist:
             return Response(
-                {"success": False, "message": "店铺配置不存在"},
+                {"success": False, "message": "店铺配置不存在或您没有访问权限"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
