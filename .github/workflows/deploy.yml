@@ -18,9 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deployment_url: ${{ steps.set-deployment-url.outputs.deployment_url }}
-    defaults:
-      run:
-        working-directory: apps/frontend
+    # 不设置 defaults.run.working-directory，在各步骤中按需切换
     
     steps:
     - name: Checkout code
@@ -68,11 +66,11 @@ jobs:
         cache-dependency-path: 'pnpm-lock.yaml'
         
     - name: Install dependencies (root level)
-      run: cd ../.. && pnpm install --frozen-lockfile
+      run: pnpm install --frozen-lockfile
       
     - name: Build shared packages
       run: |
-        cd ../../packages/shared-types && pnpm build
+        cd packages/shared-types && pnpm build
         cd ../shared-i18n && pnpm build
       
     - name: Deploy to Vercel
