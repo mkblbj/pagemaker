@@ -2,5 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": false
-  }
+  },
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @pagemaker/shared-types build && pnpm --filter @pagemaker/shared-i18n build && pnpm --filter frontend build",
+  "installCommand": "echo 'Skipping install - handled by buildCommand'",
+  "framework": "nextjs"
 }

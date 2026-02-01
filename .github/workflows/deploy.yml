@@ -75,9 +75,6 @@ jobs:
         cd ../../packages/shared-types && pnpm build
         cd ../shared-i18n && pnpm build
       
-    - name: Build frontend
-      run: pnpm build
-      
     - name: Deploy to Vercel
       id: vercel-deploy
       uses: amondnet/vercel-action@v25
@@ -86,8 +83,10 @@ jobs:
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         vercel-args: '--prod --env VERCEL_FUNCTIONS_MAX_DURATION=30'
+        working-directory: ./apps/frontend
         # 强制部署，避免与 Vercel 自动部署冲突
         github-comment: false
+        github-deployment: false
         # 环境变量从 Vercel 项目配置中读取
         
     - name: Set deployment URL output
