@@ -79,8 +79,14 @@ def dashboard_stats(request):
         recent_pages = pages_queryset.filter(created_at__gte=last_month).count()
         recent_change = f"+{recent_pages}" if recent_pages > 0 else "0"
 
-        # 统计店铺数据
-        shops = ShopConfiguration.objects.all()
+        # 统计店铺数据（根据用户权限过滤）
+        if hasattr(user, 'userprofile') and user.userprofile.is_admin():
+            # 管理员可以看到所有店铺
+            shops = ShopConfiguration.objects.all()
+        else:
+            # 普通用户只能看到自己的店铺
+            shops = ShopConfiguration.objects.filter(owner=user)
+        
         total_shops = shops.count()
 
         # 统计各店铺的页面数

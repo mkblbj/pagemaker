@@ -148,12 +148,6 @@ export function AuthCard({
               >
                 {isLoading ? tAuth('登录中...') : tAuth('登录')}
               </Button>
-
-              {/* 测试账号提示 - 开发阶段使用 */}
-              <div className="text-sm text-white/40 text-center mt-4 space-y-1">
-                <p>{tAuth('测试账号: admin / admin123')}</p>
-                <p>{tAuth('或者: testuser / testpass123')}</p>
-              </div>
             </form>
           </div>
 
