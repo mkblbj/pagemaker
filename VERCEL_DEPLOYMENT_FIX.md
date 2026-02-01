@@ -1,69 +1,69 @@
-# Vercel 部署错误修复
+# Vercel 部署错误修复 v2
 
-## 问题分析
+## 问题演进
 
-### 原始错误
+### 第一次错误
 ```
 Error! Unexpected error. Please try again later. ()
-Error: The process '/opt/hostedtoolcache/node/20.20.0/x64/bin/npx' failed with exit code 1
 ```
+**原因**：GitHub Actions 和 Vercel 重复构建冲突
 
-### 根本原因
+### 第二次错误  
+```
+The vercel.json file should be inside of the provided root directory.
+```
+**原因**：`amondnet/vercel-action@v25` 的 `working-directory` 参数处理有问题
 
-1. **重复构建问题**
-   - GitHub Actions 在第78行已经执行了 `pnpm build`
-   - Vercel Action 又尝试重新构建，导致冲突
+## 最终解决方案 ✅
 
-2. **工作目录不匹配**
-   - GitHub Actions 设置了 `working-directory: apps/frontend`
-   - Vercel 需要从项目根目录访问 monorepo 的 workspace 依赖
+### 直接使用 Vercel CLI（不再依赖 vercel-action）
 
-3. **依赖构建顺序**
-   - `frontend` 依赖 `@pagemaker/shared-types` 和 `@pagemaker/shared-i18n`
-   - Vercel 需要先构建这些依赖包
+**核心改动**：
+1. ❌ 移除 `amondnet/vercel-action@v25`（有 bug）
+2. ✅ 直接使用 `npx vercel@latest` CLI
+3. ✅ 通过环境变量传递配置
+4. ✅ 从正确的目录执行部署
 
-## 解决方案
-
-### 方案1：让 Vercel 自己构建（推荐 ⭐）
-
-已实施的修改：
-
-#### 1. 更新 GitHub Actions Workflow
-
-**修改位置**：`.github/workflows/deploy.yml` line 74-92
-
-**改动内容**：
-- ❌ 移除 `Build frontend` 步骤（让 Vercel 自己构建）
-- ✅ 保留 `Build shared packages` 步骤
-- ✅ 添加 `working-directory: ./apps/frontend` 到 Vercel Action
-- ✅ 添加 `github-deployment: false` 避免额外的 GitHub 集成
+### 修改后的 Workflow
 
 ```yaml
-# 移除这个步骤
-# - name: Build frontend
-#   run: pnpm build
-
+- name: Build shared packages
+  run: |
+    cd ../../packages/shared-types && pnpm build
+    cd ../shared-i18n && pnpm build
+  
 - name: Deploy to Vercel
   id: vercel-deploy
-  uses: amondnet/vercel-action@v25
-  with:
-    vercel-token: ${{ secrets.VERCEL_TOKEN }}
-    vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-    vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-    vercel-args: '--prod --env VERCEL_FUNCTIONS_MAX_DURATION=30'
-    working-directory: ./apps/frontend  # ✅ 新增
-    github-comment: false
-    github-deployment: false  # ✅ 新增
+  working-directory: .  # 从根目录开始
+  env:
+    VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  run: |
+    cd apps/frontend
+    npx vercel@latest deploy --prod \
+      --token ${{ secrets.VERCEL_TOKEN }} \
+      --yes
+
+- name: Get Vercel deployment URL
+  id: get-url
+  working-directory: .
+  env:
+    VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  run: |
+    cd apps/frontend
+    DEPLOY_URL=$(npx vercel@latest ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^ ]*vercel.app' | head -n 1)
+    echo "deployment_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 ```
 
-#### 2. 更新 vercel.json
+**关键改进**：
+- ✅ 从根目录执行，然后 `cd apps/frontend`
+- ✅ 环境变量方式传递 ORG_ID 和 PROJECT_ID
+- ✅ 使用 `--yes` 跳过交互确认
+- ✅ Vercel CLI 自动读取 `apps/frontend/vercel.json`
+- ✅ 自动获取部署 URL
 
-**修改位置**：`apps/frontend/vercel.json`
-
-**改动内容**：
-- ✅ 添加 `buildCommand` - 从根目录构建所有依赖
-- ✅ 添加 `installCommand` - 跳过默认安装（由 buildCommand 处理）
-- ✅ 明确指定 `framework: "nextjs"`
+### vercel.json 配置
 
 ```json
 {
@@ -77,178 +77,164 @@ Error: The process '/opt/hostedtoolcache/node/20.20.0/x64/bin/npx' failed with e
 }
 ```
 
-### 方案2：预构建后上传（备选）
+## 为什么这样能工作？
 
-如果方案1仍有问题，可以使用这个方案：
-
-```yaml
-- name: Build frontend (with all dependencies)
-  run: |
-    cd ../..
-    pnpm install --frozen-lockfile
-    pnpm --filter @pagemaker/shared-types build
-    pnpm --filter @pagemaker/shared-i18n build
-    pnpm --filter frontend build
-  
-- name: Deploy pre-built to Vercel
-  uses: amondnet/vercel-action@v25
-  with:
-    vercel-token: ${{ secrets.VERCEL_TOKEN }}
-    vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-    vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-    vercel-args: '--prod --prebuilt'
-    working-directory: ./apps/frontend
-    github-comment: false
-    github-deployment: false
+### 1. 路径解析
+```
+GitHub Actions 工作目录: /home/runner/work/pagemaker/pagemaker
+执行: cd apps/frontend
+结果: /home/runner/work/pagemaker/pagemaker/apps/frontend ✅
 ```
 
-**注意**：需要在 `vercel.json` 中移除 `buildCommand`。
+### 2. Vercel CLI 行为
+```bash
+cd apps/frontend
+npx vercel deploy --prod
+# Vercel CLI 自动：
+# 1. 读取当前目录的 vercel.json
+# 2. 使用环境变量 VERCEL_ORG_ID 和 VERCEL_PROJECT_ID
+# 3. 执行 buildCommand（从 ../.. 根目录构建）
+# 4. 上传构建产物
+```
+
+### 3. Monorepo 依赖
+```bash
+buildCommand: "cd ../.. && pnpm install && ..."
+# 从 apps/frontend 回到根目录
+# 安装所有 workspace 依赖
+# 按顺序构建 shared-types → shared-i18n → frontend
+```
 
 ## 验证步骤
 
 ### 1. 提交修改
 
 ```bash
-cd /home/uo/uomain/pagemaker
-
 git add .github/workflows/deploy.yml
-git add apps/frontend/vercel.json
-git commit -m "fix: resolve Vercel deployment build conflicts
+git add VERCEL_DEPLOYMENT_FIX.md
+git commit -m "fix(deploy): use Vercel CLI directly instead of vercel-action
 
-- Remove duplicate frontend build step from GitHub Actions
-- Configure Vercel to build from monorepo root
-- Add explicit buildCommand in vercel.json for workspace dependencies
-- Set working-directory for vercel-action to avoid path issues"
+- Replace amondnet/vercel-action with direct Vercel CLI usage
+- Fix working directory issues by using cd instead of action parameter
+- Use environment variables for VERCEL_ORG_ID and VERCEL_PROJECT_ID
+- Simplify deployment flow and remove action dependencies"
 
 git push origin main
 ```
 
-### 2. 检查 GitHub Actions
-
-1. 访问 GitHub Actions 页面
-2. 查看最新的 "Deploy" workflow
-3. 确认 "Deploy Frontend to Vercel" job 成功
-
-### 3. 预期输出
+### 2. 观察 Actions 日志
 
 成功的部署应该显示：
 
 ```
-Vercel CLI 25.1.0
-Retrieving project…
-Deploying mkblbjus-gmailcoms-projects/pagemaker-frontend
-Inspect: https://vercel.com/...
-Building
+Vercel CLI XX.X.X
+🔍 Inspect: https://vercel.com/.../...
 ✅ Production: https://your-domain.vercel.app [XX.XXs]
 ```
 
-## 常见问题排查
+### 3. 本地测试（可选）
 
-### Q1: 仍然报错 "Unexpected error"
-
-**可能原因**：
-- Vercel 项目配置问题
-- 环境变量缺失
-
-**解决方法**：
-1. 检查 Vercel 项目设置中的环境变量
-2. 确认 `VERCEL_PROJECT_ID` 和 `VERCEL_ORG_ID` 正确
-3. 尝试在 Vercel Dashboard 手动触发部署，看是否有更详细的错误信息
-
-### Q2: 依赖包构建失败
-
-**错误信息**：
-```
-Module not found: Can't resolve '@pagemaker/shared-types'
-```
-
-**解决方法**：
-确保 `buildCommand` 按正确顺序构建依赖：
 ```bash
-pnpm --filter @pagemaker/shared-types build
-pnpm --filter @pagemaker/shared-i18n build
-pnpm --filter frontend build
+cd apps/frontend
+
+# 设置环境变量
+export VERCEL_ORG_ID="your-org-id"
+export VERCEL_PROJECT_ID="your-project-id"
+
+# 测试部署
+npx vercel@latest deploy --prod --token YOUR_TOKEN --yes
 ```
 
-### Q3: pnpm workspace 不工作
+## 对比：Action vs CLI
 
-**解决方法**：
-在 `vercel.json` 中添加：
-```json
-{
-  "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter frontend... build"
-}
+### 之前（使用 action）
+```yaml
+- uses: amondnet/vercel-action@v25
+  with:
+    vercel-token: ${{ secrets.VERCEL_TOKEN }}
+    vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+    vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+    working-directory: ./apps/frontend  # ❌ 有 bug
 ```
 
-### Q4: 构建超时
-
-**错误信息**：
-```
-Error: Build exceeded maximum duration of XXX seconds
-```
-
-**解决方法**：
-1. 优化构建命令，避免重复安装
-2. 使用 Vercel 的缓存功能
-3. 升级 Vercel 计划以获得更长的构建时间
-
-## 其他优化建议
-
-### 1. 使用 Vercel 环境变量
-
-在 Vercel Dashboard 中配置环境变量，而不是在 `vercel-args` 中传递：
-
-```
-Settings → Environment Variables → Add
+### 现在（直接使用 CLI）
+```yaml
+- env:
+    VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  run: |
+    cd apps/frontend
+    npx vercel@latest deploy --prod \
+      --token ${{ secrets.VERCEL_TOKEN }} \
+      --yes  # ✅ 简单直接
 ```
 
-### 2. 配置构建缓存
+**优势**：
+- ✅ 更灵活，完全控制
+- ✅ 没有第三方 action 的 bug
+- ✅ 更容易调试
+- ✅ 官方 Vercel CLI，更可靠
 
-在 `vercel.json` 中：
-```json
-{
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next",
-      "config": {
-        "includeFiles": [
-          "../../packages/shared-types/dist/**",
-          "../../packages/shared-i18n/dist/**"
-        ]
-      }
-    }
-  ]
-}
+## 常见问题
+
+### Q1: 为什么不用 vercel-action 了？
+
+`amondnet/vercel-action@v25` 的 `working-directory` 参数有 bug，导致路径解析错误。直接使用 CLI 更可靠。
+
+### Q2: VERCEL_ORG_ID 和 VERCEL_PROJECT_ID 在哪？
+
+在 Vercel Dashboard：
+1. 打开你的项目
+2. Settings → General
+3. 复制 "Project ID"
+4. 复制 "Organization ID"（在页面底部）
+
+### Q3: 如何获取部署 URL？
+
+现在通过 `vercel ls` 命令获取最新部署的 URL：
+
+```bash
+npx vercel@latest ls --token $TOKEN 2>&1 | grep -o 'https://[^ ]*vercel.app' | head -n 1
 ```
 
-### 3. 监控部署时间
+### Q4: 构建还是失败怎么办？
 
-如果部署时间超过5分钟，考虑：
-- 将 shared packages 发布到 npm
-- 使用 Vercel 的 Turborepo 集成
+检查 Vercel Dashboard 的部署日志：
+1. 打开 https://vercel.com/
+2. 找到你的项目
+3. 点击失败的部署
+4. 查看详细的构建日志
+
+常见问题：
+- 依赖安装失败：检查 `pnpm-lock.yaml` 是否提交
+- 构建超时：优化 `buildCommand`
+- 环境变量缺失：在 Vercel Dashboard 设置
 
 ## 回滚方案
 
-如果修改后仍有问题，快速回滚：
+如果新方案有问题，快速回滚到使用 action：
 
-```bash
-git revert HEAD
-git push origin main
+```yaml
+- name: Deploy to Vercel
+  uses: amondnet/vercel-action@v25
+  with:
+    vercel-token: ${{ secrets.VERCEL_TOKEN }}
+    vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+    vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+    vercel-args: '--prod'
 ```
 
-或使用 Vercel Dashboard 的 "Redeploy" 功能回滚到上一个成功的部署。
+然后手动在 Vercel Dashboard 设置 Root Directory 为 `apps/frontend`。
 
-## 相关文档
+## 总结
 
-- [Vercel Monorepo 部署指南](https://vercel.com/docs/monorepos)
-- [Vercel Build Configuration](https://vercel.com/docs/build-step)
-- [GitHub Actions Vercel 集成](https://github.com/amondnet/vercel-action)
+✅ **问题根源**：第三方 action 对 monorepo 的支持不好
 
-## 支持
+✅ **解决方案**：直接使用官方 Vercel CLI，完全可控
 
-如果问题持续存在：
-1. 查看 Vercel Dashboard 的部署日志
-2. 检查 GitHub Actions 的完整日志
-3. 尝试本地运行 `vercel build` 测试构建命令
+✅ **关键点**：
+- 正确的目录切换
+- 环境变量配置
+- vercel.json 的 buildCommand
+
+✅ **预期结果**：稳定、可靠的部署流程

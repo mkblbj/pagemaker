@@ -77,25 +77,35 @@ jobs:
       
     - name: Deploy to Vercel
       id: vercel-deploy
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod --env VERCEL_FUNCTIONS_MAX_DURATION=30'
-        working-directory: ./apps/frontend
-        # 强制部署，避免与 Vercel 自动部署冲突
-        github-comment: false
-        github-deployment: false
-        # 环境变量从 Vercel 项目配置中读取
+      # 从根目录执行，直接 cd 到 frontend
+      working-directory: .
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        cd apps/frontend
+        npx vercel@latest deploy --prod \
+          --token ${{ secrets.VERCEL_TOKEN }} \
+          --yes
+        
+    - name: Get Vercel deployment URL
+      id: get-url
+      working-directory: .
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        cd apps/frontend
+        DEPLOY_URL=$(npx vercel@latest ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^ ]*vercel.app' | head -n 1)
+        echo "deployment_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
         
     - name: Set deployment URL output
       id: set-deployment-url
       run: |
         # 获取 Vercel 部署 URL
-        DEPLOYMENT_URL="${{ steps.vercel-deploy.outputs.preview-url }}"
+        DEPLOYMENT_URL="${{ steps.get-url.outputs.deployment_url }}"
         
-        if [ -n "$DEPLOYMENT_URL" ]; then
+        if [ -n "$DEPLOYMENT_URL" ] && [ "$DEPLOYMENT_URL" != "" ]; then
           echo "🚀 前端已部署到 Vercel: $DEPLOYMENT_URL"
           echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
         else
