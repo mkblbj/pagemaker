@@ -1,10 +1,13 @@
 'use client'
 
-import { Layout } from 'lucide-react'
+import { useCallback } from 'react'
+import { Table, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PageModule, KeyValueModuleConfig } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
+import { EditableCustomHTMLRenderer } from '@/components/editor/EditableCustomHTMLRenderer'
 
 interface KeyValueModuleProps {
   module: PageModule & KeyValueModuleConfig
@@ -18,70 +21,139 @@ interface KeyValueModuleProps {
 export function KeyValueModule({
   module,
   isSelected = false,
-  isEditing: _isEditing = false,
-  onUpdate: _onUpdate,
+  isEditing = false,
+  onUpdate,
   onStartEdit,
   onEndEdit: _onEndEdit
 }: KeyValueModuleProps) {
   const { tEditor } = useTranslation()
 
-  // 获取键值对模块的配置
+  // 获取表格模块的配置
   const rows = module.rows || (module as any).pairs || [{ key: tEditor('键'), value: tEditor('值') }]
-  const labelBackgroundColor = module.labelBackgroundColor || '#f3f4f6'
-  const textColor = module.textColor || '#374151'
 
   // 确保至少有一行数据用于显示
   const displayRows = rows.length > 0 ? rows : [{ key: tEditor('键'), value: tEditor('值') }]
 
+  // 将 rows 数据转换为 HTML 表格
+  const generateTableHTML = useCallback(() => {
+    const tableRows = displayRows
+      .map((row: { key: string; value: string }) => {
+        const key = row.key || ''
+        const value = row.value || ''
+        return `<tr><td colspan="6" bgcolor="#efefef" width="20%" align="center">${key}</td><td bgcolor="#FFFFFF" width="80%">${value}</td></tr>`
+      })
+      .join('')
+
+    return `<table width="100%" border="0" cellspacing="2" cellpadding="8" bgcolor="#999999">${tableRows}</table>`
+  }, [displayRows])
+
+  // 从 HTML 表格解析回 rows 数据
+  const parseTableHTML = useCallback((html: string) => {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    const tableRows = doc.querySelectorAll('tr')
+
+    const newRows: Array<{ key: string; value: string }> = []
+    tableRows.forEach((tr) => {
+      const cells = tr.querySelectorAll('td')
+      if (cells.length >= 2) {
+        newRows.push({
+          key: cells[0].innerHTML || '',
+          value: cells[1].innerHTML || ''
+        })
+      }
+    })
+
+    return newRows.length > 0 ? newRows : [{ key: '', value: '' }]
+  }, [])
+
+  // 处理 HTML 更新
+  const handleHTMLUpdate = useCallback((html: string) => {
+    if (!onUpdate) return
+    const newRows = parseTableHTML(html)
+    onUpdate({ rows: newRows })
+  }, [onUpdate, parseTableHTML])
+
+  // 添加新行
+  const handleAddRow = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!onUpdate) return
+
+    const newRows = [...displayRows, { key: tEditor('新键'), value: tEditor('新值') }]
+    onUpdate({ rows: newRows })
+  }, [onUpdate, displayRows, tEditor])
+
+  // 删除最后一行
+  const handleRemoveLastRow = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!onUpdate) return
+    if (displayRows.length <= 1) return // 至少保留一行
+
+    const newRows = displayRows.slice(0, -1)
+    onUpdate({ rows: newRows })
+  }, [onUpdate, displayRows])
+
   return (
     <div
       className={cn(
-        'group relative border-2 border-transparent rounded-lg p-4 transition-all duration-200',
+        'group relative border-2 border-transparent rounded-lg transition-all duration-200',
         isSelected && 'border-blue-500 bg-blue-50/50',
         'hover:border-blue-300 hover:bg-blue-50/30'
       )}
       onClick={onStartEdit}
     >
       {/* 模块标识 */}
-      <div className="flex items-center gap-2 mb-2 opacity-100 transition-opacity">
-        <Layout className="h-4 w-4 text-gray-600" />
+      <div className="flex items-center gap-2 mb-2 px-4 pt-4">
+        <Table className="h-4 w-4 text-gray-600" />
         <Badge variant="secondary" className="text-xs">
-          {tEditor('键值对表格')} ({rows.length} {tEditor('行')})
+          {tEditor('键值对表格')} ({displayRows.length} {tEditor('行')})
         </Badge>
       </div>
 
-      {/* 键值对表格内容 */}
+      {/* 使用 EditableCustomHTMLRenderer 渲染和编辑表格 - 无 padding 确保表格全宽 */}
       <div className="w-full">
-        <table className="w-full border-collapse border border-gray-300">
-          <tbody>
-            {displayRows.map((row, index) => (
-              <tr key={index}>
-                <td
-                  className="border border-gray-300 px-3 py-2 font-medium"
-                  style={{
-                    backgroundColor: labelBackgroundColor,
-                    color: textColor
-                  }}
-                >
-                  {row.key}
-                </td>
-                <td className="border border-gray-300 px-3 py-2" style={{ color: textColor }}>
-                  {row.value}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <EditableCustomHTMLRenderer
+          html={generateTableHTML()}
+          isEditing={isEditing}
+          onUpdate={handleHTMLUpdate}
+        />
       </div>
 
-      {/* 编辑状态下的提示 */}
-      {/* {isEditing && (
-        <div className="absolute inset-0 flex items-center justify-center bg-blue-50/80 rounded-lg border-2 border-blue-300 border-dashed">
-          <div className="text-sm text-blue-600 font-medium">
-            {tEditor('在右侧属性面板中配置键值对内容')}
-          </div>
+      {/* 操作按钮 - 底部显示，选中或悬停时可见 */}
+      <div className={cn(
+        "flex items-center justify-center gap-2 mt-3 pt-2 border-t border-gray-200 transition-opacity",
+        isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+      )}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleAddRow}
+          className="h-7 px-3 text-xs"
+          title={tEditor('添加键值对')}
+        >
+          <Plus className="h-3 w-3 mr-1" />
+          {tEditor('添加')}
+        </Button>
+        {displayRows.length > 1 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRemoveLastRow}
+            className="h-7 px-3 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+            title={tEditor('删除')}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            {tEditor('删除')}
+          </Button>
+        )}
+      </div>
+
+      {/* 编辑提示 */}
+      {isSelected && !isEditing && (
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          {tEditor('单击内容编辑')}
         </div>
-      )} */}
+      )}
     </div>
   )
 }

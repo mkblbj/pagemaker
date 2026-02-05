@@ -452,7 +452,7 @@ ${htmlContent}
   }
 
   /**
-   * 生成键值对模块HTML
+   * 生成键值对模块HTML（表格模块）
    */
   private static generateKeyValueHTML(
     module: PageModule,
@@ -472,80 +472,21 @@ ${htmlContent}
             ? rowsArray
             : itemsArray
 
-    const labelBackgroundColor = getStringProp(module, 'labelBackgroundColor', '#f3f4f6')
-    const textColor = getStringProp(module, 'textColor', '#374151')
-
     if (!rows || rows.length === 0) {
-      return '<!-- 键值对模块：无数据 -->'
+      return '<!-- 表格模块：无数据 -->'
     }
 
-    if (options.mobileMode) {
-      // 乐天移动端约束版本 - 使用table布局，不能使用style属性
-      const tableRows = rows
-        .map((row: any) => {
-          const key = this.escapeHtml(String(row?.key || ''))
-          const value = String(row?.value || '') // 不转义value，保留HTML富文本
+    // 统一使用固定的表格格式（PC和移动端相同）
+    const tableRows = rows
+      .map((row: any) => {
+        const key = this.escapeHtml(String(row?.key || ''))
+        const value = String(row?.value || '') // 不转义value，保留HTML富文本
 
-          return `<tr>
-<td bgcolor="${labelBackgroundColor}" width="30%" align="left" valign="top">
-<font color="${textColor}"><b>${key}</b></font>
-</td>
-<td bgcolor="#ffffff" width="70%" align="left" valign="top">
-${value}
-</td>
-</tr>`
-        })
-        .join('\n')
-
-      return `<table width="100%" cellpadding="8" cellspacing="1" border="0">
-${tableRows}
-</table>`
-    } else {
-      // 标准版本 - 使用table布局以获得更好的样式控制
-      const containerStyles = this.generateInlineStyles({
-        'margin-top': this.formatSpacing(getStringProp(module, 'marginTop')),
-        'margin-bottom': this.formatSpacing(getStringProp(module, 'marginBottom')),
-        'padding-top': this.formatSpacing(getStringProp(module, 'paddingTop')),
-        'padding-bottom': this.formatSpacing(getStringProp(module, 'paddingBottom')),
-        'padding-left': this.formatSpacing(getStringProp(module, 'paddingLeft')),
-        'padding-right': this.formatSpacing(getStringProp(module, 'paddingRight')),
-        width: '100%',
-        'border-collapse': 'collapse'
+        return `<tr><td colspan="6" bgcolor="#efefef" width="20%" align="center">${key}</td><td bgcolor="#FFFFFF" width="80%">${value.replace(/\n/g, '<br>')}</td></tr>`
       })
+      .join('')
 
-      const tableRows = rows
-        .map((row: any) => {
-          const key = this.escapeHtml(String(row?.key || ''))
-          const value = String(row?.value || '') // 不转义value，保留HTML富文本
-
-          const labelCellStyles = this.generateInlineStyles({
-            'background-color': labelBackgroundColor,
-            color: textColor,
-            padding: '8px 12px',
-            border: '1px solid #e5e7eb',
-            'font-weight': 'bold',
-            'vertical-align': 'top',
-            width: '30%'
-          })
-
-          const valueCellStyles = this.generateInlineStyles({
-            color: textColor,
-            padding: '8px 12px',
-            border: '1px solid #e5e7eb',
-            'vertical-align': 'top'
-          })
-
-          return `            <tr>
-                <td class="pm-kv-key" style="${labelCellStyles}">${key}</td>
-                <td class="pm-kv-value" style="${valueCellStyles}">${value.replace(/\n/g, '<br>')}</td>
-            </tr>`
-        })
-        .join('\n')
-
-      return `        <table class="pm-key-value" style="${containerStyles}">
-${tableRows}
-        </table>`
-    }
+    return `<table width="100%" border="0" cellspacing="2" cellpadding="8" bgcolor="#999999">${tableRows}</table>`
   }
 
   /**

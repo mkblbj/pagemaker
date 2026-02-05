@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Image, Plus, Trash2, Upload, X } from 'lucide-react'
+import { Settings, Image, Plus, Trash2, Upload, X, Table } from 'lucide-react'
 import { PageModuleType } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -558,100 +558,10 @@ export function PropertyPanel() {
 
       case PageModuleType.KEY_VALUE:
         return (
-          <div className="space-y-4">
-            {/* 键值对列表 */}
-            <div className="flex items-center justify-between">
-              <Label>{tEditor('键值对列表')}</Label>
-              <Button variant="outline" size="sm" onClick={handleAddKeyValue}>
-                <Plus className="h-4 w-4 mr-1" />
-                {tEditor('添加')}
-              </Button>
-            </div>
-            <div className="space-y-3">
-              {((selectedModule as any).rows || (selectedModule as any).pairs || []).map((row: any, index: number) => (
-                <Card key={index} className="p-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">
-                        {tEditor('键值对')} {index + 1}
-                      </Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveKeyValue(index)}
-                        className="h-6 w-6 p-0 text-red-600"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">{tEditor('键/标签')}</Label>
-                      <Input
-                        value={row.key || ''}
-                        onChange={e => handleKeyValueUpdate(index, 'key', e.target.value)}
-                        placeholder={tEditor('输入键或标签')}
-                        className="text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">{tEditor('值/内容')}</Label>
-                      <Textarea
-                        value={row.value || ''}
-                        onChange={e => handleKeyValueUpdate(index, 'value', e.target.value)}
-                        placeholder={tEditor('输入值或内容')}
-                        className="text-sm"
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* 样式配置 */}
-            <div className="space-y-4 pt-4 border-t">
-              <Label className="text-sm font-medium">{tEditor('样式配置')}</Label>
-
-              {/* 标签列背景色 */}
-              <div className="space-y-2">
-                <Label htmlFor="label-bg-color">{tEditor('标签列背景色')}</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="label-bg-color"
-                    type="color"
-                    value={(selectedModule as any).labelBackgroundColor || '#f3f4f6'}
-                    onChange={e => handlePropertyUpdate('labelBackgroundColor', e.target.value)}
-                    className="w-16 h-8 p-1 rounded"
-                  />
-                  <Input
-                    value={(selectedModule as any).labelBackgroundColor || '#f3f4f6'}
-                    onChange={e => handlePropertyUpdate('labelBackgroundColor', e.target.value)}
-                    placeholder="#f3f4f6"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-
-              {/* 文本颜色 */}
-              <div className="space-y-2">
-                <Label htmlFor="text-color">{tEditor('文本颜色')}</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="text-color"
-                    type="color"
-                    value={(selectedModule as any).textColor || '#374151'}
-                    onChange={e => handlePropertyUpdate('textColor', e.target.value)}
-                    className="w-16 h-8 p-1 rounded"
-                  />
-                  <Input
-                    value={(selectedModule as any).textColor || '#374151'}
-                    onChange={e => handlePropertyUpdate('textColor', e.target.value)}
-                    placeholder="#374151"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
+            <Table className="h-8 w-8 mb-2 text-gray-400" />
+            <p className="text-sm">{tEditor('表格模块')}</p>
+            <p className="text-xs mt-1">{tEditor('双击进入编辑')}</p>
           </div>
         )
 
