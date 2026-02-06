@@ -567,7 +567,7 @@ def get_cabinet_folders(request):
                 except Exception:
                     pass
 
-            # 过滤子节点或分页切片
+            # 过滤子节点
             folders = cached
             if parent_path_query is not None:
                 if parent_path_query == "":
@@ -578,36 +578,30 @@ def get_cabinet_folders(request):
                         f for f in folders if f.get("parentPath") == parent_path_query
                     ]
                 total = len(folders)
-                # 默认全部返回子节点（不再分页），也可按传入分页
-                start = (page - 1) * page_size
-                end = start + page_size
-                sliced = folders[start:end]
+                # 返回全部子节点（不分页），确保所有文件夹都能显示
                 return Response(
                     {
                         "success": True,
                         "data": {
-                            "folders": sliced,
+                            "folders": folders,
                             "total": total,
-                            "page": page,
-                            "pageSize": page_size,
+                            "page": 1,
+                            "pageSize": total,
                         },
                     },
                     status=status.HTTP_200_OK,
                 )
             else:
-                # 返回全量（可分页切片，保持兼容）
+                # want_all=true 时返回全量（不分页）
                 total = len(folders)
-                start = (page - 1) * page_size
-                end = start + page_size
-                sliced = folders[start:end]
                 return Response(
                     {
                         "success": True,
                         "data": {
-                            "folders": sliced,
+                            "folders": folders,
                             "total": total,
-                            "page": page,
-                            "pageSize": page_size,
+                            "page": 1,
+                            "pageSize": total,
                         },
                     },
                     status=status.HTTP_200_OK,
