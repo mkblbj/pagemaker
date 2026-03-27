@@ -24,6 +24,7 @@ import {
   setupCompatibilityMonitoring
 } from '@/lib/browserCompatibility'
 import { CompatibilityWarning } from '@/components/common/CompatibilityWarning'
+import { BRAND_COMPATIBILITY_DESCRIPTION } from '@/lib/brand'
 
 export default function CompatibilityCheckPage() {
   const [compatibilityData, setCompatibilityData] = useState<ReturnType<typeof performCompatibilityCheck> | null>(null)
@@ -132,7 +133,7 @@ export default function CompatibilityCheckPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">浏览器兼容性检测</h1>
-            <p className="text-muted-foreground mt-2">检测您的浏览器是否支持 Pagemaker 编辑器的所有功能</p>
+            <p className="text-muted-foreground mt-2">{BRAND_COMPATIBILITY_DESCRIPTION}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => (window.location.href = '/')}>

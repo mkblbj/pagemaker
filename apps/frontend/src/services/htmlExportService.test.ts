@@ -98,8 +98,8 @@ describe('HtmlExportService', () => {
       expect(html).toContain('<head>')
       expect(html).toContain('<body>')
       expect(html).toContain('<meta charset="UTF-8">')
-      expect(html).toContain('<title>Pagemaker 导出页面</title>')
-      expect(html).toContain('<meta name="generator" content="Pagemaker CMS">')
+      expect(html).toContain('<title>UO-PageMaker 导出页面</title>')
+      expect(html).toContain('<meta name="generator" content="UO-PageMaker">')
     })
 
     it('应该正确处理标题模块的新属性', () => {
@@ -185,29 +185,28 @@ describe('HtmlExportService', () => {
     it('应该正确处理键值对模块', () => {
       const html = HtmlExportService.generateHTML([mockKeyValueModule])
 
-      expect(html).toContain('<table class="pm-key-value"')
+      expect(html).toContain('<table width="100%" border="0" cellspacing="2" cellpadding="8" bgcolor="#999999">')
       expect(html).toContain('产品名称')
       expect(html).toContain('测试产品')
       expect(html).toContain('价格')
       expect(html).toContain('¥999')
-      expect(html).toContain('background-color: #f3f4f6')
-      expect(html).toContain('color: #374151')
+      expect(html).toContain('bgcolor="#efefef"')
+      expect(html).toContain('bgcolor="#FFFFFF"')
+      expect(html).toContain('width="20%"')
+      expect(html).toContain('width="80%"')
     })
 
     it('应该在移动端模式下正确处理键值对模块', () => {
       const html = HtmlExportService.generateHTML([mockKeyValueModule], { mobileMode: true })
 
-      expect(html).toContain('<table width="100%" cellpadding="8" cellspacing="1" border="0">')
-      expect(html).toContain('bgcolor="#f3f4f6"')
-      expect(html).toContain('bgcolor="#ffffff"')
-      expect(html).toContain('<font color="#374151">')
-      expect(html).toContain('width="30%"')
-      expect(html).toContain('width="70%"')
-      expect(html).toContain('align="left"')
-      expect(html).toContain('valign="top"')
+      expect(html).toContain('<table width="100%" border="0" cellspacing="2" cellpadding="8" bgcolor="#999999">')
+      expect(html).toContain('bgcolor="#efefef"')
+      expect(html).toContain('bgcolor="#FFFFFF"')
+      expect(html).toContain('width="20%"')
+      expect(html).toContain('width="80%"')
+      expect(html).toContain('align="center"')
       expect(html).toContain('产品名称')
       expect(html).toContain('测试产品')
-      // 确保没有不被允许的style属性
       expect(html).not.toContain('style=')
     })
 
@@ -219,7 +218,7 @@ describe('HtmlExportService', () => {
 
       const html = HtmlExportService.generateHTML([emptyKeyValueModule])
 
-      expect(html).toContain('<!-- 键值对模块：无数据 -->')
+      expect(html).toContain('<!-- 表格模块：无数据 -->')
     })
 
     it('应该向后兼容items属性', () => {

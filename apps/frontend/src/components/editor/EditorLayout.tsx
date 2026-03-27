@@ -32,6 +32,7 @@ import { ResetConfirmDialog } from './ResetConfirmDialog'
 import { useTranslation } from '@/contexts/I18nContext'
 import { HtmlExportButton } from '@/components/feature/HtmlExportButton'
 import { ToastContainer } from '@/components/ui/toast'
+import { getBrandPageDescription } from '@/lib/brand'
 import {
   Dialog,
   DialogContent,
@@ -199,7 +200,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           includeStyles: !isMobileMode,
           minify: true,
           title: currentPage.name || '页面预览',
-          description: `使用 Pagemaker CMS 创建的页面：${currentPage.name}`,
+          description: getBrandPageDescription(currentPage.name),
           language: 'ja-JP',
           fullDocument: true,
           mobileMode: isMobileMode

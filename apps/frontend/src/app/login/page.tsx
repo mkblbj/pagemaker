@@ -8,6 +8,7 @@ import { AuthCard } from '@/components/auth/AuthCard'
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/contexts/I18nContext'
 import { LanguageCompact } from '@/components/common/LanguageSwitcher'
+import { BRAND_LOGIN_DESCRIPTION } from '@/lib/brand'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,80 +16,28 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
-  const { signIn, signUp, socialSignIn, forgotPassword, isLoading } = useAuth()
+  const { signIn, socialSignIn, forgotPassword, isLoading } = useAuth()
   const { tAuth } = useTranslation()
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // 暂时取消邮箱格式验证，开发阶段使用
-    // if (!validateEmail(email)) {
-    //   toast({
-    //     title: tAuth('邮箱格式错误'),
-    //     description: tAuth('请输入有效的邮箱地址'),
-    //     variant: "destructive",
-    //   })
-    //   return
-    // }
 
     const result = await signIn({ email, password, rememberMe })
 
     if (result.success) {
       toast({
         title: tAuth('登录成功！'),
-        description: tAuth('欢迎回到 Pagemaker CMS')
+        description: BRAND_LOGIN_DESCRIPTION
       })
       router.push('/dashboard')
-    } else {
-      toast({
-        title: tAuth('登录失败'),
-        description: result.error || tAuth('请检查您的邮箱和密码'),
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // 暂时取消邮箱格式验证，开发阶段使用
-    // if (!validateEmail(email)) {
-    //   toast({
-    //     title: tAuth('邮箱格式错误'),
-    //     description: tAuth('请输入有效的邮箱地址'),
-    //     variant: "destructive",
-    //   })
-    //   return
-    // }
-
-    if (password.length < 6) {
-      toast({
-        title: tAuth('密码过短'),
-        description: tAuth('密码至少需要6个字符'),
-        variant: 'destructive'
-      })
       return
     }
 
-    const result = await signUp({ email, password })
-
-    if (result.success) {
-      toast({
-        title: tAuth('注册成功！'),
-        description: tAuth('您的账户已创建成功')
-      })
-      router.push('/dashboard')
-    } else {
-      toast({
-        title: tAuth('注册失败'),
-        description: result.error || tAuth('请检查您的信息'),
-        variant: 'destructive'
-      })
-    }
+    toast({
+      title: tAuth('登录失败'),
+      description: result.error || tAuth('请检查您的邮箱和密码'),
+      variant: 'destructive'
+    })
   }
 
   const handleSocialLogin = async (provider: string) => {
@@ -100,12 +49,14 @@ export default function LoginPage() {
         description: tAuth('正在跳转...')
       })
       router.push('/dashboard')
-    } else {
-      toast({
-        title: `${provider} ${tAuth('登录')}`,
-        description: result.error || tAuth('功能开发中...')
-      })
+      return
     }
+
+    toast({
+      title: `${provider} ${tAuth('登录')}`,
+      description: result.error || tAuth('功能开发中...'),
+      variant: 'destructive'
+    })
   }
 
   const handleForgotPassword = async () => {
@@ -125,27 +76,26 @@ export default function LoginPage() {
         title: tAuth('重置链接已发送'),
         description: tAuth('请查看您的邮箱以获取密码重置说明')
       })
-    } else {
-      toast({
-        title: tAuth('发送失败'),
-        description: result.error || tAuth('请稍后重试'),
-        variant: 'destructive'
-      })
+      return
     }
+
+    toast({
+      title: tAuth('发送失败'),
+      description: result.error || tAuth('请稍后重试'),
+      variant: 'destructive'
+    })
+  }
+
+  const handleSignupPlaceholder = () => {
+    toast({
+      title: tAuth('注册功能即将上线'),
+      description: tAuth('请先使用已有账户登录')
+    })
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        backgroundImage: "url('/bg.jpeg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* 语言切换器 - 固定在右上角 */}
-      <div className="fixed top-4 right-4 z-50">
+    <div className="h-full overflow-y-auto">
+      <div className="fixed right-4 top-4 z-50 rounded-full border border-slate-200/80 bg-white/85 p-1 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
         <LanguageCompact />
       </div>
 
@@ -158,9 +108,9 @@ export default function LoginPage() {
         rememberMe={rememberMe}
         setRememberMe={setRememberMe}
         onSignIn={handleSignIn}
-        onSignUp={handleSignUp}
         onSocialLogin={handleSocialLogin}
         onForgotPassword={handleForgotPassword}
+        onSignupPlaceholder={handleSignupPlaceholder}
       />
       <Toaster />
     </div>

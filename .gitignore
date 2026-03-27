@@ -5,6 +5,7 @@ xnotes/
 .cursor/
 .cursorignore
 .cursorindexingignore
+.claude/
 
 # AI辅助工具
 bmad-agent/

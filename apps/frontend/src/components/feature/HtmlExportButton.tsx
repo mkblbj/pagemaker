@@ -17,6 +17,7 @@ import { Download, Copy, Check, Code, Eye, Settings, AlertCircle, Info } from 'l
 import { generateHTML, type HtmlExportOptions } from '@/services/htmlExportService'
 import { getClipboardCapabilities } from '@/lib/clipboardUtils'
 import { calculateRakutenCharCount } from '@/lib/charCountUtils'
+import { getBrandPageDescription } from '@/lib/brand'
 import type { PageModule } from '@pagemaker/shared-types'
 import { useTranslation } from '@/contexts/I18nContext'
 import { usePageStore } from '@/stores/usePageStore'
@@ -52,7 +53,7 @@ export function HtmlExportButton({
     includeStyles: !isMobileMode, // 移动端模式下不包含样式
     minify: true, // デフォルトで圧縮を有効化
     title: pageTitle,
-    description: `使用 Pagemaker CMS 创建的页面：${pageTitle}`,
+    description: getBrandPageDescription(pageTitle),
     language: 'ja-JP',
     fullDocument: false, // 默认只导出内容部分
     mobileMode: isMobileMode // 移动端页面自动启用乐天模式
@@ -70,7 +71,7 @@ export function HtmlExportButton({
     setExportOptions(prev => ({
       ...prev,
       title: pageTitle,
-      description: `使用 Pagemaker CMS 创建的页面：${pageTitle}`
+      description: getBrandPageDescription(pageTitle)
     }))
   }, [pageTitle])
 

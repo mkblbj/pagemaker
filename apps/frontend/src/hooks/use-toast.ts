@@ -1,7 +1,5 @@
-// This is a placeholder implementation for the toast hook
-// In a real application, you would use a proper toast library like sonner or react-hot-toast
-
-import { useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { toastManager, type ToastProps as ManagedToastProps } from '@/components/ui/toast'
 
 export interface ToastProps {
   id?: string
@@ -11,26 +9,35 @@ export interface ToastProps {
   action?: React.ReactNode
 }
 
+function mapManagedToast(toast: ManagedToastProps): ToastProps {
+  return {
+    id: toast.id,
+    title: toast.title,
+    description: toast.description,
+    variant: toast.type === 'error' ? 'destructive' : 'default'
+  }
+}
+
 export function useToast() {
   const [toasts, setToasts] = useState<ToastProps[]>([])
 
+  useEffect(() => {
+    return toastManager.subscribe(nextToasts => {
+      setToasts(nextToasts.map(mapManagedToast))
+    })
+  }, [])
+
   const toast = useCallback((props: ToastProps) => {
-    const id = Math.random().toString(36).substr(2, 9)
-    const newToast = { ...props, id }
-
-    setToasts(prev => [...prev, newToast])
-
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id))
-    }, 5000)
-
-    // For now, just log to console
-    console.log('Toast:', props)
+    return toastManager.show({
+      type: props.variant === 'destructive' ? 'error' : 'info',
+      title: props.title ?? props.description ?? '',
+      description: props.description,
+      duration: 5000
+    })
   }, [])
 
   const dismiss = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id))
+    toastManager.remove(id)
   }, [])
 
   return {

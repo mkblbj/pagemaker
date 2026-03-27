@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { IPhonePreview } from '@/components/preview/iphone-preview'
 import { pageService } from '@/services/pageService'
 import { generateHTML } from '@/services/htmlExportService'
+import { getBrandPageDescription } from '@/lib/brand'
 
 export default function PreviewPageById() {
   const params = useParams()
@@ -29,7 +30,7 @@ export default function PreviewPageById() {
             includeStyles: false,
             minify: true,
             title: page.name || '页面预览',
-            description: `使用 Pagemaker CMS 创建的页面：${page.name}`,
+            description: getBrandPageDescription(page.name),
             language: 'ja-JP',
             fullDocument: true,
             mobileMode: true

@@ -1,4 +1,5 @@
 import type { PageModule } from '@pagemaker/shared-types'
+import { BRAND_EXPORT_TITLE, BRAND_NAME, getBrandPageDescription } from '@/lib/brand'
 
 // HTML导出配置
 export interface HtmlExportOptions {
@@ -15,8 +16,8 @@ export interface HtmlExportOptions {
 const DEFAULT_OPTIONS: Required<HtmlExportOptions> = {
   includeStyles: true,
   minify: false,
-  title: 'Pagemaker 导出页面',
-  description: '使用 Pagemaker CMS 创建的页面',
+  title: BRAND_EXPORT_TITLE,
+  description: getBrandPageDescription('页面'),
   language: 'zh-CN',
   fullDocument: false, // 默认只导出内容部分
   mobileMode: false // 默认不使用移动端模式
@@ -73,7 +74,7 @@ export class HtmlExportService {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${this.escapeHtml(opts.title)}</title>
     <meta name="description" content="${this.escapeHtml(opts.description)}">
-    <meta name="generator" content="Pagemaker CMS">
+    <meta name="generator" content="${this.escapeHtml(BRAND_NAME)}">
     ${styles ? `<style>\n${styles}\n    </style>` : ''}
 </head>
 <body>
@@ -933,7 +934,7 @@ ${validParts.join('\n')}
    * 生成CSS样式
    */
   private static generateCSS(): string {
-    return `        /* Pagemaker CMS 导出样式 */
+    return `        /* ${BRAND_NAME} 导出样式 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;

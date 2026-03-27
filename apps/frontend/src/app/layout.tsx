@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { I18nProvider } from '@/contexts/I18nContext'
+import { BRAND_METADATA_DESCRIPTION, BRAND_NAME } from '@/lib/brand'
 import './globals.css'
 
 const geistSans = Geist({
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Pagemaker CMS',
-  description: 'A modern content management system for creating and managing web pages'
+  title: BRAND_NAME,
+  description: BRAND_METADATA_DESCRIPTION
 }
 
 export default function RootLayout({

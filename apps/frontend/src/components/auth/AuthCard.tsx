@@ -2,10 +2,13 @@
 
 import type React from 'react'
 import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { X, Mail, ChevronDown, Eye, EyeOff } from 'lucide-react'
+import { Label } from '@/components/ui/label'
 import { useTranslation } from '@/contexts/I18nContext'
+import { LoginCharacterScene, type LoginSceneState } from '@/components/auth/LoginCharacterScene'
+import { BrandLogo, BrandWordmark } from '@/components/common/BrandLogo'
 
 interface AuthCardProps {
   isLoading: boolean
@@ -16,9 +19,32 @@ interface AuthCardProps {
   rememberMe: boolean
   setRememberMe: (remember: boolean) => void
   onSignIn: (e: React.FormEvent) => void
-  onSignUp: (e: React.FormEvent) => void
   onSocialLogin: (provider: string) => void
   onForgotPassword: () => void
+  onSignupPlaceholder: () => void
+}
+
+function GoogleGlyph() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M21.805 12.23c0-.682-.061-1.337-.175-1.965H12v3.719h5.5a4.704 4.704 0 0 1-2.04 3.086v2.562h3.3c1.93-1.777 3.045-4.397 3.045-7.402Z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 22c2.76 0 5.075-.915 6.767-2.368l-3.3-2.562c-.915.614-2.082.977-3.467.977-2.666 0-4.923-1.8-5.73-4.22H2.86v2.645A10 10 0 0 0 12 22Z"
+        fill="#34A853"
+      />
+      <path
+        d="M6.27 13.827A5.99 5.99 0 0 1 5.95 12c0-.635.11-1.252.32-1.827V7.528H2.86A10 10 0 0 0 2 12c0 1.61.384 3.135 1.06 4.472l3.21-2.645Z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M12 5.953c1.5 0 2.846.516 3.907 1.527l2.93-2.93C17.07 2.94 14.756 2 12 2A10 10 0 0 0 2.86 7.528l3.41 2.645c.807-2.42 3.064-4.22 5.73-4.22Z"
+        fill="#EA4335"
+      />
+    </svg>
+  )
 }
 
 export function AuthCard({
@@ -30,257 +56,185 @@ export function AuthCard({
   rememberMe,
   setRememberMe,
   onSignIn,
-  onSignUp,
   onSocialLogin,
-  onForgotPassword
+  onForgotPassword,
+  onSignupPlaceholder
 }: AuthCardProps) {
-  const [activeTab, setActiveTab] = useState('signin')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [emailFocused, setEmailFocused] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
   const { tAuth } = useTranslation()
 
-  const handleRedirect = () => {
-    // 可以在这里添加重定向逻辑，目前保持空
-    console.log('Redirect action triggered')
+  let sceneState: LoginSceneState = 'idle'
+
+  if (showPassword && password.length > 0) {
+    sceneState = 'password-visible'
+  } else if (emailFocused) {
+    sceneState = 'email-focus'
+  } else if (passwordFocused) {
+    sceneState = 'password-focus'
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 shadow-2xl transform transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl">
-        {/* Header with tabs and close button */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex bg-black/30 backdrop-blur-sm rounded-full p-1 border border-white/10">
-            <button
-              onClick={() => setActiveTab('signin')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
-                activeTab === 'signin'
-                  ? 'bg-white/20 backdrop-blur-sm text-white border border-white/20 shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              {tAuth('登录')}
-            </button>
-            <button
-              onClick={() => setActiveTab('signup')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
-                activeTab === 'signup'
-                  ? 'bg-white/20 backdrop-blur-sm text-white border border-white/20 shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              {tAuth('注册')}
-            </button>
-          </div>
-          <button className="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10 hover:bg-black/40 transition-all duration-200 hover:scale-110 hover:rotate-90">
-            <X className="w-5 h-5 text-white/80" />
-          </button>
+    <div className="min-h-full overflow-x-hidden bg-[#f5f4fb] lg:grid lg:min-h-screen lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <section
+        data-testid="desktop-login-stage"
+        className="relative hidden overflow-hidden bg-[linear-gradient(140deg,#6c3ff5_0%,#5a34e8_42%,#3b247c_100%)] px-10 py-10 text-white lg:flex lg:min-h-screen lg:flex-col"
+      >
+        <div className="relative z-10 flex items-center gap-3">
+          <BrandLogo
+            containerClassName="rounded-[20px] border-white/20 bg-white/12 p-2"
+            className="w-[64px] sm:w-[72px]"
+          />
+          <BrandWordmark className="text-xl font-semibold tracking-tight text-white sm:text-2xl" />
         </div>
 
-        <h1 className="text-3xl font-normal text-white mb-8 transition-all duration-300">
-          {activeTab === 'signup' ? tAuth('创建账户') : tAuth('欢迎回来')}
-        </h1>
+        <div className="relative z-10 mt-12 max-w-[34rem] space-y-5">
+          <h1 className="max-w-[12ch] text-[clamp(3rem,5vw,5.25rem)] font-semibold leading-[0.92] tracking-[-0.04em]">
+            {tAuth('让页面制作更简单')}
+          </h1>
+          <p className="max-w-xl text-lg leading-8 text-white/72">{tAuth('可视化搭建和管理乐天店铺页面')}</p>
+        </div>
 
-        <div className="relative overflow-hidden">
-          <div
-            className={`transition-all duration-500 ease-in-out transform ${
-              activeTab === 'signin' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute inset-0'
-            }`}
-          >
-            {/* Sign In Form */}
-            <form onSubmit={onSignIn} className="space-y-4">
-              {/* Email field */}
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40 transition-colors duration-200" />
-                <Input
-                  type="text"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 pl-12 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-                  placeholder={tAuth('邮箱或用户名')}
-                />
-              </div>
+        <div className="relative z-10 flex flex-1 items-end justify-center px-6 pb-8 pt-10">
+          <LoginCharacterScene sceneState={sceneState} />
+        </div>
 
-              {/* Password field */}
+        <div className="relative z-10 flex items-center gap-8 text-sm text-white/62">
+          <span>{tAuth('隐私政策')}</span>
+          <span>{tAuth('服务条款')}</span>
+          <span>{tAuth('联系我们')}</span>
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.14),transparent_35%)]" />
+        <div className="pointer-events-none absolute left-[8%] top-[14%] h-36 w-36 rounded-full bg-white/16 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[18%] right-[14%] h-56 w-56 rounded-full bg-[#ffbc6c]/30 blur-3xl" />
+      </section>
+
+      <section className="relative flex min-h-screen items-center justify-center bg-[#fcfcfd] px-6 py-20 sm:px-8 lg:px-12">
+        <div className="w-full max-w-[430px]">
+          <div data-testid="mobile-login-brand" className="mb-10 flex items-center justify-center gap-3 lg:hidden">
+            <BrandLogo
+              containerClassName="rounded-[18px] border-slate-200/90 bg-white p-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.10)]"
+              className="w-[56px]"
+            />
+            <BrandWordmark className="text-lg text-slate-950" />
+          </div>
+
+          <div className="mb-10 space-y-3">
+            <h2 className="text-4xl font-semibold tracking-[-0.04em] text-slate-950">{tAuth('欢迎回来')}</h2>
+            <p className="text-sm leading-6 text-slate-500">{tAuth('请输入您的登录信息')}</p>
+          </div>
+
+          <form onSubmit={onSignIn} className="space-y-5">
+            <div className="space-y-2.5">
+              <Label htmlFor="login-email" className="text-sm text-slate-700">
+                {tAuth('邮箱或用户名')}
+              </Label>
+              <Input
+                id="login-email"
+                type="text"
+                value={email}
+                autoComplete="username"
+                onChange={e => setEmail(e.target.value)}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+                placeholder={tAuth('邮箱或用户名')}
+                className="h-14 rounded-2xl border-slate-200 bg-white px-4 text-[15px] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 placeholder:text-slate-400 focus-visible:border-[#6c3ff5]/60 focus-visible:ring-[#6c3ff5]/20"
+              />
+            </div>
+
+            <div className="space-y-2.5">
+              <Label htmlFor="login-password" className="text-sm text-slate-700">
+                {tAuth('密码')}
+              </Label>
               <div className="relative">
                 <Input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
+                  autoComplete="current-password"
                   onChange={e => setPassword(e.target.value)}
-                  className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 pr-12 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
                   placeholder={tAuth('请输入密码')}
+                  className="h-14 rounded-2xl border-slate-200 bg-white px-4 pr-12 text-[15px] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 placeholder:text-slate-400 focus-visible:border-[#6c3ff5]/60 focus-visible:ring-[#6c3ff5]/20"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors duration-200"
+                  data-testid="login-password-toggle"
+                  aria-label={showPassword ? tAuth('隐藏密码') : tAuth('显示密码')}
+                  onClick={() => setShowPassword(current => !current)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-700"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+            </div>
 
-              {/* Remember me and forgot password */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={e => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border border-white/20 bg-black/20 text-white focus:ring-white/20 focus:ring-2"
-                  />
-                  <span className="text-white/60 text-sm">{tAuth('记住我')}</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={onForgotPassword}
-                  className="text-white/60 hover:text-white text-sm transition-colors duration-200"
-                >
-                  {tAuth('忘记密码？')}
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-4">
+              <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-[#6c3ff5] focus:ring-[#6c3ff5]/20"
+                />
+                <span>{tAuth('记住我')}</span>
+              </label>
 
-              {/* Sign in button */}
-              <Button
-                type="submit"
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 text-white font-medium rounded-2xl h-14 mt-8 text-base transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
-                disabled={isLoading}
+              <button
+                type="button"
+                data-testid="forgot-password-button"
+                onClick={onForgotPassword}
+                className="text-sm font-medium text-[#6c3ff5] transition-colors hover:text-[#4f2fd6]"
               >
-                {isLoading ? tAuth('登录中...') : tAuth('登录')}
-              </Button>
-            </form>
+                {tAuth('忘记密码？')}
+              </button>
+            </div>
+
+            <Button
+              type="submit"
+              data-testid="login-submit-button"
+              disabled={isLoading}
+              className="h-14 w-full rounded-2xl bg-[#141a2a] text-base font-medium text-white shadow-[0_12px_32px_rgba(20,26,42,0.18)] transition hover:bg-[#1d2538]"
+            >
+              {isLoading ? tAuth('登录中...') : tAuth('登录')}
+            </Button>
+          </form>
+
+          <div className="my-7 flex items-center gap-4">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{tAuth('或继续使用')}</span>
+            <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          <div
-            className={`transition-all duration-500 ease-in-out transform ${
-              activeTab === 'signup' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 absolute inset-0'
-            }`}
-          >
-            {/* Sign Up Form */}
-            <form onSubmit={onSignUp} className="space-y-4">
-              {/* Name fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                  <Input
-                    type="text"
-                    value={firstName}
-                    onChange={e => setFirstName(e.target.value)}
-                    className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-                    placeholder={tAuth('姓')}
-                  />
-                </div>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    value={lastName}
-                    onChange={e => setLastName(e.target.value)}
-                    className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-                    placeholder={tAuth('名')}
-                  />
-                </div>
-              </div>
-
-              {/* Email field */}
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40 transition-colors duration-200" />
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 pl-12 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-                  placeholder={tAuth('请输入邮箱')}
-                />
-              </div>
-
-              {/* Phone field */}
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                  <div className="w-6 h-4 bg-red-500 relative overflow-hidden rounded-sm">
-                    <div className="absolute inset-0 bg-red-500"></div>
-                    <div className="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
-                    <div className="absolute top-1 left-1 w-1 h-0.5 bg-white"></div>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-white/40" />
-                </div>
-                <Input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={e => setPhoneNumber(e.target.value)}
-                  className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 pl-20 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-                  placeholder={tAuth('手机号码')}
-                />
-              </div>
-
-              {/* Password field */}
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 pr-12 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-                  placeholder={tAuth('创建密码')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors duration-200"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-
-              {/* Create account button */}
-              <Button
-                type="submit"
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 text-white font-medium rounded-2xl h-14 mt-8 text-base transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
-                disabled={isLoading}
-              >
-                {isLoading ? tAuth('创建账户中...') : tAuth('创建账户')}
-              </Button>
-            </form>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center my-8">
-          <div className="flex-1 h-px bg-white/10"></div>
-          <span className="px-4 text-white/40 text-sm font-medium">
-            {activeTab === 'signup' ? tAuth('或使用以下方式登录') : tAuth('或继续使用')}
-          </span>
-          <div className="flex-1 h-px bg-white/10"></div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <button
+          <Button
+            type="button"
+            variant="outline"
+            data-testid="google-login-button"
             onClick={() => onSocialLogin('Google')}
-            className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 flex items-center justify-center hover:bg-black/30 transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95"
+            className="h-14 w-full rounded-2xl border-slate-200 bg-white text-[15px] font-medium text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-slate-50"
           >
-            <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-              <div className="w-4 h-4 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 rounded-full"></div>
-            </div>
-          </button>
-          <button
-            onClick={() => onSocialLogin('GitHub')}
-            className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 flex items-center justify-center hover:bg-black/30 transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95"
-          >
-            <div className="w-6 h-6 text-white">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-              </svg>
-            </div>
-          </button>
-        </div>
+            <GoogleGlyph />
+            {tAuth('使用 Google 登录')}
+          </Button>
 
-        <p className="text-center text-white/40 text-sm mt-8">
-          {activeTab === 'signup'
-            ? tAuth('创建账户即表示您同意我们的服务条款')
-            : tAuth('登录即表示您同意我们的服务条款')}
-        </p>
+          <div className="mt-8 text-center text-sm text-slate-500">
+            {tAuth('还没有账户？')}{' '}
+            <button
+              type="button"
+              data-testid="signup-placeholder-button"
+              onClick={onSignupPlaceholder}
+              className="font-semibold text-slate-900 transition-colors hover:text-[#6c3ff5]"
+            >
+              {tAuth('创建账户')}
+            </button>
+          </div>
 
-        <div className="text-center mt-6 pt-4 border-t border-white/10">
-          <p className="text-white/30 text-xs">{tAuth('由 Pagemaker CMS 强力驱动')} ❤️</p>
+          <p className="mt-5 text-center text-xs leading-6 text-slate-400">{tAuth('登录即表示您同意我们的服务条款')}</p>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

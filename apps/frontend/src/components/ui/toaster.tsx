@@ -1,11 +1,7 @@
-// Simple toaster component placeholder
-// In a real application, you would use a proper toast library
+'use client'
 
-import React from 'react'
+import { ToastContainer } from '@/components/ui/toast'
 
 export function Toaster() {
-  // This is a placeholder component
-  // In the current implementation, toasts are logged to console
-  // You can replace this with a proper toast implementation later
-  return null
+  return <ToastContainer />
 }

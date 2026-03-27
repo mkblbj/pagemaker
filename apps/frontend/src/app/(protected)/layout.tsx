@@ -8,6 +8,8 @@ import { apiClient } from '@/lib/apiClient'
 import { useTranslation } from '@/contexts/I18nContext'
 import { LanguageCompact } from '@/components/common/LanguageSwitcher'
 import { ApiExpiryReminder } from '@/components/common/ApiExpiryReminder'
+import { BrandLogo, BrandWordmark } from '@/components/common/BrandLogo'
+import { BRAND_NAME } from '@/lib/brand'
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -15,7 +17,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const { tAuth, tCommon } = useTranslation()
 
-  // 检查是否是编辑器页面
   const isEditorPage = pathname?.includes('/editor/')
 
   useEffect(() => {
@@ -28,13 +29,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       }
 
       try {
-        // 尝试调用一个需要认证的API来验证token
         await apiClient.get('/api/v1/pages/')
         setIsAuthenticated(true)
       } catch (error: any) {
         console.error('Auth check failed:', error)
-
-        // Token无效，清除并跳转到登录
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
         setIsAuthenticated(false)
@@ -44,7 +42,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     checkAuth()
   }, [])
 
-  // Loading state
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -60,7 +57,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     )
   }
 
-  // Not authenticated - redirect to login
   if (!isAuthenticated) {
     router.push('/login')
     return (
@@ -77,20 +73,22 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     )
   }
 
-  // Authenticated - render protected content
   return (
     <div className="h-screen bg-background flex flex-col">
       <header className="border-b border-border bg-card flex-shrink-0">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold">Pagemaker CMS</h1>
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/dashboard" aria-label={BRAND_NAME} className="flex items-center gap-3">
+              <BrandLogo
+                containerClassName="rounded-xl border-slate-200/80 bg-white p-1.5 shadow-sm"
+                className="w-[44px] sm:w-[52px]"
+              />
+              <BrandWordmark className="text-lg text-foreground sm:text-xl" />
+            </Link>
             <nav className="flex items-center space-x-4">
               <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
                 {tCommon('仪表板')}
               </Link>
-              {/* <Link href="/editor" className="text-muted-foreground hover:text-foreground">
-                {tCommon('编辑器')}
-              </Link> */}
               <Link href="/pages" className="text-muted-foreground hover:text-foreground">
                 {tCommon('页面管理')}
               </Link>
@@ -116,7 +114,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         {children}
       </main>
 
-      {/* API到期提醒组件 - 全局显示 */}
       <ApiExpiryReminder />
     </div>
   )
