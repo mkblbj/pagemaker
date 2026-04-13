@@ -660,9 +660,18 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const FULLWIDTH_SPACE_ENTITY = '&#12288;'
     const protectedHtml = html.replace(/\u3000/g, FULLWIDTH_SPACE_ENTITY)
 
+    const isMobileCanvas = currentPage?.device_type === 'mobile'
+    // 仅移动端画布：约束表格与长串换行，避免 iframe 内横向滚动（PC 设备类型不注入，避免影响桌面编辑布局）
+    const mobileLayoutCss = isMobileCanvas
+      ? `html,body{overflow-x:hidden;max-width:100%;box-sizing:border-box;}*,*:before,*:after{box-sizing:border-box;}table{max-width:100%;width:100%!important;table-layout:fixed;}td,th{word-break:break-word;overflow-wrap:anywhere;}img,video{max-width:100%;height:auto;}pre{white-space:pre-wrap;word-break:break-word;}`
+      : ''
+
     // 写入HTML内容（紧凑格式，避免额外空白）
     iframeDoc.open()
-    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;font-family:inherit;cursor:text;}body:hover{outline:1px dashed #3b82f6;outline-offset:2px;}body.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}</style></head><body>${protectedHtml}</body></html>`
+    const viewportMeta = isMobileCanvas
+      ? '<meta name="viewport" content="width=device-width, initial-scale=1">'
+      : ''
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8">${viewportMeta}<style>${mobileLayoutCss}body{margin:0;padding:0;font-family:inherit;cursor:text;}body:hover{outline:1px dashed #3b82f6;outline-offset:2px;}body.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}</style></head><body>${protectedHtml}</body></html>`
     iframeDoc.write(htmlContent)
     iframeDoc.close()
 
@@ -845,7 +854,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       iframeDoc.removeEventListener('selectionchange', handleSelectionChange)
       iframeDoc.removeEventListener('click', handleClick)
     }
-  }, [html, isEditing, syncHTMLChanges, updateToolbarPosition, detectFormatState])
+  }, [html, isEditing, syncHTMLChanges, updateToolbarPosition, detectFormatState, currentPage?.device_type])
 
   return (
     <>
