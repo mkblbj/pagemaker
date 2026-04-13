@@ -9,10 +9,16 @@ import { sanitizeHtml } from '@/lib/htmlSanitizer'
 interface EditableCustomHTMLRendererProps {
   html: string
   isEditing?: boolean
+  onContentWidthChange?: (width: number) => void
   onUpdate?: (html: string) => void
 }
 
-export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }: EditableCustomHTMLRendererProps) {
+export function EditableCustomHTMLRenderer({
+  html,
+  isEditing = false,
+  onContentWidthChange,
+  onUpdate
+}: EditableCustomHTMLRendererProps) {
   const { tEditor } = useTranslation()
   const { currentPage } = usePageStore()
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -21,6 +27,7 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
   const [showImageSelector, setShowImageSelector] = useState(false)
   const editingElementRef = useRef<HTMLElement | null>(null)
   const originalHtmlRef = useRef<string>(html)
+  const lastReportedWidthRef = useRef<number | null>(null)
   
   // 工具条状态管理
   const [showToolbar, setShowToolbar] = useState(false)
@@ -659,19 +666,11 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
     const FULLWIDTH_SPACE = '\u3000'
     const FULLWIDTH_SPACE_ENTITY = '&#12288;'
     const protectedHtml = html.replace(/\u3000/g, FULLWIDTH_SPACE_ENTITY)
-
-    const isMobileCanvas = currentPage?.device_type === 'mobile'
-    // 仅移动端画布：约束表格与长串换行，避免 iframe 内横向滚动（PC 设备类型不注入，避免影响桌面编辑布局）
-    const mobileLayoutCss = isMobileCanvas
-      ? `html,body{overflow-x:hidden;max-width:100%;box-sizing:border-box;}*,*:before,*:after{box-sizing:border-box;}table{max-width:100%;width:100%!important;table-layout:fixed;}td,th{word-break:break-word;overflow-wrap:anywhere;}img,video{max-width:100%;height:auto;}pre{white-space:pre-wrap;word-break:break-word;}`
-      : ''
+    const isPcCanvas = currentPage?.device_type === 'pc'
 
     // 写入HTML内容（紧凑格式，避免额外空白）
     iframeDoc.open()
-    const viewportMeta = isMobileCanvas
-      ? '<meta name="viewport" content="width=device-width, initial-scale=1">'
-      : ''
-    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8">${viewportMeta}<style>${mobileLayoutCss}body{margin:0;padding:0;font-family:inherit;cursor:text;}body:hover{outline:1px dashed #3b82f6;outline-offset:2px;}body.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}</style></head><body>${protectedHtml}</body></html>`
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;font-family:inherit;cursor:text;}body:hover{outline:1px dashed #3b82f6;outline-offset:2px;}body.editing-text{outline:2px solid #3b82f6 !important;outline-offset:2px;background:#eff6ff !important;}.editable-image{cursor:pointer !important;transition:opacity 0.2s,outline 0.2s;}.editable-image:hover{opacity:0.85;outline:2px solid #3b82f6;outline-offset:2px;}</style></head><body>${protectedHtml}</body></html>`
     iframeDoc.write(htmlContent)
     iframeDoc.close()
 
@@ -688,6 +687,28 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
         1 // 最小1px，避免完全消失
       )
       setIframeHeight(height)
+
+      if (!isPcCanvas) {
+        lastReportedWidthRef.current = null
+        return
+      }
+
+      const width = Math.max(
+        body.scrollWidth,
+        body.offsetWidth,
+        html.clientWidth,
+        html.scrollWidth,
+        html.offsetWidth,
+        1
+      )
+      const renderedIframeWidth = iframe.clientWidth
+
+      // 只在内容真实超过当前可见 iframe 宽度时才上报，
+      // 避免把已经被父容器撑开的宽度再次当成“内容宽度”回传，导致画布正反馈无限放大。
+      if (width > renderedIframeWidth && lastReportedWidthRef.current !== width) {
+        lastReportedWidthRef.current = width
+        onContentWidthChange?.(width)
+      }
     }
 
     // 等待内容加载完成
@@ -854,14 +875,14 @@ export function EditableCustomHTMLRenderer({ html, isEditing = false, onUpdate }
       iframeDoc.removeEventListener('selectionchange', handleSelectionChange)
       iframeDoc.removeEventListener('click', handleClick)
     }
-  }, [html, isEditing, syncHTMLChanges, updateToolbarPosition, detectFormatState, currentPage?.device_type])
+  }, [html, isEditing, syncHTMLChanges, updateToolbarPosition, detectFormatState, currentPage?.device_type, onContentWidthChange])
 
   return (
     <>
       <iframe
         ref={iframeRef}
-        className="custom-html-iframe w-full border-0"
-        style={{ height: `${iframeHeight}px` }}
+        className="custom-html-iframe border-0"
+        style={{ height: `${iframeHeight}px`, width: '100%', minWidth: '100%' }}
         title="Custom HTML Content"
       />
 

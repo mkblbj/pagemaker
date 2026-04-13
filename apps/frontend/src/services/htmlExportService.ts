@@ -65,7 +65,7 @@ export class HtmlExportService {
     }
 
     // 生成完整HTML文档
-    const styles = opts.includeStyles ? this.generateCSS({ mobileMode: opts.mobileMode }) : ''
+    const styles = opts.includeStyles ? this.generateCSS() : ''
 
     const html = `<!DOCTYPE html>
 <html lang="${opts.language}">
@@ -933,32 +933,7 @@ ${validParts.join('\n')}
   /**
    * 生成CSS样式
    */
-  private static generateCSS(options?: { mobileMode?: boolean }): string {
-    const mobileCustomHtmlRules = options?.mobileMode
-      ? `
-        /* 移动端：自定义 HTML 内表格/长文本自适应，避免横向滚动 */
-        .pagemaker-content table {
-            max-width: 100%;
-            width: 100%;
-            table-layout: fixed;
-        }
-        .pagemaker-content td,
-        .pagemaker-content th {
-            word-break: break-word;
-            overflow-wrap: anywhere;
-        }
-        .pagemaker-content img,
-        .pagemaker-content video {
-            max-width: 100%;
-            height: auto;
-        }
-        .pagemaker-content pre {
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-`
-      : ''
-
+  private static generateCSS(): string {
     return `        /* ${BRAND_NAME} 导出样式 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -973,7 +948,6 @@ ${validParts.join('\n')}
             margin: 0 auto;
             padding: 20px;
         }
-        ${mobileCustomHtmlRules}
         
         .pm-title {
             margin: 16px 0;

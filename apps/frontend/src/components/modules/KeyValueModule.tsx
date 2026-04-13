@@ -13,6 +13,7 @@ interface KeyValueModuleProps {
   module: PageModule & KeyValueModuleConfig
   isSelected?: boolean
   isEditing?: boolean
+  onContentWidthChange?: (width: number) => void
   onUpdate?: (updates: Partial<PageModule>) => void
   onStartEdit?: () => void
   onEndEdit?: () => void
@@ -22,6 +23,7 @@ export function KeyValueModule({
   module,
   isSelected = false,
   isEditing = false,
+  onContentWidthChange,
   onUpdate,
   onStartEdit,
   onEndEdit: _onEndEdit
@@ -115,6 +117,7 @@ export function KeyValueModule({
         <EditableCustomHTMLRenderer
           html={generateTableHTML()}
           isEditing={isEditing}
+          onContentWidthChange={onContentWidthChange}
           onUpdate={handleHTMLUpdate}
         />
       </div>

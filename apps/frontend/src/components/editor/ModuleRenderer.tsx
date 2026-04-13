@@ -76,6 +76,7 @@ interface ModuleRendererProps {
   module: PageModule
   isSelected?: boolean
   isEditing?: boolean
+  onContentWidthChange?: (width: number) => void
   onUpdate?: (updates: Partial<PageModule>) => void
   onStartEdit?: () => void
   onEndEdit?: () => void
@@ -94,6 +95,7 @@ export function ModuleRenderer({
   module,
   isSelected,
   isEditing,
+  onContentWidthChange,
   onUpdate,
   onStartEdit,
   onEndEdit,
@@ -165,6 +167,7 @@ export function ModuleRenderer({
             module={module as any}
             isSelected={isSelected}
             isEditing={isEditing}
+            onContentWidthChange={onContentWidthChange}
             onUpdate={onUpdate}
             onStartEdit={onStartEdit}
             onEndEdit={onEndEdit}
@@ -404,6 +407,7 @@ export function ModuleRenderer({
               <EditableCustomHTMLRenderer
                 html={customHTML}
                 isEditing={isEditing}
+                onContentWidthChange={onContentWidthChange}
                 onUpdate={html => {
                   onUpdate?.({ customHTML: html })
                 }}

@@ -72,6 +72,7 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
   // 导入 HTML 对话框状态
   const [importHtmlDialogOpen, setImportHtmlDialogOpen] = useState(false)
   const [importHtmlCode, setImportHtmlCode] = useState('')
+  const [preferredPcCanvasWidth, setPreferredPcCanvasWidth] = useState(440)
 
   // 面板调整相关状态
   const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null)
@@ -156,6 +157,20 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       markUnsaved()
     },
     [updatePage, markUnsaved]
+  )
+
+  useEffect(() => {
+    setPreferredPcCanvasWidth(440)
+  }, [currentPage?.id, currentPage?.device_type])
+
+  const handlePreferredCanvasWidthChange = useCallback(
+    (width: number) => {
+      if (currentPage?.device_type !== 'pc') return
+
+      const nextWidth = Math.max(440, Math.ceil(width))
+      setPreferredPcCanvasWidth(prevWidth => (prevWidth === nextWidth ? prevWidth : nextWidth))
+    },
+    [currentPage?.device_type]
   )
 
   // 监听鼠标事件
@@ -255,6 +270,8 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
       }
     }
   }
+
+  const isPcCanvas = currentPage?.device_type === 'pc'
 
   return (
     <DragProvider>
@@ -450,9 +467,15 @@ export function EditorLayout({ pageId }: EditorLayoutProps) {
           <div className="flex-1 overflow-hidden bg-gray-50">
             <div className="h-full overflow-y-auto">
               <div className="p-4 md:p-6">
-                {/* 画布宽度设置为固定最大宽度 */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-full w-full max-w-[440px] mx-auto">
-                  <Canvas />
+                {/* PC 端画布按最宽模块扩展，移动端保持固定窄画布 */}
+                <div
+                  data-testid="editor-canvas-shell"
+                  className={`bg-white rounded-lg shadow-sm border border-gray-200 min-h-full mx-auto ${
+                    isPcCanvas ? '' : 'w-full max-w-[440px]'
+                  }`}
+                  style={isPcCanvas ? { width: `${preferredPcCanvasWidth}px`, maxWidth: 'none' } : undefined}
+                >
+                  <Canvas onPreferredWidthChange={handlePreferredCanvasWidthChange} />
                 </div>
               </div>
             </div>

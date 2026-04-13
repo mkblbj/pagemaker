@@ -52,6 +52,7 @@ export default function PagesPage() {
   // 页面名称编辑状态
   const [editingPageId, setEditingPageId] = useState<string | null>(null)
   const [editingPageName, setEditingPageName] = useState('')
+  const [changingPageDeviceId, setChangingPageDeviceId] = useState<string | null>(null)
   
   // 创建页面对话框状态
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -296,6 +297,50 @@ export default function PagesPage() {
         description: error instanceof Error ? error.message : tError('复制页面失败，请重试'),
         duration: 5000
       })
+    }
+  }
+
+  // 修改页面设备类型（仅 pages 界面开放，editor 仍保持不可切换）
+  const handleChangePageDeviceType = async (page: PageTemplateListItem, nextDeviceType: 'pc' | 'mobile') => {
+    if (page.device_type === nextDeviceType) {
+      return
+    }
+
+    const currentDeviceLabel = getDeviceTypeDisplay(page.device_type).label
+    const nextDeviceLabel = getDeviceTypeDisplay(nextDeviceType).label
+
+    if (page.module_count > 0) {
+      const confirmed = window.confirm(
+        `页面「${page.name}」当前已有 ${page.module_count} 个模块。\n\n确定要将页面类型从「${currentDeviceLabel}」改为「${nextDeviceLabel}」吗？`
+      )
+
+      if (!confirmed) {
+        return
+      }
+    }
+
+    try {
+      setChangingPageDeviceId(page.id)
+      await pageService.updatePage(page.id, { device_type: nextDeviceType })
+
+      toastManager.show({
+        type: 'success',
+        title: tCommon('修改成功'),
+        description: `页面类型已更新为「${nextDeviceLabel}」`,
+        duration: 3000
+      })
+
+      await fetchPages(selectedShopId, selectedDeviceType, currentPage, debouncedSearchTerm)
+    } catch (error) {
+      console.error('修改页面类型失败:', error)
+      toastManager.show({
+        type: 'error',
+        title: tError('修改失败'),
+        description: error instanceof Error ? error.message : tError('修改页面类型失败，请重试'),
+        duration: 5000
+      })
+    } finally {
+      setChangingPageDeviceId(null)
     }
   }
 
@@ -657,6 +702,22 @@ export default function PagesPage() {
                           <Badge variant="outline" className="text-xs">
                             {deviceDisplay.label}
                           </Badge>
+                          <Select
+                            value={page.device_type}
+                            onValueChange={(value: 'pc' | 'mobile') => handleChangePageDeviceType(page, value)}
+                            disabled={changingPageDeviceId === page.id}
+                          >
+                            <SelectTrigger
+                              className="h-7 w-[120px] text-xs"
+                              data-testid={`page-device-type-select-${page.id}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pc">{tCommon('PC端')}</SelectItem>
+                              <SelectItem value="mobile">{tCommon('移动端')}</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         {page.shop_name && (
                           <Badge variant="secondary" className="text-xs">

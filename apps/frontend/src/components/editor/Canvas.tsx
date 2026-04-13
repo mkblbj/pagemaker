@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { usePageStore } from '@/stores/usePageStore'
 import { useEditorStore } from '@/stores/useEditorStore'
 import { ModuleRenderer } from './ModuleRenderer'
@@ -50,6 +50,7 @@ function SortableModuleContainer({
   onEndEdit,
   onViewCode,
   onSplit,
+  onContentWidthChange,
   isFirst,
   isLast,
   isDeleting = false,
@@ -97,6 +98,7 @@ function SortableModuleContainer({
           module={module}
           isSelected={isSelected}
           isEditing={isEditing}
+          onContentWidthChange={onContentWidthChange}
           onUpdate={onUpdate}
           onStartEdit={onStartEdit}
           onEndEdit={onEndEdit}
@@ -182,7 +184,14 @@ function SortableModuleContainer({
   )
 }
 
-export function Canvas() {
+interface CanvasProps {
+  onPreferredWidthChange?: (width: number) => void
+}
+
+const PC_CANVAS_BASE_WIDTH = 440
+const PC_CANVAS_HORIZONTAL_BUFFER = 80
+
+export function Canvas({ onPreferredWidthChange }: CanvasProps) {
   const {
     currentPage,
     selectedModuleId,
@@ -208,6 +217,57 @@ export function Canvas() {
   const [splitPreviewOpen, setSplitPreviewOpen] = useState(false)
 
   const modules = currentPage?.content || []
+  const [moduleContentWidths, setModuleContentWidths] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    setModuleContentWidths(prevWidths => {
+      const activeModuleIds = new Set(modules.map(module => module.id))
+      const nextWidths = Object.fromEntries(
+        Object.entries(prevWidths).filter(([moduleId]) => activeModuleIds.has(moduleId))
+      )
+
+      return Object.keys(nextWidths).length === Object.keys(prevWidths).length ? prevWidths : nextWidths
+    })
+  }, [modules])
+
+  useEffect(() => {
+    if (!onPreferredWidthChange) return
+
+    if (currentPage?.device_type !== 'pc') {
+      onPreferredWidthChange(PC_CANVAS_BASE_WIDTH)
+      return
+    }
+
+    const widestModuleWidth = Object.values(moduleContentWidths).reduce((maxWidth, width) => {
+      return Math.max(maxWidth, width)
+    }, 0)
+
+    const preferredCanvasWidth = Math.max(
+      PC_CANVAS_BASE_WIDTH,
+      Math.ceil(widestModuleWidth + PC_CANVAS_HORIZONTAL_BUFFER)
+    )
+
+    onPreferredWidthChange(preferredCanvasWidth)
+  }, [currentPage?.device_type, moduleContentWidths, onPreferredWidthChange])
+
+  const handleModuleContentWidthChange = useCallback(
+    (moduleId: string, width: number) => {
+      if (currentPage?.device_type !== 'pc' || !Number.isFinite(width) || width <= 0) return
+
+      const nextWidth = Math.ceil(width)
+      setModuleContentWidths(prevWidths => {
+        if (prevWidths[moduleId] === nextWidth) {
+          return prevWidths
+        }
+
+        return {
+          ...prevWidths,
+          [moduleId]: nextWidth
+        }
+      })
+    },
+    [currentPage?.device_type]
+  )
 
   // 处理模块选择
   const handleModuleSelect = (moduleId: string) => {
@@ -487,6 +547,7 @@ export function Canvas() {
               onEndEdit={handleEndEdit}
               onViewCode={() => handleViewModuleCode(module)}
               onSplit={() => handleSplitModule(module)}
+              onContentWidthChange={(width: number) => handleModuleContentWidthChange(module.id, width)}
               isFirst={index === 0}
               isLast={index === modules.length - 1}
               isDeleting={deletingModuleId === module.id}
