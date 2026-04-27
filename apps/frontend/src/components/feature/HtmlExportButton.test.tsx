@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HtmlExportButton } from './HtmlExportButton'
-import type { PageModule } from '@pagemaker/shared-types'
+import type { PageModule, PageTemplate } from '@pagemaker/shared-types'
 import { PageModuleType } from '@pagemaker/shared-types'
+import { usePageStore } from '@/stores/usePageStore'
 
 // Mock dependencies
 vi.mock('@/services/htmlExportService', () => ({
@@ -34,8 +35,21 @@ describe('HtmlExportButton', () => {
   let mockModules: PageModule[]
   const user = userEvent.setup()
 
+  const mockPcPage: PageTemplate = {
+    id: 'page-pc',
+    name: 'PC测试页面',
+    content: [],
+    shop_id: 'shop-1',
+    device_type: 'pc',
+    owner_id: 'owner-1',
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+    module_count: 0
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
+    usePageStore.getState().clearPage()
 
     mockModules = [
       {
@@ -87,6 +101,8 @@ describe('HtmlExportButton', () => {
   })
 
   it('应该支持导出选项配置', async () => {
+    usePageStore.getState().setPage({ ...mockPcPage, content: mockModules, module_count: mockModules.length })
+
     render(<HtmlExportButton modules={mockModules} />)
 
     const button = screen.getByRole('button', { name: /导出HTML/i })
@@ -97,9 +113,11 @@ describe('HtmlExportButton', () => {
       expect(screen.getByText('导出选项')).toBeInTheDocument()
     })
 
+    const fullDocumentCheckbox = screen.getByLabelText('完整HTML文档')
     const includeStylesCheckbox = screen.getByLabelText('包含CSS样式')
     const minifyCheckbox = screen.getByLabelText('压缩HTML代码')
 
+    expect(fullDocumentCheckbox).not.toBeChecked()
     expect(includeStylesCheckbox).toBeChecked()
     expect(minifyCheckbox).toBeChecked() // 现在默认为true
 
@@ -110,6 +128,7 @@ describe('HtmlExportButton', () => {
 
   it('应该在对话框打开时自动生成HTML', async () => {
     const { generateHTML } = await import('@/services/htmlExportService')
+    usePageStore.getState().setPage({ ...mockPcPage, content: mockModules, module_count: mockModules.length })
 
     render(<HtmlExportButton modules={mockModules} pageTitle="测试页面" />)
 
@@ -124,7 +143,7 @@ describe('HtmlExportButton', () => {
           description: '使用 UO-PageMaker 创建的页面：测试页面',
           includeStyles: true,
           minify: true,
-          fullDocument: true, // 对话框打开时会重新生成，此时fullDocument可能为true
+          fullDocument: false,
           language: 'ja-JP',
           mobileMode: false
         })

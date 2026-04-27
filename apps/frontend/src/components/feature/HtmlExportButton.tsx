@@ -82,7 +82,7 @@ export function HtmlExportButton({
       ...prev,
       mobileMode: isMobile,
       includeStyles: !isMobile, // 移动端模式下禁用样式
-      fullDocument: !isMobile // 移动端模式下禁用完整文档
+      fullDocument: false // 默认导出纯内容HTML，桌面端也不自动包完整文档
     }))
   }, [currentPage?.device_type])
 
