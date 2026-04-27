@@ -77,13 +77,31 @@ jobs:
       
     - name: Deploy to Vercel
       id: vercel-deploy
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
-        github-comment: false
+      working-directory: ${{ github.workspace }}
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        echo "🚀 使用最新版 Vercel CLI 部署前端..."
+        npx --yes vercel@latest --version
+
+        DEPLOY_OUTPUT=$(npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1)
+        echo "$DEPLOY_OUTPUT"
+
+        DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | grep -Eo 'https://[^[:space:]]+' | grep -v 'https://vercel.com/' | tail -n 1)
+
+        if [ -z "$DEPLOYMENT_URL" ]; then
+          DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | grep -Eo 'https://[^[:space:]]+' | tail -n 1)
+        fi
+
+        if [ -z "$DEPLOYMENT_URL" ]; then
+          echo "❌ 未能从 Vercel CLI 输出中解析部署 URL"
+          exit 1
+        fi
+
+        echo "✅ Vercel 部署完成: $DEPLOYMENT_URL"
+        echo "preview-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
         
     - name: Set deployment URL output
       id: set-deployment-url
